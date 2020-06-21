@@ -49,44 +49,60 @@ Therefore, as there are plenty of ways / a lot of tutorial on CMake and git inst
 ### Get the required toolchain (CMake + git + Ruby x86 Dev Kit 2.6.6 + Rake extension)
 
 __CMake__
+
 1 - "scoop install cmake", or another method to install CMake and get it in your path.
 
 __Git__
+
 2 - "scoop install git", or another method to install git and get it in your path.
 
 __Ruby__
+
 3 - THIS TIME DO NOT INSTALL WITH SCOOP if you are on Windows x64. It will install the Ruby x64 environment.
 	Let us do it manually by going to https://rubyinstaller.org/downloads/ and selecting Ruby + dev kit x86 2.6.6.
 	Then follow the installation step.
+
 4 - Install the ruby dev kit using "ridk install" (chose 3 and when everything is done press enter)
 	As you can notice, it will download and install MSYS2.
+
 5 - Enable the ruby dev kit using ridk enable
+
 6 - Test your compilation toolchain access from PATH by typing "mingw32-make", if it is located, you won.
 
 __Rake__
+
 7 - Once you have Ruby, it is pretty straight forward : "gem install rake-compiler"
 	(Again do not forget to verify that you can access it from the path, it is not mandatory but it will help you later)
 	
 ### Compilation of dependencies (SFML 2.5.1)
 
 __SFML 2.5.1__
+
 1 - Download SFML directly from sources, you will need to compile it with your Mingw32 x86 toolchain https://www.sfml-dev.org/download/sfml/2.5.1/index-fr.php
+
 2 - Extract it on the folder you want to. I recommand to install it the closest to your drive letter for simplicity.
 	We will take "D:\Dev\SFML-2.5.1" as an example here.
+
 3 - Open a shell in this folder, and configure your compilation parameters with the following command line :
 	`cmake -G "MinGW Makefiles" -DSFML_BUILD_EXAMPLES=False .`
 	(you can leave SFML_BUILD_EXAMPLES to True, but it will take a bit longer)
+
 4 - Type "mingw32-make", wait and contemplate your victory.
+
 5 - Now SFML libs have been generated. Ensure that you have the DLL version of the libs, if not, you missed up a point in the process.
 	If you encounter problems with the CMake configuration of SFML, an official page is dedicated to it : https://www.sfml-dev.org/tutorials/2.5/compile-with-cmake.php
+
 6 - Add the variable "SFML_DIR" to your environment. It should contain the path to the root of SFML folder, meaning for us here it is "D:\Dev\SFML-2.5.1"
 	(CMake generated files are located here, and it will help your other projects to correctly find SFML)
 
 __Get the projects from Gitlab__
-7 - Now go to another place in your folder hierarchy and extract this actual repository of LiteRGSS2 with "git clone ...TODO..."
+
+7 - Now go to another place in your folder hierarchy and extract this actual repository of LiteRGSS2 with "git clone https://gitlab.com/pokemonsdk/litergss2.git"
+
 8 - And then do it (of course in another place) for the Gitlab repository of LiteCGSS with "git clone https://gitlab.com/NuriYuri/litecgss.git"
 
 __LiteCGSS__
+
 9 - Then let us compile LiteCGSS first, by going to its root folder and typing :
 		`cmake -G "MinGW Makefiles" -DBUILD_SHARED_LIBS=True .`
 	Ensure that you see a line mentioning something like 
@@ -96,54 +112,59 @@ __LiteCGSS__
 ### The LiteRGSS2
 
 __Junctions and setup__
-1 - First, you have to make the LiteRGSS2 to "know" the LiteCGSS. For this, the best way is to make symlinks (aka junctions on Windows) to the include and lib folders.
-	Got to your LiteRGSS2 root folder and type the following, replacing PATH_TO_YOUR_LITECGSS_ROOT by your real LiteCGSS folder :
-		`cmd.exe /c mklink /J LiteCGSS $PATH_TO_YOUR_LITECGSS_ROOT/src/src`
-	It will create a symbolic folder named LiteCGSS and pointing to you LiteCGSS src folder.
-	Then type the equivalent to link your generated LiteCGSS DLL :
-		`cmd.exe /c mklink /J LiteCGSS_bin {PATH_TO_YOUR_LITECGSS_ROOT}/bin`
-2 - We could do the same for SFML, but as it is a fixed version dependency, the easiest way is to copy paste generated libraries, from %SFML_DIR%\lib :
-		libsfml-audio.a
-		libsfml-graphics.a
-		libsfml-main.a
-		libsfml-network.a
-		libsfml-system.a
-		libsfml-window.a
-	To your ruby toolchain MSYS2 lib folder, located at something like C:\Ruby$RUBY_VERSION\msys32\mingw32\i686-w64-mingw32\lib, example for Ruby 2.7.X : C:\Ruby27\msys32\mingw32\i686-w64-mingw32\lib
-	Then you can do the same for the SFML includes, by creating a SFML folder in C:\Ruby$RUBY_VERSION\msys32\mingw32\i686-w64-mingw32\include and copy pasting the content of %SFML_DIR%\include into it.
+
+11 - First, you have to make the LiteRGSS2 to "know" the LiteCGSS. For this, the best way is to make symlinks (aka junctions on Windows) to the include and lib folders.
+- Go to your LiteRGSS2 root folder and type the following, replacing PATH_TO_YOUR_LITECGSS_ROOT by your real LiteCGSS folder :
+     `cmd.exe /c mklink /J LiteCGSS $PATH_TO_YOUR_LITECGSS_ROOT/src/src`
+- It will create a symbolic folder named LiteCGSS and pointing to you LiteCGSS src folder.
+- Then type the equivalent to link your generated LiteCGSS DLL :
+     `cmd.exe /c mklink /J LiteCGSS_bin {PATH_TO_YOUR_LITECGSS_ROOT}/bin`
+
+
+12 - We could do the same for SFML, but as it is a fixed version dependency, the easiest way is to copy paste generated libraries, from %SFML_DIR%\lib :
+- libsfml-audio.a
+- libsfml-graphics.a
+- libsfml-main.a
+- libsfml-network.a
+- libsfml-system.a
+- libsfml-window.a
+
+To your ruby toolchain MSYS2 lib folder, located at something like C:\Ruby$RUBY_VERSION\msys32\mingw32\i686-w64-mingw32\lib, example for Ruby 2.7.X : C:\Ruby27\msys32\mingw32\i686-w64-mingw32\lib
+
+Then you can do the same for the SFML includes, by creating a SFML folder in C:\Ruby$RUBY_VERSION\msys32\mingw32\i686-w64-mingw32\include and copy pasting the content of %SFML_DIR%\include into it.
 
 __Compilation__
-11 - Ensure you have the Ruby dev kit toolchain by typing "ridk enable"
-12 - Go back to LiteRGSS root folder.
+
+13 - Ensure you have the Ruby dev kit toolchain by typing "ridk enable"
+
+14 - Go back to LiteRGSS root folder.
 	 This time we will use the ruby rake compiler toolchain, by simply typing
-		rake clean; rake compile
-13 - Copy / Paste all the DLL generated to the mingw32 binary folder in C:\Ruby$RUBY_VERSION\msys32\mingw32\bin :
-		libLiteCGSS_engine.dll
-		sfml-graphics-2.dll
-		sfml-window-2.dll
-		sfml-audio-2.dll
-		sfml-network-2.dll
-		sfml-system-2.dll
+		`rake clean; rake compile`
+
+15 - Copy / Paste all the DLL generated to the mingw32 binary folder in C:\Ruby$RUBY_VERSION\msys32\mingw32\bin :
+- libLiteCGSS_engine.dll
+- sfml-graphics-2.dll
+- sfml-window-2.dll
+- sfml-audio-2.dll
+- sfml-network-2.dll
+- sfml-system-2.dll
 
 ### Use LiteRGSS2 in PSDK
 
-1 - Download and install PSDK for Windows. I will not detail this step as it is done in other places.
-2 - Copy paste your own generated "LiteRGSS.so" in the PSDK lib folder.
-3 - Try to start the game by typing "ruby Game.rb". If you have an error about "RubyFmod.so" that cannot load a module... then you will have to continue this tutorial.
-4 - We have to find and compile FMod for Windows and use it to compile our own version of RubyFmod.so, first, go to https://www.fmod.com/download
-5 - You need an account to download "FMOD Studio API". Once the account created, log in and download the 1.X version (not the 2.X one !). Be careful, you do not need FMod Studio Tools !
-6 - On Windows you have an easy to use installer. Follow the steps, it will install all headers + dll required to use Fmod as a dependency in our project.
-7 - Again and as we did with SFML, just copy paste the include, bin and lib folders to C:\Ruby$RUBY_VERSION\msys32\mingw32\i686-w64-mingw32.
-		By default, the FMOD installation folder of lowlevel api is "C:\Program Files (x86)\FMOD SoundSystem\FMOD Studio API Windows\api\lowlevel"
-		The required dll are :
-		fmod.dll
-		fmodL.dll
-8 - Now get the RubyFmod project in the folder of your choice from the command "git clone https://github.com/NuriYuri/Ruby-Fmod.git"
-9 - Go into this folder, and with ridk tools enabled, (type "ridk enable" if needed), type :
-		rake clean; rake compile
-10 - Take the generated RubyFmod.so and copy / paste it to the "lib" folder of PSDK.
-11 - Again, try to start the game by typing "ruby Game.rb".
-11 - World is yours. Enjoy the start of the Game !
+1. Download and install PSDK for Windows. I will not detail this step as it is done in other places.
+2. Copy paste your own generated "LiteRGSS.so" in the PSDK lib folder.
+3. Try to start the game by typing "ruby Game.rb". If you have an error about "RubyFmod.so" that cannot load a module... then you will have to continue this tutorial.
+4. We have to find and compile FMod for Windows and use it to compile our own version of RubyFmod.so, first, go to https://www.fmod.com/download
+5. You need an account to download "FMOD Studio API". Once the account created, log in and download the 1.X version (not the 2.X one !). Be careful, you do not need FMod Studio Tools !
+6. On Windows you have an easy to use installer. Follow the steps, it will install all headers + dll required to use Fmod as a dependency in our project.
+7. Again and as we did with SFML, just copy paste the include, bin and lib folders to C:\Ruby$RUBY_VERSION\msys32\mingw32\i686-w64-mingw32.
+By default, the FMOD installation folder of lowlevel api is "C:\Program Files (x86)\FMOD SoundSystem\FMOD Studio API Windows\api\lowlevel"
+The required dll are `fmod.dll` and `fmodL.dll`
+8. Now get the RubyFmod project in the folder of your choice from the command "git clone https://github.com/NuriYuri/Ruby-Fmod.git"
+9. Go into this folder, and with ridk tools enabled, (type "ridk enable" if needed), type : `rake clean; rake compile`
+10. Take the generated RubyFmod.so and copy / paste it to the "lib" folder of PSDK.
+11. Again, try to start the game by typing "ruby Game.rb".
+12. World is yours. Enjoy the start of the Game !
 
 ## Specials Thanks / Maintainers
 * [NuriYuri](https://gitlab.com/NuriYuri) original writer of LiteRGSS, PSDK project creator
