@@ -1,0 +1,34 @@
+#files being edited
+*~
+
+
+# make and build files
+*.lst
+*.o
+*.so
+*.eep
+*.lss
+*.map
+*.sym
+
+# Resources
+*.bmp
+*.ttf
+*.jpg
+*.png
+
+# Other things
+.vscode
+*.code-workspace
+*.directory
+.yardoc
+tmp
+ext/LiteRGSS2/ruby
+ext/LiteRGSS2/ruby.h
+yard/doc
+yard/*.html
+mkmf.log
+pkg/*
+LiteCGSS
+LiteCGSS_bin
+*.log
