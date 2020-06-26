@@ -1,2 +1,3 @@
+system('depbuild.bat')
 system('rake compile')
-File.copy_stream('lib/LiteRGSS.so', '../PSDK/lib/LiteRGSS.so')
+File.copy_stream('lib/LiteRGSS.so', '../pokemonsdk/lib/LiteRGSS.so')

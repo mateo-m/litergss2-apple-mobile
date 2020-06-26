@@ -1,11 +1,10 @@
 #ifndef CGraphics_H
 #define CGraphics_H
 #include <memory>
+#include <LiteCGSS/Views/DisplayWindow.h>
 #include "RubyValue.h"
 #include "GraphicsConfigLoader.h"
 #include "GraphicsUpdateMessage.h"
-
-#include "Views/DisplayWindow.h"
 
 class GraphicsSingleton {
 public:

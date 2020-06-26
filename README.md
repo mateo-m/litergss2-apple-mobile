@@ -99,29 +99,22 @@ __Get the projects from Gitlab__
 
 7 - Now go to another place in your folder hierarchy and extract this actual repository of LiteRGSS2 with "git clone https://gitlab.com/pokemonsdk/litergss2.git"
 
-8 - And then do it (of course in another place) for the Gitlab repository of LiteCGSS with "git clone https://gitlab.com/NuriYuri/litecgss.git"
+8 - LiteRGSS2 automatically embeds LiteCGSS (and therefore skalog) as git submodule. To keep everything functional, you have to init all submodules recursively by typing
+		`git submodule update --recursive --init`
 
 __LiteCGSS__
 
 9 - Then let us compile LiteCGSS first, by going to its root folder and typing :
-		`cmake -G "MinGW Makefiles" -DBUILD_SHARED_LIBS=True .`
+		`cd external/litecgss; cmake -G "MinGW Makefiles" -DBUILD_SHARED_LIBS=True .`
 	Ensure that you see a line mentioning something like 
 		"Found SFML 2.5.1 in D:/Dev/SFML-2.5.1"
-10 - Build LiteCGSS with mingw32-make. All lights are green.
+10 - Always under "external/litecgss", build LiteCGSS with mingw32-make. All lights are green.
 
 ### The LiteRGSS2
 
-__Junctions and setup__
+__Setup__
 
-11 - First, you have to make the LiteRGSS2 to "know" the LiteCGSS. For this, the best way is to make symlinks (aka junctions on Windows) to the include and lib folders.
-- Go to your LiteRGSS2 root folder and type the following, replacing PATH_TO_YOUR_LITECGSS_ROOT by your real LiteCGSS folder :
-     `cmd.exe /c mklink /J LiteCGSS $PATH_TO_YOUR_LITECGSS_ROOT/src/src`
-- It will create a symbolic folder named LiteCGSS and pointing to you LiteCGSS src folder.
-- Then type the equivalent to link your generated LiteCGSS DLL :
-     `cmd.exe /c mklink /J LiteCGSS_bin {PATH_TO_YOUR_LITECGSS_ROOT}/bin`
-
-
-12 - We could do the same for SFML, but as it is a fixed version dependency, the easiest way is to copy paste generated libraries, from %SFML_DIR%\lib :
+11 - As SFML is a fixed version dependency, the easiest way is to copy paste generated libraries, from %SFML_DIR%\lib :
 - libsfml-audio.a
 - libsfml-graphics.a
 - libsfml-main.a
@@ -135,13 +128,13 @@ Then you can do the same for the SFML includes, by creating a SFML folder in C:\
 
 __Compilation__
 
-13 - Ensure you have the Ruby dev kit toolchain by typing "ridk enable"
+12 - Ensure you have the Ruby dev kit toolchain by typing "ridk enable"
 
-14 - Go back to LiteRGSS root folder.
+13 - Go back to LiteRGSS root folder.
 	 This time we will use the ruby rake compiler toolchain, by simply typing
 		`rake clean; rake compile`
 
-15 - Copy / Paste all the DLL generated to the mingw32 binary folder in C:\Ruby$RUBY_VERSION\msys32\mingw32\bin :
+14 - Copy / Paste all the DLL generated to the mingw32 binary folder in C:\Ruby$RUBY_VERSION\msys32\mingw32\bin :
 - libLiteCGSS_engine.dll
 - sfml-graphics-2.dll
 - sfml-window-2.dll
