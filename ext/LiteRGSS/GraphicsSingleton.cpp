@@ -212,6 +212,14 @@ void GraphicsSingleton::sortZ() {
 	m_gameWindow.sortZ();
 }
 
+long GraphicsSingleton::getOGlMajor() {
+	return m_gameWindow.getContextSettings().majorVersion;
+}
+
+long GraphicsSingleton::getOGlMinor() {
+	return m_gameWindow.getContextSettings().minorVersion;
+}
+
 VALUE GraphicsSingleton::takeSnapshot() {
 	return TextureElement::snapToTexture(m_gameWindow);
 }

@@ -10,6 +10,7 @@ public:
 
 private:
 	cgss::DisplayWindowVideoSettings loadVideoFromConfigs() const;
+	cgss::DisplayWindowContextSettings loadContext() const;
 	bool loadSmoothScreenFromConfigs() const;
 	std::string loadTitleFromConfigs() const;
 	unsigned int loadFrameRateFromConfigs() const;

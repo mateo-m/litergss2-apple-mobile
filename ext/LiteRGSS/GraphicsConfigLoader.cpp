@@ -1,3 +1,4 @@
+#include <SFML/Window/VideoMode.hpp>
 #include "LiteRGSS.h"
 #include "RubyValue.h"
 #include "NormalizeNumbers.h"
@@ -48,6 +49,10 @@ cgss::DisplayWindowVideoSettings GraphicsConfigLoader::loadVideoFromConfigs() co
 	return { vmode.bitsPerPixel, vmode.width, vmode.height, scale };
 }
 
+cgss::DisplayWindowContextSettings GraphicsConfigLoader::loadContext() const {
+	return sf::ContextSettings(0, 0, 0, 4, 5);
+}
+
 bool GraphicsConfigLoader::loadSmoothScreenFromConfigs() const {
 	ID fsc = rb_intern("SmoothScreen");
 	return rb_const_defined(rb_mConfig, fsc) && RTEST(rb_const_get(rb_mConfig, fsc));
@@ -90,6 +95,7 @@ bool GraphicsConfigLoader::loadFullScreenFromConfigs() const {
 
 cgss::DisplayWindowSettings GraphicsConfigLoader::load() const {
 	auto vmode = loadVideoFromConfigs();
+	auto context = loadContext();
 	auto smoothScreen = loadSmoothScreenFromConfigs();
 	auto title = loadTitleFromConfigs();
 	auto frameRate = loadFrameRateFromConfigs();
@@ -98,6 +104,7 @@ cgss::DisplayWindowSettings GraphicsConfigLoader::load() const {
 	return {
 		false,
 		std::move(vmode),
+		std::move(context),
 		smoothScreen,
 		sf::String{std::move(title)},
 		frameRate,
