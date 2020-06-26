@@ -135,6 +135,13 @@ VALUE rb_Graphics_set_icon(VALUE self, VALUE icon) {
 	return self;
 }
 
+VALUE rb_Graphics_get_ogl_version(VALUE self) {
+	VALUE result = rb_ary_new2(2);
+	rb_ary_push(result, LONG2NUM(GraphicsSingleton::Get().getOGlMajor()));
+	rb_ary_push(result, LONG2NUM(GraphicsSingleton::Get().getOGlMinor()));
+	return result;
+}
+
 VALUE rb_Graphics_sort_z(VALUE self) {
 	GraphicsSingleton::Get().sortZ();
 	return self;
@@ -167,7 +174,8 @@ void Init_Graphics() {
 	rb_define_module_function(rb_mGraphics, "shader=", _rbf rb_Graphics_setShader, 1);
 	rb_define_module_function(rb_mGraphics, "icon=", _rbf rb_Graphics_set_icon, 1);
 	rb_define_module_function(rb_mGraphics, "resize_screen", _rbf rb_Graphics_resize_screen, 2);
-	
+	rb_define_module_function(rb_mGraphics, "openGL_version", _rbf rb_Graphics_get_ogl_version, 0);
+
 	rb_iGraphicsShader = rb_intern("@__GraphicsShader");
 	/* Store the max texture size */
 	rb_define_const(rb_mGraphics, "MAX_TEXTURE_SIZE", LONG2FIX(sf::Texture::getMaximumSize()));

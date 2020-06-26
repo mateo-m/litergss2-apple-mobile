@@ -25,6 +25,8 @@ public:
 	bool smoothScreen() const { return m_gameWindow.smoothScreen(); }
 	double scale() const { return m_gameWindow.scale(); }
 	auto frameRate() const { return m_gameWindow.frameRate(); }
+	long getOGlMajor();
+	long getOGlMinor();
 
 	void init();
 	void stop();
