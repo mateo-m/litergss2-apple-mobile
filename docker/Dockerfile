@@ -23,6 +23,12 @@ RUN apt-get -y upgrade
 # LiteRGSS compilation requirements
 RUN apt-get install -y ruby-dev rake rake-compiler
 
+# Windows Cross compilation requirements
+RUN apt-get install -y mingw-w64 g++-mingw-w64 git
+COPY ./windows.build.sh /psdk/windows.build.sh
+RUN chmod +x /psdk/windows.build.sh
+COPY ./mingw.x86.windows.toolchain.cmake /psdk/mingw.x86.windows.toolchain.cmake
+
 # LiteCGSS links
 RUN ln -s /psdk/litecgss/src/src/ /usr/include/LiteCGSS || true
 RUN ln -s /psdk/litecgss/lib/libLiteCGSS_engine.so /usr/lib/ || true
