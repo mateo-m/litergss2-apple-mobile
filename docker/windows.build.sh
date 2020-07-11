@@ -3,6 +3,9 @@
 WORK_DIR="/psdk"
 export SFML_DIR="$WORK_DIR/SFML"
 
+POSIX_MINGW_X86_LIB_DIR="/usr/i686-w64-mingw32/lib"
+POSIX_MINGW_X86_GCC_LIB_DIR="/usr/lib/gcc/i686-w64-mingw32/*-posix"
+
 is_sfml_dir_empty() {
     ! ls -1qA $SFML_DIR | grep -q . >/dev/null
 }
@@ -24,3 +27,7 @@ cmake . \
     -DBUILD_SHARED_LIBS=True
 
 cmake --build .
+
+cp $POSIX_MINGW_X86_GCC_LIB_DIR/libgcc_s_sjlj-1.dll ${WORK_DIR}/litecgss/bin/
+cp $POSIX_MINGW_X86_GCC_LIB_DIR/libstdc++-6.dll ${WORK_DIR}/litecgss/bin/
+cp $POSIX_MINGW_X86_LIB_DIR/libwinpthread-1.dll ${WORK_DIR}/litecgss/bin/
