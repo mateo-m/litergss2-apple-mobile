@@ -13,22 +13,12 @@
 
 VALUE rb_cViewport = Qnil;
 
-void ViewportElement::updateFromValue(const sf::Glsl::Vec4* toneValue) {
-	(*this)->setTone(toneValue);
-}
-
-void ViewportElement::updateFromValue(const sf::Color* colorValue) {
-	(*this)->setColor(colorValue);
-}
-
 template<>
 void rb::Mark<ViewportElement>(ViewportElement* viewport) {
 	if (viewport == nullptr) {
 		return;
 	}
 	rb_gc_mark(viewport->rRect);
-	rb_gc_mark(viewport->rTone);
-	rb_gc_mark(viewport->rColor);
 	rb_gc_mark(viewport->rAngle);
 	rb_gc_mark(viewport->rZoom);
 	rb_gc_mark(viewport->rRenderState);
@@ -111,50 +101,6 @@ static VALUE rb_Viewport_setRect(VALUE self, VALUE val) {
 
 }
 
-static VALUE rb_Viewport_getTone(VALUE self) {
-	auto& viewport = rb::Get<ViewportElement>(self);
-	VALUE tn = viewport.rTone;
-	if (!NIL_P(tn)) {
-		return tn;
-	}
-
-	/* New tone + new color */
-	VALUE argv[4] = {LONG2FIX(0), LONG2FIX(0), LONG2FIX(0), LONG2FIX(0)};
-	
-	viewport.rColor = rb_class_new_instance(4, argv, rb_cColor);
-	auto& color = rb::GetSafe<ColorElement>(viewport.rColor, rb_cColor);
-	color.bind(&viewport);
-
-	tn = rb_class_new_instance(4, argv, rb_cTone);
-	auto& tone = rb::GetSafe<ToneElement>(tn, rb_cTone);
-	tone.bind(&viewport);
-	viewport.rTone = tn;
-	return tn;
-}
-
-static VALUE rb_Viewport_setTone(VALUE self, VALUE val) {
-	VALUE tn = rb_Viewport_getTone(self);
-	auto& tonesrc = rb::GetSafe<ToneElement>(val, rb_cTone);
-	auto& tonedst = rb::Get<ToneElement>(tn);
-	tonedst.setValue(tonesrc.getValue());
-	return val;
-}
-
-static VALUE rb_Viewport_getColor(VALUE self) {
-	rb_Viewport_getTone(self);
-	auto& viewport = rb::Get<ViewportElement>(self);
-	return viewport.rColor;
-}
-
-static VALUE rb_Viewport_setColor(VALUE self, VALUE val) {
-	rb_Viewport_getTone(self);
-	auto& viewport = rb::Get<ViewportElement>(self);
-	auto& color = rb::GetSafe<ColorElement>(val, rb_cColor);
-	color.bind(&viewport);
-	viewport.rColor = val;
-	return self;
-}
-
 static VALUE rb_Viewport_getVisible(VALUE self) {
 	auto& viewport = rb::Get<ViewportElement>(self);
 	return viewport->isVisible() ? Qtrue : Qfalse;
@@ -216,7 +162,6 @@ static VALUE rb_Viewport_getRenderState(VALUE self) {
 
 static VALUE rb_Viewport_setRenderState(VALUE self, VALUE val) {
 	auto& viewport = rb::Get<ViewportElement>(self);
-	rb_Viewport_getColor(self);
 	if (rb_obj_is_kind_of(val, rb_cBlendMode) == Qtrue) {
 		auto* renderStates = rb::GetPtr<RenderStatesElement>(val);
 		if (renderStates) {
@@ -266,10 +211,6 @@ void Init_Viewport() {
 	rb_define_method(rb_cViewport, "sort_z", _rbf rb_Viewport_sort_z, 0);
 	rb_define_method(rb_cViewport, "dispose", _rbf rb_Viewport_Dispose, 0);
 	rb_define_method(rb_cViewport, "disposed?", _rbf rb_Viewport_Disposed, 0);
-	rb_define_method(rb_cViewport, "tone", _rbf rb_Viewport_getTone, 0);
-	rb_define_method(rb_cViewport, "tone=", _rbf rb_Viewport_setTone, 1);
-	rb_define_method(rb_cViewport, "color", _rbf rb_Viewport_getColor, 0);
-	rb_define_method(rb_cViewport, "color=", _rbf rb_Viewport_setColor, 1);
 	rb_define_method(rb_cViewport, "update", _rbf rb_Viewport_Update, 0);
 	rb_define_method(rb_cViewport, "visible", _rbf rb_Viewport_getVisible, 0);
 	rb_define_method(rb_cViewport, "visible=", _rbf rb_Viewport_setVisible, 1);
