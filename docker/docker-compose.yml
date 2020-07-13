@@ -14,3 +14,4 @@ services:
             - ..:/psdk/litergss
             - ../external/litecgss:/psdk/litecgss
             - ../external/SFML:/psdk/SFML
+            - ../external/ruby:/root/.rake-compiler/ruby

@@ -31,3 +31,5 @@ cmake --build .
 cp $POSIX_MINGW_X86_GCC_LIB_DIR/libgcc_s_sjlj-1.dll ${WORK_DIR}/litecgss/bin/
 cp $POSIX_MINGW_X86_GCC_LIB_DIR/libstdc++-6.dll ${WORK_DIR}/litecgss/bin/
 cp $POSIX_MINGW_X86_LIB_DIR/libwinpthread-1.dll ${WORK_DIR}/litecgss/bin/
+
+rake-compiler cross-ruby VERSION=2.6.6

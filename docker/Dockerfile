@@ -11,7 +11,9 @@ RUN apt-get install -y libsfml-dev
 # Setup build system
 RUN apt-get install -y \
 cmake \
-build-essential
+wget \
+tar \
+bzip2
 
 # Setup x VNC server
 RUN apt-get install -y xvfb x11vnc fluxbox
@@ -21,7 +23,8 @@ USER root
 RUN apt-get -y upgrade
 
 # LiteRGSS compilation requirements
-RUN apt-get install -y ruby-dev rake rake-compiler
+RUN apt-get install -y ruby-dev rake
+RUN gem install rake-compiler
 
 # Windows Cross compilation requirements
 RUN apt-get install -y mingw-w64 g++-mingw-w64 git
