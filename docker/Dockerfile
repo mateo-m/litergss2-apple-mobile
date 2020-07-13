@@ -7,9 +7,6 @@ USER root
 # Ensures repositories are up-to-date
 RUN apt-get update
 
-# Install SFML
-RUN apt-get install -y libsfml-dev
-
 # Setup build system
 RUN apt-get install -y \
 cmake \
@@ -37,6 +34,9 @@ ENV RUBY_VERSION=${RUBY_VERSION}
 COPY ./mingw.x86.windows.toolchain.cmake /psdk/mingw.x86.windows.toolchain.cmake
 COPY ./windows.build.sh /psdk/windows.build.sh
 RUN chmod +x /psdk/windows.build.sh
+
+# Install SFML
+RUN apt-get install -y libsfml-dev
 
 # LiteCGSS links
 RUN ln -s /psdk/litecgss/src/src/ /usr/include/LiteCGSS || true
