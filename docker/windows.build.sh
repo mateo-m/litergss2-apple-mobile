@@ -21,6 +21,9 @@ cmake . \
 
 cmake --build .
 
+cp $SFML_DIR/lib/*.dll ${WORK_DIR}/litecgss/bin/
+cp $SFML_DIR/lib/*.dll ${WORK_DIR}/litergss/lib/
+
 cd $WORK_DIR/litecgss
 cmake . \
     -DCMAKE_TOOLCHAIN_FILE=$WORK_DIR/mingw.x86.windows.toolchain.cmake \
@@ -32,4 +35,10 @@ cp $POSIX_MINGW_X86_GCC_LIB_DIR/libgcc_s_sjlj-1.dll ${WORK_DIR}/litecgss/bin/
 cp $POSIX_MINGW_X86_GCC_LIB_DIR/libstdc++-6.dll ${WORK_DIR}/litecgss/bin/
 cp $POSIX_MINGW_X86_LIB_DIR/libwinpthread-1.dll ${WORK_DIR}/litecgss/bin/
 
-rake-compiler cross-ruby VERSION=2.6.6
+cp $POSIX_MINGW_X86_GCC_LIB_DIR/libgcc_s_sjlj-1.dll ${WORK_DIR}/litergss/lib/
+cp $POSIX_MINGW_X86_GCC_LIB_DIR/libstdc++-6.dll ${WORK_DIR}/litergss/lib/
+cp $POSIX_MINGW_X86_LIB_DIR/libwinpthread-1.dll ${WORK_DIR}/litergss/lib/
+cp $WORK_DIR/litecgss/bin/libLiteCGSS_engine.dll ${WORK_DIR}/litergss/lib/
+
+cd $WORK_DIR/litergss
+rake cross compile RUBY_CC_VERSION=$RUBY_VERSION

@@ -1,8 +1,8 @@
 #ifndef L_FONTS_HEADER
 #define L_FONTS_HEADER
 
-#include <SFML/Graphics/Font.hpp>
 #include "RubyValue.h"
+#include <SFML/Graphics/Font.hpp>
 
 VALUE rb_Fonts_get_outline_color(VALUE self, VALUE id);
 VALUE rb_Fonts_get_shadow_color(VALUE self, VALUE id);

@@ -1,3 +1,4 @@
+#include "RubyValue.h"
 #include <string>
 #include <SFML/System/String.hpp>
 #include <SFML/Window/Clipboard.hpp>
