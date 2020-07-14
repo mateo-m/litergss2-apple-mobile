@@ -1,0 +1,13 @@
+version: '3'
+services:
+    litergss-sandbox:
+        build: .
+        stdin_open: true
+        tty: true
+        entrypoint: /entrypoint.sh
+        environment: 
+            - DISPLAY=:2
+        ports:
+            - "127.0.0.1:5902:5900"
+        volumes:
+            - ../..:/litergss

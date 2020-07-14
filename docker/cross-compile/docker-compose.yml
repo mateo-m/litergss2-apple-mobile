@@ -1,0 +1,63 @@
+version: '3'
+services:
+    psdk-host-tools:
+        build:
+            context: host-tools
+        entrypoint: /entrypoint.sh
+        env_file: 
+            - mingw.env
+        volumes: 
+            - ../../generated:/target/mingw
+    ruby:
+        build:
+            context: ruby
+            args:
+                RUBY_VERSION: 2.6.6
+        environment: 
+            CLEAN_BUILD: "n"
+        entrypoint: /entrypoint.sh
+        depends_on:
+            - psdk-host-tools
+        volumes:
+            - ../../generated/ruby:/target/ruby
+    sfml:
+        build:
+            context: sfml
+        entrypoint: /entrypoint.sh
+        depends_on:
+            - psdk-host-tools
+        volumes:
+            - sfml-compiler-volume:/SFML
+            - ../../generated:/target/SFML
+    litecgss:
+        build:
+            context: litecgss
+        entrypoint: /entrypoint.sh
+        environment: 
+            CLEAN_BUILD: "n"
+        depends_on:
+            - sfml
+        volumes:
+            - ../../external/litecgss:/source/litecgss
+            - ../../generated:/target/litecgss
+            - sfml-compiler-volume:/tmp-SFML
+    litergss:
+        build: 
+            context: litergss
+            args:
+                RUBY_VERSION: 2.6.6
+        environment: 
+            CLEAN_BUILD: "n"
+        entrypoint: /entrypoint.sh
+        depends_on:
+            - ruby
+            - litecgss
+        volumes:
+            - ../..:/source/litergss
+            - ../../external/litecgss:/source/litecgss
+            - ../../generated/ruby:/source/ruby
+            - sfml-compiler-volume:/tmp-SFML
+            - ../../generated:/target/litergss
+            
+volumes:
+    sfml-compiler-volume:
