@@ -20,6 +20,7 @@ services:
             - psdk-host-tools
         volumes:
             - ../../generated/ruby:/target/ruby
+            - ruby-compiler-volume:/usr/src/ruby/target
     sfml:
         build:
             context: sfml
@@ -41,6 +42,18 @@ services:
             - ../../external/litecgss:/source/litecgss
             - ../../generated:/target/litecgss
             - sfml-compiler-volume:/tmp-SFML
+    rubyfmod:
+        build:
+            context: rubyfmod
+            args:
+                RUBY_VERSION: 2.6.6
+        entrypoint: /entrypoint.sh
+        environment: 
+            CLEAN_BUILD: "n"
+        depends_on:
+            - ruby
+        volumes:
+            - ../../generated:/target/rubyfmod
     litergss:
         build: 
             context: litergss
@@ -55,9 +68,10 @@ services:
         volumes:
             - ../..:/source/litergss
             - ../../external/litecgss:/source/litecgss
-            - ../../generated/ruby:/source/ruby
+            - ruby-compiler-volume:/source/ruby
             - sfml-compiler-volume:/tmp-SFML
             - ../../generated:/target/litergss
             
 volumes:
     sfml-compiler-volume:
+    ruby-compiler-volume:

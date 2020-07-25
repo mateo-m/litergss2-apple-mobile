@@ -42,3 +42,4 @@ yard/*.html
 mkmf.log
 pkg/*
 *.log
+docker/cross-compile/rubyfmod/fmod-1/*

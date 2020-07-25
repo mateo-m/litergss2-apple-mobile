@@ -3,7 +3,7 @@
 set -e
 
 LITECGSS_DIR=/source/litecgss
-RUBY_DIR=/source/ruby
+RUBY_DIR=/source/ruby/usr/local
 SFML_DIR=/tmp-SFML
 
 until ls -1qA $SFML_DIR/lib | grep -q . >/dev/null; do
@@ -36,8 +36,8 @@ mkdir -p /root/.rake-compiler/
 cat > /root/.rake-compiler/config.yml <<EOF
 # File: ~/.rake-compiler/config.yml
 
-rbconfig-x86-mingw32-2.6.6: /source/ruby/lib/ruby/2.6.0/i386-mingw32/rbconfig.rb
-rbconfig-i686-mingw32-2.6.6: /source/ruby/lib/ruby/2.6.0/i386-mingw32/rbconfig.rb
+rbconfig-x86-mingw32-2.6.6: /source/ruby/usr/local/lib/ruby/2.6.0/i386-mingw32/rbconfig.rb
+rbconfig-i686-mingw32-2.6.6: /source/ruby/usr/local/lib/ruby/2.6.0/i386-mingw32/rbconfig.rb
 EOF
 
 [ "$CLEAN_BUILD" = "y" ] && {
