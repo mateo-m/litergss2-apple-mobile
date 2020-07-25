@@ -36,6 +36,7 @@ services:
         build:
             context: litecgss
         entrypoint: /entrypoint.sh
+        image: docker_litecgss
         environment: 
             CLEAN_BUILD: "n"
         depends_on:
