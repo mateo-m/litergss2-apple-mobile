@@ -4,6 +4,7 @@ services:
         build:
             context: host-tools
         entrypoint: /entrypoint.sh
+        image: docker_psdk-host-tools
         env_file: 
             - mingw.env
         volumes: 
@@ -16,6 +17,7 @@ services:
         environment: 
             CLEAN_BUILD: "n"
         entrypoint: /entrypoint.sh
+        image: docker_psdk-ruby
         depends_on:
             - psdk-host-tools
         volumes:

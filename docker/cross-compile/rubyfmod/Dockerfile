@@ -1,4 +1,4 @@
-FROM docker_ruby:latest
+FROM docker_psdk-ruby:latest
 ARG RUBY_VERSION
 
 RUN apt-get update && apt-get install -y \
