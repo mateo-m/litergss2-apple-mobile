@@ -6,6 +6,16 @@ ext_name = 'LiteRGSS'
 $INCFLAGS << " -I/usr/include/LiteCGSS/ -I$(srcdir)/../../ -I$(srcdir)/../../external/litecgss/src/src "
 $LDFLAGS << " -L$(srcdir)/../../external/litecgss/bin -L/usr/i686-w64-mingw32/lib/ "
 
+sfml_dir_env = ENV["SFML_DIR"]
+if sfml_dir_env.nil?
+    sfml_dir_env = "./external/sfml"
+else
+    puts "SFML found from SFML_DIR (#{sfml_dir_env})"    
+end
+
+$INCFLAGS << " -I" + (sfml_dir_env + "/include")
+$LDFLAGS << " -L" + (sfml_dir_env + "/lib")
+
 have_library('sfml-graphics')
 have_library('sfml-window')
 have_library('sfml-system')
