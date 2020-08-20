@@ -18,6 +18,22 @@ end
 Gem::PackageTask.new(spec) do |pkg|
 end
 
+desc "Configure the project by checking / setting up a working environment"
+task :configure do
+  require_relative 'external/litecgss/build/system_env'
+  require_relative 'external/litecgss/build/ruby_installer'
+
+  ridk_script = Cgss::RubyInstaller.ridk_guard()
+  Cgss::RubyInstaller.ridk_enable(ridk_script)
+
+  litecgss_root_dir = File.expand_path(File.dirname(__FILE__)) + "/external/litecgss"
+  Dir.chdir(litecgss_root_dir) {
+    system("rake configure")
+    system("rake clean")
+    system("rake compile")
+  }
+end
+
 namespace :test do
   # partial-loads-ok and undef-value-errors necessary to ignore
   # spurious (and eminently ignorable) warnings from the ruby
