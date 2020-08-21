@@ -35,8 +35,11 @@ lib/
 tmp
 ext/LiteRGSS2/ruby
 ext/LiteRGSS2/ruby.h
+external/*
+generated/*
 yard/doc
 yard/*.html
 mkmf.log
 pkg/*
 *.log
+docker/cross-compile/rubyfmod/fmod-1/*

@@ -45,4 +45,8 @@ namespace :test do
   end
 end
 
-Rake::ExtensionTask.new(ext_name, spec)
+Rake::ExtensionTask.new(ext_name, spec) do |ext|
+  # cross compilation requires a cross compile toolchain
+  ext.cross_compile = true
+  ext.cross_platform = ['x86-mingw32']
+end

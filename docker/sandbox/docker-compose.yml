@@ -1,15 +1,13 @@
 version: '3'
 services:
-    psdk-docker:
+    litergss-sandbox:
         build: .
         stdin_open: true
         tty: true
-        container_name: psdk-docker
         entrypoint: /entrypoint.sh
         environment: 
             - DISPLAY=:2
         ports:
             - "127.0.0.1:5902:5900"
         volumes:
-            - ..:/psdk/litergss
-            - ../../litecgss:/psdk/litecgss
+            - ../..:/litergss
