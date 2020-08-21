@@ -4,7 +4,7 @@ USER root
 
 # Setup x VNC server
 RUN apt-get update && apt-get install -y xvfb x11vnc fluxbox \
-ruby \
+ruby-dev \
 wget \
 autoconf \
 automake \
@@ -18,12 +18,18 @@ tar \
 bzip2 \
 mingw-w64 \
 g++-mingw-w64 \
---no-install-recommends && rm -rf /var/lib/apt/lists/*
+# SFML Dependencies
+mesa-common-dev \
+libx11-dev  \
+libxrandr-dev \
+libgl1-mesa-dev \
+libglu1-mesa-dev \
+libfreetype6-dev \
+libopenal-dev \
+libsndfile1-dev \
+libudev-dev
 
 COPY ./entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh
-
-COPY ./ruby-compile.sh /ruby-compile.sh
-RUN chmod +x /ruby-compile.sh
 
 WORKDIR /litergss
