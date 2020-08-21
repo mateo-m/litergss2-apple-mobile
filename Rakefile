@@ -31,6 +31,12 @@ task :configure do
     system("rake configure")
     system("rake clean")
     system("rake compile")
+    if !Cgss::SystemEnv::is_windows()
+      # Install LiteCGSS on system
+      system("ln -sf #{litecgss_root_dir}/lib/*.so* /usr/lib/")
+
+      have_library("LiteCGSS_engine") or fail "Unable to find LiteCGSS library. Clean everything and try again."
+    end
   }
 end
 

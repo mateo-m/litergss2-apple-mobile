@@ -1,0 +1,20 @@
+stages:
+  - compile
+
+variables:
+  GIT_SUBMODULE_STRATEGY: recursive
+
+compile:
+  stage: compile
+  script:
+    - rake compile
+  image: 'scorbutics/sfml-rake:latest'
+  before_script:
+    - rake configure
+    - rake clean
+  artifacts:
+    name: "LiteRGSS-$CI_COMMIT_REF_NAME"
+    paths:
+      - lib/
+    expire_in: 1 day
+
