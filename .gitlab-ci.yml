@@ -4,17 +4,72 @@ stages:
 variables:
   GIT_SUBMODULE_STRATEGY: recursive
 
-compile:
+compile:linux:gcc:
   stage: compile
-  script:
-    - rake compile
+  tags:
+    - linux
   image: 'scorbutics/sfml-rake:latest'
   before_script:
     - rake configure
     - rake clean
+  script:
+    - rake compile
   artifacts:
-    name: "LiteRGSS-$CI_COMMIT_REF_NAME"
+    name: "LiteRGSS-linux-gcc-$CI_COMMIT_REF_NAME"
     paths:
+      - bin/
       - lib/
     expire_in: 1 day
 
+compile:linux:clang:
+  stage: compile
+  tags:
+    - linux
+  image: 'scorbutics/sfml-rake:latest'
+  before_script:
+    - apt-get update && apt-get -y install clang
+    - export CC=/usr/bin/clang
+    - export CXX=/usr/bin/clang++
+    - rake configure
+    - rake clean
+  script:
+    - rake compile
+  artifacts:
+    name: "LiteRGSS-linux-clang-$CI_COMMIT_REF_NAME"
+    paths:
+      - bin/
+      - lib/
+    expire_in: 1 day
+
+compile:windows:mingw:
+  stage: compile
+  tags:
+    - windows
+  before_script:
+    - Import-Module "$env:ChocolateyInstall\helpers\chocolateyProfile.psm1"
+    - choco install 7zip -y
+    - choco install cmake.install --installargs 'ADD_CMAKE_TO_PATH=System' -y
+    - gem install rake-compiler
+    - refreshenv
+    - $env:Path = (Get-Item .).FullName + "\external\litecgss\generated\rubyinstaller-2.6.6-1-x86\bin;" + $env:Path
+    - $env:SFML_DIR = (Get-Item .).FullName + "\external\litecgss\external\sfml"
+    - powershell.exe -File "external\litecgss\build\export_env.ps1"
+    - rake configure
+    - refreshenv
+  script:
+    - ridk enable
+    - rake clean
+    - rake compile
+    - cp external\litecgss\bin\libLiteCGSS_engine.dll lib\
+    - cp ${env:SFML_DIR}\lib\*.dll lib\
+  artifacts:
+    name: "LiteRGSS-win-mingw-$CI_COMMIT_REF_NAME"
+    paths:
+      - bin/
+      - lib/
+    expire_in: 1 day
+  cache:
+    key: compile_windows_mingw
+    paths:
+      - generated/
+      - external/litecgss

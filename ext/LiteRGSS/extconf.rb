@@ -8,7 +8,8 @@ $LDFLAGS << " -L$(srcdir)/../../external/litecgss/bin -L/usr/i686-w64-mingw32/li
 
 sfml_dir_env = ENV["SFML_DIR"]
 if sfml_dir_env.nil?
-    sfml_dir_env = "./external/sfml"
+    sfml_dir_env = File.expand_path(File.dirname(__FILE__) + "/../../external/litecgss/external/sfml")
+    puts "SFML NOT found, taking it from default : #{sfml_dir_env}"
 else
     puts "SFML found from SFML_DIR (#{sfml_dir_env})"    
 end
