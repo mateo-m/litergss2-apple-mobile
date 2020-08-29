@@ -44,12 +44,12 @@ struct FramedViewElement :
     }
 
     virtual ~FramedViewElement() {
-        (*this)->getEventDispatcher().cgss::Observable<cgss::ViewportChangeEvent>::removeObserver(*this);
+        (*this)->unsubscribeViewportChange(*this);
     }
 
 private:
     void setup() override {
-        (*this)->getEventDispatcher().cgss::Observable<cgss::ViewportChangeEvent>::addObserver(*this);
+        (*this)->subscribeViewportChange(*this);
     }
 
     bool onViewportChange(cgss::ViewportChangeEvent& event);
