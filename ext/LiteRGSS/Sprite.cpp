@@ -233,7 +233,7 @@ static VALUE rb_Sprite_getRect(VALUE self) {
 	return rb_Rect_LazyInitDrawable(sprite.rRect, *sprite.instance(), sprite->getTextureRect());
 }
 
-static VALUE rb_Sprite_setValue(VALUE self, VALUE val) {
+static VALUE rb_Sprite_setRect(VALUE self, VALUE val) {
 	VALUE rc = rb_Sprite_getRect(self);
 
 	auto* rect1 = rb::GetSafeOrNull<RectangleElement>(val, rb_cRect);
@@ -343,7 +343,7 @@ void Init_Sprite() {
 	rb_define_method(rb_cSprite, "opacity", _rbf rb_Sprite_getOpacity, 0);
 	rb_define_method(rb_cSprite, "opacity=", _rbf rb_Sprite_setOpacity, 1);
 	rb_define_method(rb_cSprite, "src_rect", _rbf rb_Sprite_getRect, 0);
-	rb_define_method(rb_cSprite, "src_rect=", _rbf rb_Sprite_setValue, 1);
+	rb_define_method(rb_cSprite, "src_rect=", _rbf rb_Sprite_setRect, 1);
 	rb_define_method(rb_cSprite, "viewport", _rbf rb_Sprite_Viewport, 0);
 	rb_define_method(rb_cSprite, "mirror", _rbf rb_Sprite_getMirror, 0);
 	rb_define_method(rb_cSprite, "mirror=", _rbf rb_Sprite_setMirror, 1);
