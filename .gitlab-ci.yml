@@ -68,8 +68,3 @@ compile:windows:mingw:
       - bin/
       - lib/
     expire_in: 1 day
-  cache:
-    key: compile_windows_mingw
-    paths:
-      - generated/
-      - external/litecgss
