@@ -72,7 +72,6 @@ private:
 	bool InsideGraphicsUpdate = false;
 	unsigned long frame_count = 0;
 
-	cgss::MainEventDispatcher m_eventDispatcher;
 	cgss::DisplayWindow m_gameWindow;
 
 	GraphicsConfigLoader m_configLoader;

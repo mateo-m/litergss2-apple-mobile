@@ -11,8 +11,7 @@
 #include "Texture_Bitmap.h"
 #include "GraphicsSingleton.h"
 
-GraphicsSingleton::GraphicsSingleton() : 
-	m_gameWindow(m_eventDispatcher) {
+GraphicsSingleton::GraphicsSingleton() {
 }
 
 void GraphicsSingleton::init() {

@@ -22,6 +22,7 @@
 #include "Shape.h"
 #include "FramedView_Window.h"
 #include "SpriteMap.h"
+#include "DisplayWindow.h"
 
 VALUE rb_mLiteRGSS = Qnil;
 VALUE rb_mConfig = Qnil;
@@ -55,5 +56,6 @@ extern "C" {
 	Init_Shape();
 	Init_Window();
 	Init_SpriteMap();
+	Init_DisplayWindow();
   }
 }
