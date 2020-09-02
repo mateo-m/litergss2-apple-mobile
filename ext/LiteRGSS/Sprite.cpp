@@ -10,6 +10,7 @@
 #include "Viewport.h"
 #include "FramedView_Window.h"
 #include "Drawable_Disposable.h"
+#include "DisplayWindow.h"
 
 VALUE rb_cSprite = Qnil;
 
@@ -301,10 +302,18 @@ static VALUE rb_Sprite_Initialize(int argc, VALUE* argv, VALUE self) {
 		VALUE opacity = LONG2NUM(NUM2LONG(window.rOpacity) * NUM2LONG(window.rBackOpacity) / 255);
 		rb_Sprite_setOpacity(self, opacity);
 	}
-	// Otherwise
+	// Otherwise, it must be a display window...
+	else if (argc == 1 && rb_obj_is_kind_of(argv[0], rb_cDisplayWindow) == Qtrue) {
+		auto& displayWindow = rb::Get<DisplayWindowElement>(argv[0]);
+		displayWindow.initAndAdd(sprite);
+		sprite.rViewport = Qnil;
+	} 
+	// Uh, what is that then ?!
 	else {
+		// TODO : raise exception when Graphics module will be deleted
 		sprite.init(GraphicsSingleton::Get().add<cgss::Sprite>());
-	}	
+		sprite.rViewport = Qnil;
+	}
 
 	/* Initializing Instance variables */
 	return self;

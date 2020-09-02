@@ -9,9 +9,14 @@ extern VALUE rb_cDisplayWindow;
 void Init_DisplayWindow();
 
 struct DisplayWindowElement : 
-    public CgssInstance<DisplayWindowInput> {
-    
-    VALUE rShader = Qnil;
+	public CgssInstance<DisplayWindowInput> {
+	
+	VALUE rShader = Qnil;
+	
+	template <class Drawable, class ... Args>
+	void initAndAdd(Drawable& drawable, Args&& ... args) {
+		drawable.init(Drawable::create(*instance(), std::forward<Args>(args)...));
+	}
 };
 
 #endif

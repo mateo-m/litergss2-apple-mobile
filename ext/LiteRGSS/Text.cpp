@@ -9,6 +9,7 @@
 #include "GraphicsSingleton.h"
 #include "Drawable_Disposable.h"
 #include "Color.h"
+#include "DisplayWindow.h"
 
 VALUE rb_cText = Qnil;
 
@@ -364,7 +365,12 @@ VALUE rb_Text_Initialize(int argc, VALUE* argv, VALUE self) {
 		window.initAndAdd(text);
 		text.rViewport = viewport;
 		opacity = LONG2NUM(NUM2LONG(window.rOpacity) * NUM2LONG(window.rContentOpacity) / 255);
+	} else if (rb_obj_is_kind_of(viewport, rb_cDisplayWindow) == Qtrue) {
+		auto& window = rb::Get<DisplayWindowElement>(viewport);	
+		window.initAndAdd(text);
+		text.rViewport = Qnil;
 	} else {
+		// TODO : raise exception when Graphics module will be deleted
 		text.init(GraphicsSingleton::Get().add<cgss::Text>());
 		text.rViewport = Qnil;
 	}

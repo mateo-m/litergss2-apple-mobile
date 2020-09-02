@@ -7,6 +7,7 @@
 #include "GraphicsSingleton.h"
 #include "Rect.h"
 #include "Viewport.h"
+#include "DisplayWindow.h"
 
 VALUE rb_cWindow = Qnil;
 
@@ -53,13 +54,17 @@ VALUE rb_Window_Initialize(int argc, VALUE* argv, VALUE self) {
 
 	const auto viewportIsSpecified = argc == 1 && rb_obj_is_kind_of(argv[0], rb_cViewport) == Qtrue;
 	if (viewportIsSpecified) {
-		auto& viewport = rb::Get<ViewportElement>(argv[0]);		
+		auto& viewport = rb::Get<ViewportElement>(argv[0]);
 		if (viewport.instance() == nullptr) {
 			rb_raise(rb_eRGSSError, "Invalid viewport provided to instanciate a Sprite.");
 			return Qnil;
 		}
-		framedView.init(GraphicsSingleton::Get().addViewOn<cgss::FramedView>(*viewport.instance(), viewport->weak()));
+		framedView.init(viewport->addView<cgss::FramedView>(viewport->weak()));
 		framedView.rViewport = argv[0];
+	} else if (argc == 1 && rb_obj_is_kind_of(argv[0], rb_cDisplayWindow) == Qtrue) {
+		auto& window = rb::Get<DisplayWindowElement>(argv[0]);
+		framedView.init(window->addView<cgss::FramedView>());
+		framedView.rViewport = Qnil;
 	} else {
 		framedView.init(GraphicsSingleton::Get().addView<cgss::FramedView>());
 		framedView.rViewport = Qnil;

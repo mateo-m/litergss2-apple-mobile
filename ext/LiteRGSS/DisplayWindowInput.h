@@ -2,6 +2,7 @@
 #define DisplayWindowInput_H
 
 #include <LiteCGSS/Views/DisplayWindow.h>
+#include <LiteCGSS/Views/ViewAuthorizations.h>
 #include "GraphicsUpdateMessage.h"
 #include "RubyValue.h"
 
@@ -27,5 +28,10 @@ private:
     bool m_insideGraphicsUpdate = false;
 	unsigned long m_frameCount = 0;
 };
+
+namespace cgss {
+	template <>
+	struct ViewAuthorizations<DisplayWindowInput> : public ViewAuthorizations<cgss::DisplayWindow> {};
+}
 
 #endif

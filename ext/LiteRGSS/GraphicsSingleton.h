@@ -50,12 +50,7 @@ public:
 
 	template <class T, class ... Args>
 	T addView(Args&& ... args) {
-		return m_gameWindow.template addView<T>(m_gameWindow, std::forward<Args>(args)...);
-	}
-
-	template <class T, class Owner, class ... Args>
-	T addViewOn(Owner& owner, Args&& ... args) {
-		return m_gameWindow.template addView<T>(owner, std::forward<Args>(args)...);
+		return m_gameWindow.template addView<T>(std::forward<Args>(args)...);
 	}
 
 	bool areShadersEnabled() const;
