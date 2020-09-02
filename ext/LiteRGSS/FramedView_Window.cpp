@@ -11,13 +11,6 @@
 
 VALUE rb_cWindow = Qnil;
 
-bool FramedViewElement::onViewportChange(cgss::ViewportChangeEvent& event) {
-	auto& viewportRect = rb::Get<RectangleElement>(rRect);
-	auto& viewportBox = event.viewportBox;
-	viewportRect->setValue(viewportBox);
-	return true;
-}
-
 template<>
 void rb::Mark<FramedViewElement>(FramedViewElement* framedView) {
 	if (framedView == nullptr) {
@@ -73,6 +66,8 @@ VALUE rb_Window_Initialize(int argc, VALUE* argv, VALUE self) {
 	/* Rect definition */
 	VALUE args[4] = { LONG2FIX(0), LONG2FIX(0), LONG2FIX(0), LONG2FIX(0) };
 	framedView.rRect = rb_class_new_instance(4, args, rb_cRect);
+	auto& viewportRectangle = rb::Get<RectangleElement>(framedView.rRect);
+	framedView->bindRectangleViewport(viewportRectangle.instance());
 	rb_obj_freeze(framedView.rRect);
 
 	return self;
