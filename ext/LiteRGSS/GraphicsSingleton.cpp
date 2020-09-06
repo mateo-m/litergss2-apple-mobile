@@ -27,11 +27,9 @@ void GraphicsSingleton::init() {
 
 	m_gameWindow.reload(std::move(config));
 
-	//LOG("[GraphicsSingleton] Init");
-
 	/* Input adjustement */
-	L_Input_Reset_Clocks();
-	L_Input_Setusec_threshold(1000000 / config.frameRate);
+	MainInput.keyMapping.resetClocks();
+	MainInput.mouseMapping.resetClocks();
 }
 
 void GraphicsSingleton::manageErrorMessage(VALUE self, const GraphicsUpdateMessage& message) {
@@ -61,7 +59,7 @@ void GraphicsSingleton::manageErrorMessage(VALUE self, const GraphicsUpdateMessa
 
 void GraphicsSingleton::updateProcessEvent(GraphicsUpdateMessage& message) {
 	sf::Event event;
-	L_EnteredText.clear();
+	MainInput.enteredText.clear();
 	while(m_gameWindow.pollEvent(event))
 	{
 		switch(event.type)
@@ -71,10 +69,10 @@ void GraphicsSingleton::updateProcessEvent(GraphicsUpdateMessage& message) {
 				message.message = "Game Window has been closed by user.";
 				return;
 			case sf::Event::EventType::KeyPressed:
-				L_Input_Update_Key(event.key.code, true);
+				MainInput.keyMapping.update(event.key.code, true);
 				break;
 			case sf::Event::EventType::KeyReleased:
-				L_Input_Update_Key(event.key.code, false);
+				MainInput.keyMapping.update(event.key.code, false);
 				break;
 			case sf::Event::EventType::JoystickButtonPressed:
 				L_Input_Update_Joy(event.joystickButton.joystickId, event.joystickButton.button, true);
@@ -95,11 +93,11 @@ void GraphicsSingleton::updateProcessEvent(GraphicsUpdateMessage& message) {
 				L_Input_Mouse_Pos_Update(event.mouseMove.x, event.mouseMove.y);
 				break;
 			case sf::Event::EventType::MouseButtonPressed:
-				L_Input_Mouse_Button_Update(event.mouseButton.button, true);
+				MainInput.mouseMapping.update(event.mouseButton.button, true);
 				L_Input_Mouse_Pos_Update(event.mouseButton.x, event.mouseButton.y);
 				break;
 			case sf::Event::EventType::MouseButtonReleased:
-				L_Input_Mouse_Button_Update(event.mouseButton.button, false);
+				MainInput.mouseMapping.update(event.mouseButton.button, false);
 				L_Input_Mouse_Pos_Update(event.mouseButton.x, event.mouseButton.y);
 				break;
 			case sf::Event::EventType::MouseWheelScrolled:
@@ -111,7 +109,7 @@ void GraphicsSingleton::updateProcessEvent(GraphicsUpdateMessage& message) {
 				L_Input_Mouse_Pos_Update(-256, -256);
 				break;
 			case sf::Event::EventType::TextEntered:
-				L_EnteredText.append((char*)sf::String(event.text.unicode).toUtf8().c_str());
+				MainInput.enteredText.append((char*)sf::String(event.text.unicode).toUtf8().c_str());				
 				break;
 			default:
 				break;
