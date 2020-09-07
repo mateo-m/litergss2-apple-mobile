@@ -1,3 +1,4 @@
+#include <iostream>
 #include "rbAdapter.h"
 #include "InputMappingTable.h"
 
@@ -94,23 +95,26 @@ VALUE rb_InputMappingTable_each(int argc, VALUE *argv, VALUE self) {
   }
 
   for (const auto& pkey : *table.data) {
-    rb_yield_values(1, LONG2NUM(pkey));
+    rb_yield(LONG2NUM(pkey));
   }
   return self;
 }
 
-VALUE rb_InputMappingTable_find(int argc, VALUE *argv, VALUE self) {
+VALUE rb_InputMappingTable_find(VALUE self) {
   rb_need_block();
 
   auto& table = rb::Get<InputMappingTableElement>(self);
   if (table.data == nullptr) {
+    std::cout << "NULL" << std::endl;
     return Qnil;
   }
 
+  std::cout << "Not null, " << table.data->size() << " length" << std::endl;
   for (const auto& pkey : *table.data) {
-    VALUE findRes = rb_yield_values(1, LONG2NUM(pkey));
+    std::cout << pkey << std::endl;
+    VALUE findRes = rb_yield(LONG2NUM(pkey));
     if (findRes == Qtrue) {
-      return NUM2LONG(pkey);
+      return LONG2NUM(pkey);
     }
   }
   return Qnil;

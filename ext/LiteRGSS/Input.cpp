@@ -279,7 +279,6 @@ VALUE rb_Input_JoyGetName(VALUE self, VALUE id)
 VALUE rb_Mouse_Press(VALUE self, VALUE keyId)
 {
 	const char* keyName = rb_id2name(SYM2ID(keyId));
-	std::cout << "Mouse released Key name " << keyName << std::endl;
 	return MainInput.mouseMapping.isPressed(keyName) ? Qtrue : Qfalse;
 }
 
@@ -338,7 +337,6 @@ void DefineRubySFMLKeyboardConstants() {
 
 	std::size_t keyIndex = 0;
 	for (const auto* key : SFML_KEY_NAMES) {
-		std::cout << key << std::endl;
 		rb_define_const(rb_mKeyboard, key, LONG2NUM(keyIndex++));
 	}
 }
@@ -380,7 +378,7 @@ void DefineRubySFMLKeyboardBinding() {
 	VALUE rb_mInputKey = rb_hash_new();
 	rb_define_const(rb_mInput, "Keys", rb_mInputKey);
 	rb_gc_register_address(&rb_mInputKey); // Protect the Hash from being GC'd
-	RHASH_SET_IFNONE(rb_mInputKey, rb_ary_new());
+	RHASH_SET_IFNONE(rb_mInputKey, rb_class_new_instance(0, nullptr, rb_cInputMappingTable));
 
 	for (const auto* vkeyName : KeyboardInputMapping::VirtualKeyNames) {
 		VALUE tmp = rb_class_new_instance(0, nullptr, rb_cInputMappingTable);
@@ -441,5 +439,4 @@ void Init_Input()
 
 	DefineRubySFMLJoypadConstants();
 	DefineRubySFMLKeyboardConstants();
-	std::cout << "Test" << std::endl;
 }
