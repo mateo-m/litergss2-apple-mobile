@@ -30,8 +30,17 @@ struct BaseInputMapping {
 	}
 
 	inline void keymap(VirtualKeyIndex virtualIndex, PhysicalKeyIndex physicalKey) {
+		keyunmap(physicalKey);
 		m_indexMap[physicalKey] = virtualIndex;
 		m_reverseIndexMap[virtualIndex].push_back(physicalKey);
+	}
+
+	inline void keyset(VirtualKeyIndex virtualIndex, std::size_t index, PhysicalKeyIndex physicalKey) {
+		keyunmap(physicalKey);
+		m_indexMap[physicalKey] = virtualIndex;
+		if (index < m_reverseIndexMap[virtualIndex].size()) {
+			m_reverseIndexMap[virtualIndex][index] = physicalKey;
+		}
 	}
 
 	VirtualKeyIndex lookup(PhysicalKeyIndex physicalKeyCode) const {
@@ -43,16 +52,22 @@ struct BaseInputMapping {
 
 	inline void keyunmap(PhysicalKeyIndex physicalKey) {
 		const auto virtualIndex = m_indexMap[physicalKey];
-		auto& vec = m_reverseIndexMap[virtualIndex];
-		vec.erase(std::remove(vec.begin(), vec.end(), physicalKey), vec.end());
+		if (virtualIndex < VirtualKeyCount) {
+			auto& vec = m_reverseIndexMap[virtualIndex];
+			vec.erase(std::remove(vec.begin(), vec.end(), physicalKey), vec.end());
+		}
 		m_indexMap[physicalKey] = std::numeric_limits<VirtualKeyIndex>::max();
 	}
 
-	const std::vector<PhysicalKeyIndex>& reverseLookup(VirtualKeyIndex virtualIndex) const {
-		return m_reverseIndexMap[virtualIndex];
+	inline void keyclear(VirtualKeyIndex virtualIndex) {
+		auto& vec = m_reverseIndexMap[virtualIndex];
+		for (const auto& physicalKey : vec) {
+			m_indexMap[physicalKey] = std::numeric_limits<VirtualKeyIndex>::max();
+		}
+		vec.clear();
 	}
 
-	std::vector<PhysicalKeyIndex>& reverseLookup(VirtualKeyIndex virtualIndex) {
+	const std::vector<PhysicalKeyIndex>& reverseLookup(VirtualKeyIndex virtualIndex) const {
 		return m_reverseIndexMap[virtualIndex];
 	}
 

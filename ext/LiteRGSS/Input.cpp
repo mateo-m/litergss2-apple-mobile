@@ -384,8 +384,10 @@ void DefineRubySFMLKeyboardBinding() {
 		VALUE tmp = rb_class_new_instance(0, nullptr, rb_cInputMappingTable);
 		auto& tableElement = rb::Get<InputMappingTableElement>(tmp);
 
-		auto& physicalKeyCodes = MainInput.keyMapping.mapping().reverseLookup(vkeyName);
-		tableElement.data = &physicalKeyCodes;
+		tableElement.vIndex = MainInput.keyMapping.mapping().lookup(vkeyName);
+		tableElement.data = &MainInput.keyMapping.mapping();
+
+		std::cout << "vkey " << tableElement.vIndex << " for " << vkeyName << std::endl;
 
 		rb_hash_aset(rb_mInputKey, rb_id2sym(rb_intern(vkeyName)), tmp);
 

@@ -16,120 +16,131 @@ VALUE rb_InputMappingTable_initialize(VALUE self, VALUE array) {
 	return self;
 }
 
-VALUE rb_InputMappingTable_get(VALUE self, VALUE index) {
+VALUE rb_InputMappingTable_get(VALUE self, VALUE rindex) {
 	auto& table = rb::Get<InputMappingTableElement>(self);
-	VirtualKeyIndex vkey = NUM2ULONG(index);
-	if (table.data == nullptr || vkey >= table.data->size()) {
+	std::size_t index = NUM2ULONG(rindex);
+	if (table.data == nullptr) {
 		return Qnil;
 	}
-	return LONG2NUM((*table.data)[vkey]);
+
+	const auto& data = table.data->reverseLookup(table.vIndex);
+	if (index >= data.size()) {
+		return Qnil;
+	}
+	return LONG2NUM(data[index]);
 }
 
 VALUE rb_InputMappingTable_set(int argc, VALUE* argv, VALUE self) {
 	auto& table = rb::Get<InputMappingTableElement>(self);
 	VALUE rindex, v;
 	rb_scan_args(argc, argv, "2", &rindex, &v);
-	VirtualKeyIndex vkey = NUM2ULONG(rindex);
+	std::size_t index = NUM2ULONG(rindex);
 	PhysicalKeyIndex pkey = NUM2LONG(v);
-	if (table.data == nullptr || vkey >= table.data->size()) {
+	if (table.data == nullptr) {
 		return self;
 	}
-	(*table.data)[vkey] = pkey;
+
+	std::cout << "Adding physical key " << pkey << " to virtual " << table.vIndex << " at index " << index << std::endl;
+	table.data->keyset(table.vIndex, index, pkey);
 	return self;
 }
 
 VALUE rb_InputMappingTable_size(VALUE self) {
 	auto& table = rb::Get<InputMappingTableElement>(self);
-	return ULONG2NUM(table.data == nullptr ? 0 : table.data->size());
+	if (table.data == nullptr) {
+		return ULONG2NUM(0);
+	}
+
+	return ULONG2NUM(table.data->reverseLookup(table.vIndex).size());
 }
 
 VALUE rb_InputMappingTable_last(VALUE self) {
 	auto& table = rb::Get<InputMappingTableElement>(self);
-	return LONG2NUM(table.data == nullptr ? -1 : table.data->back());
+	if (table.data == nullptr) {
+		return LONG2NUM(-1);
+	}
+
+	return LONG2NUM(table.data->reverseLookup(table.vIndex).back());
 }
 
 VALUE rb_InputMappingTable_clear(VALUE self) {
 	auto& table = rb::Get<InputMappingTableElement>(self);
 	if (table.data != nullptr) {
-		table.data->clear();
+		table.data->keyclear(table.vIndex);
 	}
 	return self;
 }
 
 VALUE rb_InputMappingTable_clone(VALUE self) {
-  auto& table = rb::Get<InputMappingTableElement>(self);
-  VALUE result = rb_ary_new();
-  if (table.data == nullptr) {
-    return result;
-  }
+	auto& table = rb::Get<InputMappingTableElement>(self);
+	VALUE result = rb_ary_new();
+	if (table.data == nullptr) {
+		return result;
+	}
 
-  for (const auto& pkey : *table.data) {
-    rb_ary_push(result, LONG2NUM(pkey));
-  }
+	for (const auto& pkey : table.data->reverseLookup(table.vIndex)) {
+		rb_ary_push(result, LONG2NUM(pkey));
+	}
 
-  return result;
+	return result;
 }
 
 VALUE rb_InputMappingTable_concat(int argc, VALUE *argv, VALUE self) {
-  auto& table = rb::Get<InputMappingTableElement>(self);
-  if (table.data == nullptr) {
-    return self;
-  }
+	auto& table = rb::Get<InputMappingTableElement>(self);
+	if (table.data == nullptr) {
+		return self;
+	}
 
-  for (int i = 0; i < argc; i++) {
-    const long maxLength = RARRAY_LEN(argv[i]);
-    for (long j = 0; j < maxLength; j++) {
-      table.data->push_back(NUM2LONG(rb_ary_entry(argv[i], j)));
-    }
-  }
+	for (int i = 0; i < argc; i++) {
+		const long maxLength = RARRAY_LEN(argv[i]);
+		for (long j = 0; j < maxLength; j++) {
+			table.data->keymap(table.vIndex, NUM2LONG(rb_ary_entry(argv[i], j)));
+		}
+	}
 
-  return self;
+	return self;
 }
 
 VALUE rb_InputMappingTable_each(int argc, VALUE *argv, VALUE self) {
-  rb_need_block();
+	rb_need_block();
 
-  auto& table = rb::Get<InputMappingTableElement>(self);
-  if (table.data == nullptr) {
-    return self;
-  }
+	auto& table = rb::Get<InputMappingTableElement>(self);
+	if (table.data == nullptr) {
+		return self;
+	}
 
-  for (const auto& pkey : *table.data) {
-    rb_yield(LONG2NUM(pkey));
-  }
-  return self;
+	for (const auto& pkey : table.data->reverseLookup(table.vIndex)) {
+		rb_yield(LONG2NUM(pkey));
+	}
+	return self;
 }
 
 VALUE rb_InputMappingTable_find(VALUE self) {
-  rb_need_block();
+	rb_need_block();
 
-  auto& table = rb::Get<InputMappingTableElement>(self);
-  if (table.data == nullptr) {
-    std::cout << "NULL" << std::endl;
-    return Qnil;
-  }
+	auto& table = rb::Get<InputMappingTableElement>(self);
+	if (table.data == nullptr) {
+		return Qnil;
+	}
 
-  std::cout << "Not null, " << table.data->size() << " length" << std::endl;
-  for (const auto& pkey : *table.data) {
-    std::cout << pkey << std::endl;
-    VALUE findRes = rb_yield(LONG2NUM(pkey));
-    if (findRes == Qtrue) {
-      return LONG2NUM(pkey);
-    }
-  }
-  return Qnil;
+	for (const auto& pkey : table.data->reverseLookup(table.vIndex)) {
+		VALUE findRes = rb_yield(LONG2NUM(pkey));
+		if (findRes == Qtrue) {
+			return LONG2NUM(pkey);
+		}
+	}
+	return Qnil;
 }
 
 VALUE rb_InputMappingTable_push(VALUE self, VALUE object) {
-  auto& table = rb::Get<InputMappingTableElement>(self);
-  if (table.data == nullptr) {
-    return self;
-  }
-  PhysicalKeyIndex pkey = NUM2ULONG(object);
-  table.data->push_back(std::move(pkey));
-  return self;
+	auto& table = rb::Get<InputMappingTableElement>(self);
+	if (table.data == nullptr) {
+		return self;
+	}
+	PhysicalKeyIndex pkey = NUM2ULONG(object);
+	table.data->keymap(table.vIndex, std::move(pkey));
+	return self;
 }
-
 
 void Init_InputMappingTable() {
 	rb_cInputMappingTable = rb_define_class("InputMappingTable", rb_cObject);
@@ -141,8 +152,8 @@ void Init_InputMappingTable() {
 	rb_define_method(rb_cInputMappingTable, "last", _rbf rb_InputMappingTable_last, 0);
 	rb_define_method(rb_cInputMappingTable, "clear", _rbf rb_InputMappingTable_clear, 0);
 	rb_define_method(rb_cInputMappingTable, "each", _rbf rb_InputMappingTable_each, -1);
-  rb_define_method(rb_cInputMappingTable, "concat", _rbf rb_InputMappingTable_concat, -1);
-  rb_define_method(rb_cInputMappingTable, "find", _rbf rb_InputMappingTable_find, 0);
-  rb_define_method(rb_cInputMappingTable, "clone", _rbf rb_InputMappingTable_clone, 0);
-  rb_define_method(rb_cInputMappingTable, "<<", _rbf rb_InputMappingTable_push, 1);
+	rb_define_method(rb_cInputMappingTable, "concat", _rbf rb_InputMappingTable_concat, -1);
+	rb_define_method(rb_cInputMappingTable, "find", _rbf rb_InputMappingTable_find, 0);
+	rb_define_method(rb_cInputMappingTable, "clone", _rbf rb_InputMappingTable_clone, 0);
+	rb_define_method(rb_cInputMappingTable, "<<", _rbf rb_InputMappingTable_push, 1);
 }

@@ -2,10 +2,12 @@
 #define InputMappingTable_H
 
 #include "RubyValue.h"
-#include "BaseInputMapping.h"
+#include "InputMapping.h"
+#include "KeyboardInputMapping.h"
 
 struct InputMappingTableElement {
-	std::vector<PhysicalKeyIndex>* data = nullptr;
+	VirtualKeyIndex vIndex = std::numeric_limits<VirtualKeyIndex>::max();
+	PhysicalVirtualInputMapping<KeyboardInputMapping>* data = nullptr;
 };
 
 void Init_InputMappingTable();
