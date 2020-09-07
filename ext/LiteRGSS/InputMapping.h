@@ -32,6 +32,11 @@ public:
 		return Mapping::reverseLookup(virtualIndex);
 	}
 
+	std::vector<PhysicalKeyIndex>& reverseLookup(const std::string& keyName) {
+		const auto virtualIndex = lookup(keyName);
+		return Mapping::reverseLookup(virtualIndex);
+	}
+
 private:
 	std::unordered_map<std::string, VirtualKeyIndex> m_namedMap {};
 };

@@ -1,5 +1,7 @@
 #include <iostream>
 #include "LiteRGSS.h"
+#include "rbAdapter.h"
+#include "InputMappingTable.h"
 #include "Input.h"
 #include "NormalizeNumbers.h"
 
@@ -379,14 +381,14 @@ void DefineRubySFMLKeyboardBinding() {
 	rb_define_const(rb_mInput, "Keys", rb_mInputKey);
 	rb_gc_register_address(&rb_mInputKey); // Protect the Hash from being GC'd
 	RHASH_SET_IFNONE(rb_mInputKey, rb_ary_new());
-	
+
 	for (const auto* vkeyName : KeyboardInputMapping::VirtualKeyNames) {
-		const auto& physicalKeyCodes = MainInput.keyMapping.mapping().reverseLookup(vkeyName);
-		VALUE tmp = rb_ary_new();
-		for (const auto keyCode : physicalKeyCodes) {
-			const auto handleXBoxKeyCodes = keyCode >= sf::Keyboard::KeyCount ? (sf::Keyboard::KeyCount - keyCode - 1) : keyCode;
-			rb_ary_push(tmp, LONG2NUM(handleXBoxKeyCodes));
-		}
+		VALUE tmp = rb_class_new_instance(0, nullptr, rb_cInputMappingTable);
+		auto& tableElement = rb::Get<InputMappingTableElement>(tmp);
+
+		auto& physicalKeyCodes = MainInput.keyMapping.mapping().reverseLookup(vkeyName);
+		tableElement.data = &physicalKeyCodes;
+
 		rb_hash_aset(rb_mInputKey, rb_id2sym(rb_intern(vkeyName)), tmp);
 
 		/* Add lower case aliases */

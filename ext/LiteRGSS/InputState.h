@@ -78,7 +78,11 @@ public:
 		}
 	}
 
-	const PhysicalVirtualInputMapping<Mapping>& mapping() {
+	const PhysicalVirtualInputMapping<Mapping>& mapping() const {
+		return m_physicalToVirtualMapping;
+	}
+
+	PhysicalVirtualInputMapping<Mapping>& mapping() {
 		return m_physicalToVirtualMapping;
 	}
 

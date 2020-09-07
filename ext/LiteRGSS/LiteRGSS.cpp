@@ -11,6 +11,7 @@
 #include "Tone.h"
 #include "Fonts.h"
 #include "Text.h"
+#include "InputMappingTable.h"
 #include "Input.h"
 #include "Table.h"
 #include "Table32.h"
@@ -45,6 +46,7 @@ extern "C" {
 	Init_Tone();
 	Init_Fonts();
 	Init_Text();
+	Init_InputMappingTable();
 	Init_Input();
 	Init_Table();
 	Init_Table32();

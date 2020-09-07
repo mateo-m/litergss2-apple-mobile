@@ -6,11 +6,20 @@
 #include <array>
 
 using MappingEntry = const char *;
+using PhysicalKeyIndex = int32_t;
+using VirtualKeyIndex = std::size_t;
 
 template <std::size_t PhysicalKeyCount_, std::size_t VirtualKeyCount_>
 struct BaseInputMapping {
-	using PhysicalKeyIndex = int32_t;
-	using VirtualKeyIndex = std::size_t;
+	BaseInputMapping() = default;
+	virtual ~BaseInputMapping() = default;
+	BaseInputMapping(BaseInputMapping&&) = default;
+	BaseInputMapping(const BaseInputMapping&) = delete;
+	BaseInputMapping& operator=(const BaseInputMapping&) = delete;
+	BaseInputMapping& operator=(BaseInputMapping&&) = delete;
+
+	using PhysicalKeyIndex = ::PhysicalKeyIndex;
+	using VirtualKeyIndex = ::VirtualKeyIndex;
 	static const constexpr auto PhysicalKeyCount = PhysicalKeyCount_;
 	static const constexpr auto VirtualKeyCount = VirtualKeyCount_;
 
@@ -40,6 +49,10 @@ struct BaseInputMapping {
 	}
 
 	const std::vector<PhysicalKeyIndex>& reverseLookup(VirtualKeyIndex virtualIndex) const {
+		return m_reverseIndexMap[virtualIndex];
+	}
+
+	std::vector<PhysicalKeyIndex>& reverseLookup(VirtualKeyIndex virtualIndex) {
 		return m_reverseIndexMap[virtualIndex];
 	}
 
