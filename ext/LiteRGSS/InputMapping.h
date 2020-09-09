@@ -62,15 +62,16 @@ struct InputMapping {
 			return;
 		}
 
-		if (index < m_reverseIndexMap[virtualIndex].size()) {
-			accessVirtual(m_reverseIndexMap[virtualIndex][index]) = DefaultVirtualValue;
+		auto& vec = m_reverseIndexMap[virtualIndex];
+		if (index < vec.size() && std::count(vec.begin(), vec.end(), vec[index]) <= 1 ) {
+			accessVirtual(vec[index]) = DefaultVirtualValue;
 		}
 
-		while (index >= m_reverseIndexMap[virtualIndex].size()) {
-			m_reverseIndexMap[virtualIndex].emplace_back(DefaultPhysicalValue);
+		while (index >= vec.size()) {
+			vec.emplace_back(DefaultPhysicalValue);
 		}
 		accessVirtual(physicalKey) = virtualIndex;
-		m_reverseIndexMap[virtualIndex][index] = physicalKey;
+		vec[index] = physicalKey;
 	}
 
 	VirtualKeyIndex lookup(PhysicalKeyIndex physicalKeyCode) const {
