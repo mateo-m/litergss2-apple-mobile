@@ -1,8 +1,6 @@
 #ifndef InputMapping_H
 #define InputMapping_H
 
-#include <iostream>
-
 #include <cstdint>
 #include <cassert>
 #include <algorithm>
@@ -55,26 +53,22 @@ struct InputMapping {
 		    physicalKey >= PhysicalKeyCount) {
 			return;
 		}
-		keyunmap(physicalKey);
 		accessVirtual(physicalKey) = virtualIndex;
 		m_reverseIndexMap[virtualIndex].push_back(physicalKey);
 	}
 
 	inline void keyset(VirtualKeyIndex virtualIndex, std::size_t index, PhysicalKeyIndex physicalKey) {
-		std::cout << "setting physical key " << physicalKey << " to virtual key " << Mapping::VirtualKeyNames[virtualIndex] << " at position " << index << std::endl;
-
 		if (index >= PhysicalKeyCount) {
 			return;
 		}
 
 		if (index < m_reverseIndexMap[virtualIndex].size()) {
-			keyunmap(m_reverseIndexMap[virtualIndex][index]);
+			accessVirtual(m_reverseIndexMap[virtualIndex][index]) = DefaultVirtualValue;
 		}
 
 		while (index >= m_reverseIndexMap[virtualIndex].size()) {
 			m_reverseIndexMap[virtualIndex].emplace_back(DefaultPhysicalValue);
 		}
-		keyunmap(physicalKey);
 		accessVirtual(physicalKey) = virtualIndex;
 		m_reverseIndexMap[virtualIndex][index] = physicalKey;
 	}
@@ -86,24 +80,9 @@ struct InputMapping {
     return accessVirtual(physicalKeyCode);
 	}
 
-	inline void keyunmap(PhysicalKeyIndex physicalKey) {
-		if (physicalKey >= PhysicalKeyCount) {
-			return;
-		}
-		const auto virtualIndex = accessVirtual(physicalKey);
-		if (virtualIndex < VirtualKeyCount) {
-			std::cout << "unmapping physical key " << physicalKey << " (was bound to virtual key " << Mapping::VirtualKeyNames[virtualIndex] << ")" << std::endl;
-			auto& vec = m_reverseIndexMap[virtualIndex];
-			vec.erase(std::remove(vec.begin(), vec.end(), physicalKey), vec.end());
-		}
-		accessVirtual(physicalKey) = DefaultVirtualValue;
-	}
-
 	inline void keyclear(VirtualKeyIndex virtualIndex) {
 		auto& vec = m_reverseIndexMap[virtualIndex];
-		std::cout << "clearing virtual key " << Mapping::VirtualKeyNames[virtualIndex] << std::endl;
 		for (const auto& physicalKey : vec) {
-			std::cout << "\t bound to physical key " << physicalKey << std::endl;
 			accessVirtual(physicalKey) = DefaultVirtualValue;
 		}
 		vec.clear();
@@ -115,7 +94,6 @@ struct InputMapping {
 
 	inline VirtualKeyIndex lookup(const std::string& keyName) const {
 		if (m_namedMap.find(keyName) == m_namedMap.end()) {
-			std::cout << "unable to find virtual key " << keyName << std::endl;
 			return DefaultVirtualValue;
 		}
 		return m_namedMap.at(keyName);

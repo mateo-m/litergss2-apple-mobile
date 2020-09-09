@@ -1,4 +1,3 @@
-#include <iostream>
 #include "rbAdapter.h"
 #include "InputMappingTable.h"
 
@@ -40,7 +39,6 @@ VALUE rb_InputMappingTable_set(int argc, VALUE* argv, VALUE self) {
 		return self;
 	}
 
-	//std::cout << "Adding physical key " << pkey << " to virtual " << table.vIndex << " at index " << index << std::endl;
 	table.data->keyset(table.vIndex, index, pkey);
 	return self;
 }

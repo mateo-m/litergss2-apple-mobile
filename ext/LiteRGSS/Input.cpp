@@ -1,4 +1,3 @@
-#include <iostream>
 #include "LiteRGSS.h"
 #include "rbAdapter.h"
 #include "InputMappingTable.h"
