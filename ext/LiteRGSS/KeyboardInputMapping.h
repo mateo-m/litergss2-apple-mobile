@@ -5,14 +5,14 @@
 #include <SFML/Window/Keyboard.hpp>
 
 struct XBox360Keys {
-	static constexpr const auto A = sf::Keyboard::KeyCount;
-	static constexpr const auto B = sf::Keyboard::KeyCount + 1;
-	static constexpr const auto X = sf::Keyboard::KeyCount + 2;
-	static constexpr const auto Y = sf::Keyboard::KeyCount + 3;
-	static constexpr const auto L = sf::Keyboard::KeyCount + 4;
-	static constexpr const auto R = sf::Keyboard::KeyCount + 5;
-	static constexpr const auto Back = sf::Keyboard::KeyCount + 6;
-	static constexpr const auto Start = sf::Keyboard::KeyCount + 7;
+	static constexpr const auto A = -1;
+	static constexpr const auto B = -2;
+	static constexpr const auto X = -3;
+	static constexpr const auto Y = -4;
+	static constexpr const auto L = -5;
+	static constexpr const auto R = -6;
+	static constexpr const auto Back = -7;
+	static constexpr const auto Start = -8;
 	static constexpr const auto KeyCount = 8;
 };
 
@@ -28,7 +28,8 @@ class InputMapping;
 struct KeyboardInputMapping {
 	using VirtualKeys = KeyboardVirtualKeys;
 
-	static const constexpr auto PhysicalKeyCount = sf::Keyboard::KeyCount + XBox360Keys::KeyCount;
+	static const constexpr auto PhysicalKeyCount = sf::Keyboard::KeyCount;
+	static const constexpr auto PhysicalNegativeOffset = XBox360Keys::KeyCount;
 
 	static constexpr const char* VirtualKeyNames[] = { 
 		"A", "B", "X", "Y", "L", "R", "L2", "R2", "L3", "R3",

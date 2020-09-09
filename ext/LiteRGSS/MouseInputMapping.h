@@ -20,6 +20,7 @@ struct MouseInputMapping {
 
 	using VirtualKeys = MouseVirtualKeys;
 	static const constexpr auto PhysicalKeyCount = sf::Mouse::ButtonCount;
+	static const constexpr auto PhysicalNegativeOffset = 0;
 
 	static constexpr const char* VirtualKeyNames[] = {
 		"LEFT", "RIGHT", "MIDDLE", "X1", "X2"

@@ -29,8 +29,7 @@ void L_Input_Update_Joy(unsigned int joy_id, unsigned int key, bool state)
 		return;
 
 	const PhysicalKeyIndex physicalJoyKey = -(32 * joy_id) - key - 1;
-	const PhysicalKeyIndex positivePhysicalJoyKey = sf::Keyboard::KeyCount - physicalJoyKey - 1;
-	MainInput.keyMapping.update(positivePhysicalJoyKey, state);
+	MainInput.keyMapping.update(physicalJoyKey, state);
 }
 
 #define JOY_MIN_DEADZONE -25.0f
