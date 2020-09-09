@@ -13,12 +13,12 @@ struct InputStateData {
 
 template <class Mapping>
 class InputState {
-	static constexpr const auto VirtualKeyCount = PhysicalVirtualInputMapping<Mapping>::VirtualKeyCount;
-	using VirtualKeyIndex = typename PhysicalVirtualInputMapping<Mapping>::VirtualKeyIndex;
-	using PhysicalKeyIndex = typename PhysicalVirtualInputMapping<Mapping>::PhysicalKeyIndex;
+	static constexpr const auto VirtualKeyCount = InputMapping<Mapping>::VirtualKeyCount;
+	using VirtualKeyIndex = ::VirtualKeyIndex;
+	using PhysicalKeyIndex = ::PhysicalKeyIndex;
 public:
 	void update(PhysicalKeyIndex physicalKeyCode, bool state) {
-		const auto virtualIndex = m_physicalToVirtualMapping.Mapping::lookup(physicalKeyCode);
+		const auto virtualIndex = m_physicalToVirtualMapping.lookup(physicalKeyCode);
 		if (virtualIndex < VirtualKeyCount && m_data[virtualIndex].state ^ state) {
 			forceUpdate(virtualIndex, state);
 		}
@@ -78,11 +78,11 @@ public:
 		}
 	}
 
-	const PhysicalVirtualInputMapping<Mapping>& mapping() const {
+	const InputMapping<Mapping>& mapping() const {
 		return m_physicalToVirtualMapping;
 	}
 
-	PhysicalVirtualInputMapping<Mapping>& mapping() {
+	InputMapping<Mapping>& mapping() {
 		return m_physicalToVirtualMapping;
 	}
 
@@ -130,7 +130,7 @@ private:
 		return repeatInput(virtualIndex);
 	}
 
-	PhysicalVirtualInputMapping<Mapping> m_physicalToVirtualMapping {};
+	InputMapping<Mapping> m_physicalToVirtualMapping {};
 
 	std::array<InputStateData, VirtualKeyCount> m_data {};
 };

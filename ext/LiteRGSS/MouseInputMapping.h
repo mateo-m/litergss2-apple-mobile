@@ -3,7 +3,6 @@
 
 #include <unordered_set>
 #include <SFML/Window/Mouse.hpp>
-#include "BaseInputMapping.h"
 
 enum class MouseVirtualKeys {
 	Left = 0,
@@ -14,19 +13,21 @@ enum class MouseVirtualKeys {
 	KeyCount
 };
 
-struct MouseInputMapping :
-	public BaseInputMapping<sf::Mouse::ButtonCount, static_cast<std::size_t>(MouseVirtualKeys::KeyCount)>  {
+template <class>
+class InputMapping;
+
+struct MouseInputMapping {
 
 	using VirtualKeys = MouseVirtualKeys;
+	static const constexpr auto PhysicalKeyCount = sf::Mouse::ButtonCount;
 
-	static constexpr MappingEntry VirtualKeyNames[] = {
+	static constexpr const char* VirtualKeyNames[] = {
 		"LEFT", "RIGHT", "MIDDLE", "X1", "X2"
 	};
 
 	static const std::unordered_set<std::string> VirtualKeyNamesAliases;
 
-	MouseInputMapping();
-	~MouseInputMapping() = default;
+	static void fill(InputMapping<MouseInputMapping>&);
 };
 
 #endif

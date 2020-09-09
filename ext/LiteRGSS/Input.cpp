@@ -28,8 +28,8 @@ void L_Input_Update_Joy(unsigned int joy_id, unsigned int key, bool state)
 	if (!sf::Joystick::isConnected(joy_id))
 		return;
 
-	const KeyboardInputMapping::PhysicalKeyIndex physicalJoyKey = -(32 * joy_id) - key - 1;
-	const KeyboardInputMapping::PhysicalKeyIndex positivePhysicalJoyKey = sf::Keyboard::KeyCount - physicalJoyKey - 1;
+	const PhysicalKeyIndex physicalJoyKey = -(32 * joy_id) - key - 1;
+	const PhysicalKeyIndex positivePhysicalJoyKey = sf::Keyboard::KeyCount - physicalJoyKey - 1;
 	MainInput.keyMapping.update(positivePhysicalJoyKey, state);
 }
 
@@ -43,26 +43,26 @@ void L_Input_Update_JoyXPos(float position)
 
 	if (position < JOY_MIN_DEADZONE)
 	{
-		if (!MainInput.keyMapping.isPressed(static_cast<KeyboardInputMapping::VirtualKeyIndex>(KeyboardVirtualKeys::Left)))
+		if (!MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Left)))
 		{
-			MainInput.keyMapping.forceUpdate(static_cast<KeyboardInputMapping::VirtualKeyIndex>(KeyboardVirtualKeys::Left), true);
-			MainInput.keyMapping.forceUpdate(static_cast<KeyboardInputMapping::VirtualKeyIndex>(KeyboardVirtualKeys::Right), false);
+			MainInput.keyMapping.forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Left), true);
+			MainInput.keyMapping.forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Right), false);
 		}
 	}
 	else if (position > JOY_MAX_DEADZONE)
 	{
-		if (!MainInput.keyMapping.isPressed(static_cast<KeyboardInputMapping::VirtualKeyIndex>(KeyboardVirtualKeys::Right)))
+		if (!MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Right)))
 		{
-			MainInput.keyMapping.forceUpdate(static_cast<KeyboardInputMapping::VirtualKeyIndex>(KeyboardVirtualKeys::Left), false);
-			MainInput.keyMapping.forceUpdate(static_cast<KeyboardInputMapping::VirtualKeyIndex>(KeyboardVirtualKeys::Right), true);
+			MainInput.keyMapping.forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Left), false);
+			MainInput.keyMapping.forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Right), true);
 		}
 	}
 	else
 	{
-		if (MainInput.keyMapping.isPressed(static_cast<KeyboardInputMapping::VirtualKeyIndex>(KeyboardVirtualKeys::Right)))
-			MainInput.keyMapping.forceUpdate(static_cast<KeyboardInputMapping::VirtualKeyIndex>(KeyboardVirtualKeys::Right), false);
-		if (MainInput.keyMapping.isPressed(static_cast<KeyboardInputMapping::VirtualKeyIndex>(KeyboardVirtualKeys::Left)))
-			MainInput.keyMapping.forceUpdate(static_cast<KeyboardInputMapping::VirtualKeyIndex>(KeyboardVirtualKeys::Left), false);
+		if (MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Right)))
+			MainInput.keyMapping.forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Right), false);
+		if (MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Left)))
+			MainInput.keyMapping.forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Left), false);
 	}
 }
 
@@ -73,26 +73,26 @@ void L_Input_Update_JoyYPos(float position)
 
 	if (position < JOY_MIN_DEADZONE)
 	{
-		if (!MainInput.keyMapping.isPressed(static_cast<KeyboardInputMapping::VirtualKeyIndex>(KeyboardVirtualKeys::Up)))
+		if (!MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Up)))
 		{
-			MainInput.keyMapping.forceUpdate(static_cast<KeyboardInputMapping::VirtualKeyIndex>(KeyboardVirtualKeys::Up), true);
-			MainInput.keyMapping.forceUpdate(static_cast<KeyboardInputMapping::VirtualKeyIndex>(KeyboardVirtualKeys::Down), false);
+			MainInput.keyMapping.forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Up), true);
+			MainInput.keyMapping.forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Down), false);
 		}
 	}
 	else if (position > JOY_MAX_DEADZONE)
 	{
-		if (!MainInput.keyMapping.isPressed(static_cast<KeyboardInputMapping::VirtualKeyIndex>(KeyboardVirtualKeys::Down)))
+		if (!MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Down)))
 		{
-			MainInput.keyMapping.forceUpdate(static_cast<KeyboardInputMapping::VirtualKeyIndex>(KeyboardVirtualKeys::Up), false);
-			MainInput.keyMapping.forceUpdate(static_cast<KeyboardInputMapping::VirtualKeyIndex>(KeyboardVirtualKeys::Down), true);
+			MainInput.keyMapping.forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Up), false);
+			MainInput.keyMapping.forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Down), true);
 		}
 	}
 	else
 	{
-		if (MainInput.keyMapping.isPressed(static_cast<KeyboardInputMapping::VirtualKeyIndex>(KeyboardVirtualKeys::Up)))
-			MainInput.keyMapping.forceUpdate(static_cast<KeyboardInputMapping::VirtualKeyIndex>(KeyboardVirtualKeys::Up), false);
-		if (MainInput.keyMapping.isPressed(static_cast<KeyboardInputMapping::VirtualKeyIndex>(KeyboardVirtualKeys::Down)))
-			MainInput.keyMapping.forceUpdate(static_cast<KeyboardInputMapping::VirtualKeyIndex>(KeyboardVirtualKeys::Down), false);
+		if (MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Up)))
+			MainInput.keyMapping.forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Up), false);
+		if (MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Down)))
+			MainInput.keyMapping.forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Down), false);
 	}
 }
 
@@ -142,13 +142,13 @@ VALUE rb_Input_Released(VALUE self, VALUE keyId)
 
 VALUE rb_Input_dir4(VALUE self)
 {
-	if(MainInput.keyMapping.isPressed(static_cast<KeyboardInputMapping::VirtualKeyIndex>(KeyboardVirtualKeys::Up)))
+	if(MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Up)))
 		return LONG2FIX(8);
-	if(MainInput.keyMapping.isPressed(static_cast<KeyboardInputMapping::VirtualKeyIndex>(KeyboardVirtualKeys::Down)))
+	if(MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Down)))
 		return LONG2FIX(2);
-	if(MainInput.keyMapping.isPressed(static_cast<KeyboardInputMapping::VirtualKeyIndex>(KeyboardVirtualKeys::Left)))
+	if(MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Left)))
 		return LONG2FIX(4);
-	if(MainInput.keyMapping.isPressed(static_cast<KeyboardInputMapping::VirtualKeyIndex>(KeyboardVirtualKeys::Right)))
+	if(MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Right)))
 		return LONG2FIX(6);
 	return LONG2FIX(0);
 }
@@ -156,26 +156,26 @@ VALUE rb_Input_dir4(VALUE self)
 VALUE rb_Input_dir8(VALUE self)
 {
 	// Up Left / Up Right / Up
-	if(MainInput.keyMapping.isPressed(static_cast<KeyboardInputMapping::VirtualKeyIndex>(KeyboardVirtualKeys::Up)))
+	if(MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Up)))
 	{
-		if(MainInput.keyMapping.isPressed(static_cast<KeyboardInputMapping::VirtualKeyIndex>(KeyboardVirtualKeys::Left)))
+		if(MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Left)))
 			return LONG2FIX(7);
-		else if(MainInput.keyMapping.isPressed(static_cast<KeyboardInputMapping::VirtualKeyIndex>(KeyboardVirtualKeys::Right)))
+		else if(MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Right)))
 			return LONG2FIX(9);
 		return LONG2FIX(8);
 	}
 	// Down Left / Down Right / Down
-	if(MainInput.keyMapping.isPressed(static_cast<KeyboardInputMapping::VirtualKeyIndex>(KeyboardVirtualKeys::Down)))
+	if(MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Down)))
 	{
-		if(MainInput.keyMapping.isPressed(static_cast<KeyboardInputMapping::VirtualKeyIndex>(KeyboardVirtualKeys::Left)))
+		if(MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Left)))
 			return LONG2FIX(1);
-		else if(MainInput.keyMapping.isPressed(static_cast<KeyboardInputMapping::VirtualKeyIndex>(KeyboardVirtualKeys::Right)))
+		else if(MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Right)))
 			return LONG2FIX(3);
 		return LONG2FIX(2);
 	}
-	if(MainInput.keyMapping.isPressed(static_cast<KeyboardInputMapping::VirtualKeyIndex>(KeyboardVirtualKeys::Left)))
+	if(MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Left)))
 		return LONG2FIX(4);
-	if(MainInput.keyMapping.isPressed(static_cast<KeyboardInputMapping::VirtualKeyIndex>(KeyboardVirtualKeys::Right)))
+	if(MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Right)))
 		return LONG2FIX(6);
 	return LONG2FIX(0);
 }
@@ -386,8 +386,6 @@ void DefineRubySFMLKeyboardBinding() {
 
 		tableElement.vIndex = MainInput.keyMapping.mapping().lookup(vkeyName);
 		tableElement.data = &MainInput.keyMapping.mapping();
-
-		std::cout << "vkey " << tableElement.vIndex << " for " << vkeyName << std::endl;
 
 		rb_hash_aset(rb_mInputKey, rb_id2sym(rb_intern(vkeyName)), tmp);
 

@@ -7,7 +7,7 @@
 
 struct InputMappingTableElement {
 	VirtualKeyIndex vIndex = std::numeric_limits<VirtualKeyIndex>::max();
-	PhysicalVirtualInputMapping<KeyboardInputMapping>* data = nullptr;
+	InputMapping<KeyboardInputMapping>* data = nullptr;
 };
 
 void Init_InputMappingTable();

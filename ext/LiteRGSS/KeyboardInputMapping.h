@@ -3,7 +3,6 @@
 
 #include <unordered_set>
 #include <SFML/Window/Keyboard.hpp>
-#include "BaseInputMapping.h"
 
 struct XBox360Keys {
 	static constexpr const auto A = sf::Keyboard::KeyCount;
@@ -23,19 +22,22 @@ enum class KeyboardVirtualKeys {
 	KeyCount
 };
 
-struct KeyboardInputMapping : 
-	public BaseInputMapping<sf::Keyboard::KeyCount + XBox360Keys::KeyCount, static_cast<std::size_t>(KeyboardVirtualKeys::KeyCount)> {
+template <class>
+class InputMapping;
+
+struct KeyboardInputMapping {
 	using VirtualKeys = KeyboardVirtualKeys;
 
-	static constexpr MappingEntry VirtualKeyNames[] = { 
+	static const constexpr auto PhysicalKeyCount = sf::Keyboard::KeyCount + XBox360Keys::KeyCount;
+
+	static constexpr const char* VirtualKeyNames[] = { 
 		"A", "B", "X", "Y", "L", "R", "L2", "R2", "L3", "R3",
 		"START", "SELECT", "HOME", "UP", "DOWN", "LEFT", "RIGHT"
 	};
 
 	static const std::unordered_set<std::string> VirtualKeyNamesAliases;
 
-	KeyboardInputMapping();
-	virtual ~KeyboardInputMapping() = default;
+	static void fill(InputMapping<KeyboardInputMapping>&);
 };
 
 #endif
