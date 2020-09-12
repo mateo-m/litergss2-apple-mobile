@@ -17,7 +17,7 @@ cgss::DisplayWindowVideoSettings GraphicsConfigLoader::loadVideoFromConfigs() co
 
 	return loadVideoFromData(
 			screenWidth == Qnil ? -1 : rb_num2long(screenWidth),
-	      	screenHeight == Qnil ? -1 : rb_num2long(screenHeight),
+			screenHeight == Qnil ? -1 : rb_num2long(screenHeight),
 			screenScale == Qnil ? -1.0 : NUM2DBL(screenScale),
 			screenBitsPerPixel == Qnil ? -1 : rb_num2long(screenBitsPerPixel));
 }

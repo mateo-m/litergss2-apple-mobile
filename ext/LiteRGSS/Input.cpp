@@ -4,437 +4,358 @@
 #include "Input.h"
 #include "NormalizeNumbers.h"
 
-VALUE rb_mInput = Qnil;
-VALUE rb_mMouse = Qnil;
+VALUE rb_cInputKeyboard = Qnil;
+VALUE rb_cInputMouse = Qnil;
 
-Input MainInput = {};
+InputMapping<KeyboardInputMapping> MainKeyboardMapping = {};
+InputMapping<MouseInputMapping> MainMouseMapping = {};
 
-void L_Input_Mouse_Pos_Update(int x, int y)
-{
-	if (x < 0)
+static Input BuildInput() {
+	auto result = Input{};
+	result.keyMapping = std::make_unique<InputState<KeyboardInputMapping>>(MainKeyboardMapping);
+	result.mouseMapping = std::make_unique<InputState<MouseInputMapping>>(MainMouseMapping);
+	return result;
+}
+
+Input MainInput = BuildInput();
+
+VALUE rb_Input_Initialize(int argc, VALUE *argv, VALUE self) {
+	auto& keyboard = rb::Get<InputKeyboardElement>(self);
+	keyboard.edit([](InputKeyboard& keyboard) {
+		keyboard.keyMapping = std::make_unique<InputState<KeyboardInputMapping>>(MainKeyboardMapping);
+	});
+	return self;
+}
+
+VALUE rb_Mouse_Initialize(int argc, VALUE *argv, VALUE self) {
+	auto& mouse = rb::Get<InputMouseElement>(self);
+	mouse.edit([](InputMouse& mouse) {
+		mouse.mouseMapping = std::make_unique<InputState<MouseInputMapping>>(MainMouseMapping);
+	});
+	return self;
+}
+
+void L_Input_Mouse_Pos_Update(InputMouse& input, int x, int y) {
+	if (x < 0) {
 		x = -256;
-	MainInput.mousePosX = static_cast<double>(x);
-	MainInput.mousePosY = static_cast<double>(y);
+	}
+	input.mousePosX = static_cast<double>(x);
+	input.mousePosY = static_cast<double>(y);
 }
 
-void L_Input_Mouse_Wheel_Update(long delta)
-{
-	MainInput.mouseWheelDelta += delta;
+void L_Input_Mouse_Wheel_Update(InputMouse& input, long delta) {
+	input.mouseWheelDelta += delta;
 }
 
-void L_Input_Update_Joy(unsigned int joy_id, unsigned int key, bool state)
-{
-	if (!sf::Joystick::isConnected(joy_id))
+void L_Input_Update_Joy(InputKeyboard& input, unsigned int joy_id, unsigned int key, bool state) {
+	if (!sf::Joystick::isConnected(joy_id)) {
 		return;
+	}
 
 	const PhysicalKeyIndex physicalJoyKey = -(32 * joy_id) - key - 1;
-	MainInput.keyMapping.update(physicalJoyKey, state);
+	input.keyMapping->update(physicalJoyKey, state);
 }
 
 #define JOY_MIN_DEADZONE -25.0f
 #define JOY_MAX_DEADZONE 25.0f
 
-void L_Input_Update_JoyXPos(float position)
-{
-	if (MainInput.invertAxisX)
+void L_Input_Update_JoyXPos(InputKeyboard& input, float position) {
+	if (input.invertAxisX) {
 		position = -position;
+	}
 
-	if (position < JOY_MIN_DEADZONE)
-	{
-		if (!MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Left)))
-		{
-			MainInput.keyMapping.forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Left), true);
-			MainInput.keyMapping.forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Right), false);
+	if (position < JOY_MIN_DEADZONE) {
+		if (!input.keyMapping->isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Left))) {
+			input.keyMapping->forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Left), true);
+			input.keyMapping->forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Right), false);
 		}
-	}
-	else if (position > JOY_MAX_DEADZONE)
-	{
-		if (!MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Right)))
-		{
-			MainInput.keyMapping.forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Left), false);
-			MainInput.keyMapping.forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Right), true);
+	} else if (position > JOY_MAX_DEADZONE) {
+		if (!input.keyMapping->isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Right))) {
+			input.keyMapping->forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Left), false);
+			input.keyMapping->forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Right), true);
 		}
-	}
-	else
-	{
-		if (MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Right)))
-			MainInput.keyMapping.forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Right), false);
-		if (MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Left)))
-			MainInput.keyMapping.forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Left), false);
+	} else {
+		if (input.keyMapping->isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Right))) {
+			input.keyMapping->forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Right), false);
+		}
+		if (input.keyMapping->isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Left))) {
+			input.keyMapping->forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Left), false);
+		}
 	}
 }
 
-void L_Input_Update_JoyYPos(float position)
-{
-	if (MainInput.invertAxisY)
+void L_Input_Update_JoyYPos(InputKeyboard& input, float position) {
+	if (input.invertAxisY) {
 		position = -position;
+	}
 
-	if (position < JOY_MIN_DEADZONE)
-	{
-		if (!MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Up)))
-		{
-			MainInput.keyMapping.forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Up), true);
-			MainInput.keyMapping.forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Down), false);
+	if (position < JOY_MIN_DEADZONE) {
+		if (!input.keyMapping->isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Up))) {
+			input.keyMapping->forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Up), true);
+			input.keyMapping->forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Down), false);
 		}
-	}
-	else if (position > JOY_MAX_DEADZONE)
-	{
-		if (!MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Down)))
-		{
-			MainInput.keyMapping.forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Up), false);
-			MainInput.keyMapping.forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Down), true);
+	} else if (position > JOY_MAX_DEADZONE) {
+		if (!input.keyMapping->isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Down))) {
+			input.keyMapping->forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Up), false);
+			input.keyMapping->forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Down), true);
 		}
-	}
-	else
-	{
-		if (MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Up)))
-			MainInput.keyMapping.forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Up), false);
-		if (MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Down)))
-			MainInput.keyMapping.forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Down), false);
+	} else {
+		if (input.keyMapping->isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Up))) {
+			input.keyMapping->forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Up), false);
+		}
+		if (input.keyMapping->isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Down))) {
+			input.keyMapping->forceUpdate(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Down), false);
+		}
 	}
 }
 
-void L_Input_Update_JoyPos(unsigned int joy_id, long axis, float position)
-{
-	if(joy_id != MainInput.mainJoy)
+void L_Input_Update_JoyPos(InputKeyboard& input, unsigned int joy_id, long axis, float position) {
+	if (joy_id != input.mainJoy) {
 		return;
+	}
 
-	if (axis == MainInput.mainAxisX)
-		L_Input_Update_JoyXPos(position);
-	else if (axis == MainInput.mainAxisY)
-		L_Input_Update_JoyYPos(position);
+	if (static_cast<unsigned int>(axis) == input.mainAxisX) {
+		L_Input_Update_JoyXPos(input, position);
+	} else if (static_cast<unsigned int>(axis) == input.mainAxisY) {
+		L_Input_Update_JoyYPos(input, position);
+	}
 }
 
-void L_Input_Reset_JoyPos(unsigned int joy_id)
-{
-	L_Input_Update_JoyPos(joy_id, MainInput.mainAxisX, 0.0f);
-	L_Input_Update_JoyPos(joy_id, MainInput.mainAxisY, 0.0f);
+void L_Input_Reset_JoyPos(InputKeyboard& input, unsigned int joy_id) {
+	L_Input_Update_JoyPos(input, joy_id, input.mainAxisX, 0.0f);
+	L_Input_Update_JoyPos(input, joy_id, input.mainAxisY, 0.0f);
 }
-//////////////////////////////////////////////////////////////////////////////
 
-
-VALUE rb_Input_Press(VALUE self, VALUE keyId)
-{
+VALUE rb_Input_Press(VALUE self, VALUE keyId) {
 	const char* keyName = rb_id2name(SYM2ID(keyId));
-	return MainInput.keyMapping.isPressed(keyName) ? Qtrue : Qfalse;
+	const auto& input = rb::Get<InputKeyboardElement>(self);
+	return input->keyMapping->isPressed(keyName) ? Qtrue : Qfalse;
 }
 
-VALUE rb_Input_Trigger(VALUE self, VALUE keyId)
-{
+VALUE rb_Input_Trigger(VALUE self, VALUE keyId) {
 	const char* keyName = rb_id2name(SYM2ID(keyId));
-	return MainInput.keyMapping.isTriggered(keyName) ? Qtrue : Qfalse;
+	const auto& input = rb::Get<InputKeyboardElement>(self);
+	return input->keyMapping->isTriggered(keyName) ? Qtrue : Qfalse;
 }
 
-VALUE rb_Input_Repeat(VALUE self, VALUE keyId)
-{
+VALUE rb_Input_Repeat(VALUE self, VALUE keyId) {
 	const char* keyName = rb_id2name(SYM2ID(keyId));
-	return MainInput.keyMapping.repeat(keyName) ? Qtrue : Qfalse;
+	auto& input = rb::Get<InputKeyboardElement>(self);
+	return input->keyMapping->repeat(keyName) ? Qtrue : Qfalse;
 }
 
-VALUE rb_Input_Released(VALUE self, VALUE keyId)
-{
+VALUE rb_Input_Released(VALUE self, VALUE keyId) {
 	const char* keyName = rb_id2name(SYM2ID(keyId));
-	return MainInput.keyMapping.isReleased(keyName) ? Qtrue : Qfalse;
+	const auto& input = rb::Get<InputKeyboardElement>(self);
+	return input->keyMapping->isReleased(keyName) ? Qtrue : Qfalse;
 }
 
+VALUE rb_Input_dir4(VALUE self) {
+	const auto& input = rb::Get<InputKeyboardElement>(self);
 
-VALUE rb_Input_dir4(VALUE self)
-{
-	if(MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Up)))
+	if (input->keyMapping->isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Up))) {
 		return LONG2FIX(8);
-	if(MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Down)))
+	}
+
+	if (input->keyMapping->isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Down))) {
 		return LONG2FIX(2);
-	if(MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Left)))
+	}
+
+	if (input->keyMapping->isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Left))) {
 		return LONG2FIX(4);
-	if(MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Right)))
+	}
+
+	if (input->keyMapping->isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Right))) {
 		return LONG2FIX(6);
+	}
+
 	return LONG2FIX(0);
 }
 
 VALUE rb_Input_dir8(VALUE self)
 {
+	const auto& input = rb::Get<InputKeyboardElement>(self);
 	// Up Left / Up Right / Up
-	if(MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Up)))
-	{
-		if(MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Left)))
+	if (input->keyMapping->isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Up))) {
+		if (input->keyMapping->isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Left))) {
 			return LONG2FIX(7);
-		else if(MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Right)))
+		} else if (input->keyMapping->isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Right))) {
 			return LONG2FIX(9);
+		}
 		return LONG2FIX(8);
 	}
+
 	// Down Left / Down Right / Down
-	if(MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Down)))
-	{
-		if(MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Left)))
+	if (input->keyMapping->isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Down))) {
+		if (input->keyMapping->isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Left))) {
 			return LONG2FIX(1);
-		else if(MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Right)))
+		} else if (input->keyMapping->isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Right))) {
 			return LONG2FIX(3);
+		}
 		return LONG2FIX(2);
 	}
-	if(MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Left)))
+
+	if (input->keyMapping->isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Left))) {
 		return LONG2FIX(4);
-	if(MainInput.keyMapping.isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Right)))
+	}
+
+	if (input->keyMapping->isPressed(static_cast<VirtualKeyIndex>(KeyboardVirtualKeys::Right))) {
 		return LONG2FIX(6);
+	}
 	return LONG2FIX(0);
 }
 
-VALUE rb_Input_setMainJoypad(VALUE self, VALUE id)
-{
+VALUE rb_Input_setMainJoypad(VALUE self, VALUE id) {
+	auto& input = rb::Get<InputKeyboardElement>(self);
 	rb_check_type(id, T_FIXNUM);
-	MainInput.mainJoy = rb_num2long(id);
+	input.edit([&id](InputKeyboard& keyboard) {
+		keyboard.mainJoy = rb_num2long(id);
+	});
 	return id;
 }
 
-VALUE rb_Input_setMainXAxis(VALUE self, VALUE axis)
-{
+VALUE rb_Input_setMainXAxis(VALUE self, VALUE axis) {
+	auto& input = rb::Get<InputKeyboardElement>(self);
 	rb_check_type(axis, T_FIXNUM);
-	MainInput.mainAxisX = rb_num2long(axis);
+	input.edit([&axis](InputKeyboard& keyboard) {
+		keyboard.mainAxisX = rb_num2long(axis);
+	});
 	return axis;
 }
 
-VALUE rb_Input_setMainYAxis(VALUE self, VALUE axis)
-{
+VALUE rb_Input_setMainYAxis(VALUE self, VALUE axis) {
+	auto& input = rb::Get<InputKeyboardElement>(self);
 	rb_check_type(axis, T_FIXNUM);
-	MainInput.mainAxisY = rb_num2long(axis);
+	input.edit([&axis](InputKeyboard& keyboard) {
+		keyboard.mainAxisY = rb_num2long(axis);
+	});
 	return axis;
 }
 
-VALUE rb_Input_getMainJoypad(VALUE self)
-{
-	return LONG2FIX(MainInput.mainJoy);
+VALUE rb_Input_getMainJoypad(VALUE self) {
+	const auto& input = rb::Get<InputKeyboardElement>(self);
+	return LONG2FIX(input->mainJoy);
 }
 
-VALUE rb_Input_getMainXAxis(VALUE self)
-{
-	return LONG2FIX(MainInput.mainAxisX);
+VALUE rb_Input_getMainXAxis(VALUE self) {
+	const auto& input = rb::Get<InputKeyboardElement>(self);
+	return LONG2FIX(input->mainAxisX);
 }
 
-VALUE rb_Input_getMainYAxis(VALUE self)
-{
-	return LONG2FIX(MainInput.mainAxisY);
+VALUE rb_Input_getMainYAxis(VALUE self) {
+	const auto& input = rb::Get<InputKeyboardElement>(self);
+	return LONG2FIX(input->mainAxisY);
 }
 
-VALUE rb_Input_getText(VALUE self)
-{
-	if (MainInput.enteredText.size() > 0)
-		return rb_utf8_str_new_cstr(MainInput.enteredText.c_str());
+VALUE rb_Input_getText(VALUE self) {
+	const auto& input = rb::Get<InputKeyboardElement>(self);
+	if (input->enteredText.size() > 0) {
+		return rb_utf8_str_new_cstr(input->enteredText.c_str());
+	}
 	return Qnil;
 }
 
-VALUE rb_Input_getInvertAxisX(VALUE self)
-{
-	return MainInput.invertAxisX ? Qtrue : Qfalse;
+VALUE rb_Input_getInvertAxisX(VALUE self) {
+	const auto& input = rb::Get<InputKeyboardElement>(self);
+	return input->invertAxisX ? Qtrue : Qfalse;
 }
 
-VALUE rb_Input_setInvertAxisX(VALUE self, VALUE val)
-{
-	MainInput.invertAxisX = RTEST(val);
+VALUE rb_Input_setInvertAxisX(VALUE self, VALUE val) {
+	auto& input = rb::Get<InputKeyboardElement>(self);
+	input.edit([&val](InputKeyboard& keyboard) {
+		keyboard.invertAxisX = RTEST(val);
+	});
 	return self;
 }
 
-VALUE rb_Input_getInvertAxisY(VALUE self)
-{
-	return MainInput.invertAxisY ? Qtrue : Qfalse;
+VALUE rb_Input_getInvertAxisY(VALUE self) {
+	const auto& input = rb::Get<InputKeyboardElement>(self);
+	return input->invertAxisY ? Qtrue : Qfalse;
 }
 
-VALUE rb_Input_setInvertAxisY(VALUE self, VALUE val)
-{
-	MainInput.invertAxisY = RTEST(val);
+VALUE rb_Input_setInvertAxisY(VALUE self, VALUE val) {
+	auto& input = rb::Get<InputKeyboardElement>(self);
+	input.edit([&val](InputKeyboard& keyboard) {
+		keyboard.invertAxisY = RTEST(val);
+	});
 	return self;
 }
 
-VALUE rb_Input_JoyConnected(VALUE self, VALUE id)
-{
-	return sf::Joystick::isConnected(NUM2UINT(id)) ? Qtrue : Qfalse;
-}
-
-VALUE rb_Input_JoyGetButtonCount(VALUE self, VALUE id)
-{
-	return UINT2NUM(sf::Joystick::getButtonCount(NUM2UINT(id)));
-}
-
-VALUE rb_Input_JoyHasAxis(VALUE self, VALUE id, VALUE axis)
-{
-	return sf::Joystick::hasAxis(NUM2UINT(id), static_cast<sf::Joystick::Axis>(NUM2LONG(axis))) ? Qtrue : Qfalse;
-}
-
-VALUE rb_Input_JoyIsButtonPressed(VALUE self, VALUE id, VALUE button)
-{
-	return sf::Joystick::isButtonPressed(NUM2UINT(id), NUM2UINT(button)) ? Qtrue : Qfalse;
-}
-
-VALUE rb_Input_JoyGetAxisPosition(VALUE self, VALUE id, VALUE axis)
-{
-	return LONG2NUM(static_cast<long>(sf::Joystick::getAxisPosition(NUM2UINT(id), static_cast<sf::Joystick::Axis>(NUM2LONG(axis)))));
-}
-
-VALUE rb_Input_JoyGetName(VALUE self, VALUE id)
-{
-	sf::String name = sf::Joystick::getIdentification(NUM2LONG(id)).name;
-	return rb_utf8_str_new_cstr(reinterpret_cast<const char*>(name.toUtf8().c_str()));
-}
-
-VALUE rb_Mouse_Press(VALUE self, VALUE keyId)
-{
+VALUE rb_Mouse_Press(VALUE self, VALUE keyId) {
+	const auto& input = rb::Get<InputMouseElement>(self);
 	const char* keyName = rb_id2name(SYM2ID(keyId));
-	return MainInput.mouseMapping.isPressed(keyName) ? Qtrue : Qfalse;
+	return input->mouseMapping->isPressed(keyName) ? Qtrue : Qfalse;
 }
 
-VALUE rb_Mouse_Trigger(VALUE self, VALUE keyId)
-{
+VALUE rb_Mouse_Trigger(VALUE self, VALUE keyId) {
+	const auto& input = rb::Get<InputMouseElement>(self);
 	const char* keyName = rb_id2name(SYM2ID(keyId));
-	return MainInput.mouseMapping.isTriggered(keyName) ? Qtrue : Qfalse;
+	return input->mouseMapping->isTriggered(keyName) ? Qtrue : Qfalse;
 }
 
-VALUE rb_Mouse_Released(VALUE self, VALUE keyId)
-{
+VALUE rb_Mouse_Released(VALUE self, VALUE keyId) {
+	const auto& input = rb::Get<InputMouseElement>(self);
 	const char* keyName = rb_id2name(SYM2ID(keyId));
-	return MainInput.mouseMapping.isReleased(keyName) ? Qtrue : Qfalse;
+	return input->mouseMapping->isReleased(keyName) ? Qtrue : Qfalse;
 }
 
 VALUE rb_Mouse_x(VALUE self) {
-	return LONG2NUM(static_cast<long>(MainInput.mousePosX / GraphicsSingleton::Get().scale()));
+	const auto& input = rb::Get<InputMouseElement>(self);
+	return LONG2NUM(static_cast<long>(input->mousePosX / GraphicsSingleton::Get().scale()));
 }
 
 VALUE rb_Mouse_y(VALUE self) {
-	return LONG2NUM(static_cast<long>(MainInput.mousePosY / GraphicsSingleton::Get().scale()));
+	const auto& input = rb::Get<InputMouseElement>(self);
+	return LONG2NUM(static_cast<long>(input->mousePosY / GraphicsSingleton::Get().scale()));
 }
 
 VALUE rb_Mouse_Wheel(VALUE self) {
-	return LONG2NUM(MainInput.mouseWheelDelta);
+	const auto& input = rb::Get<InputMouseElement>(self);
+	return LONG2NUM(input->mouseWheelDelta);
 }
 
 VALUE rb_Mouse_Wheel_set(VALUE self, VALUE val) {
-	MainInput.mouseWheelDelta = NUM2LONG(val);
+	auto& input = rb::Get<InputMouseElement>(self);
+	input.edit([&val](InputMouse& mouse) {
+		mouse.mouseWheelDelta = NUM2LONG(val);
+	});
 	return val;
 }
 
-VALUE rb_KeyBoard_Press(VALUE self, VALUE val) {
-	return sf::Keyboard::isKeyPressed(static_cast<sf::Keyboard::Key>(rb_num2long(val))) ? Qtrue : Qfalse;
+void Init_InputKeyboard() {
+	rb_cInputKeyboard = rb_define_class_under(rb_mLiteRGSS, "InputKeyboard", rb_cObject);
+	rb_define_alloc_func(rb_cInputKeyboard, rb::Alloc<InputKeyboardElement>);
+
+	rb_define_method(rb_cInputKeyboard, "initialize", _rbf rb_Input_Initialize, -1);
+	rb_define_method(rb_cInputKeyboard, "press?", _rbf rb_Input_Press, 1);
+	rb_define_method(rb_cInputKeyboard, "trigger?", _rbf rb_Input_Trigger, 1);
+	rb_define_method(rb_cInputKeyboard, "repeat?", _rbf rb_Input_Repeat, 1);
+	rb_define_method(rb_cInputKeyboard, "released?", _rbf rb_Input_Released, 1);
+	rb_define_method(rb_cInputKeyboard, "dir4", _rbf rb_Input_dir4, 0);
+	rb_define_method(rb_cInputKeyboard, "dir8", _rbf rb_Input_dir8, 0);
+	rb_define_method(rb_cInputKeyboard, "main_joy", _rbf rb_Input_getMainJoypad, 0);
+	rb_define_method(rb_cInputKeyboard, "main_joy=", _rbf rb_Input_setMainJoypad, 1);
+	rb_define_method(rb_cInputKeyboard, "x_axis", _rbf rb_Input_getMainXAxis, 0);
+	rb_define_method(rb_cInputKeyboard, "x_axis=", _rbf rb_Input_setMainXAxis, 1);
+	rb_define_method(rb_cInputKeyboard, "y_axis", _rbf rb_Input_getMainYAxis, 0);
+	rb_define_method(rb_cInputKeyboard, "y_axis=", _rbf rb_Input_setMainYAxis, 1);
+	rb_define_method(rb_cInputKeyboard, "x_axis_inverted", _rbf rb_Input_getInvertAxisX, 0);
+	rb_define_method(rb_cInputKeyboard, "x_axis_inverted=", _rbf rb_Input_setInvertAxisX, 1);
+	rb_define_method(rb_cInputKeyboard, "y_axis_inverted", _rbf rb_Input_getInvertAxisY, 0);
+	rb_define_method(rb_cInputKeyboard, "y_axis_inverted=", _rbf rb_Input_setInvertAxisY, 1);
+	rb_define_method(rb_cInputKeyboard, "get_text", _rbf rb_Input_getText, 0);
 }
 
-void DefineRubySFMLKeyboardConstants() {
-	assert(!NIL_P(rb_mInput));
-	VALUE rb_mKeyboard = rb_define_module_under(rb_mInput, "Keyboard");
-	/* function definition */
-	rb_define_module_function(rb_mKeyboard, "press?", _rbf rb_KeyBoard_Press, 1);
+void Init_InputMouse() {
+	rb_cInputMouse = rb_define_class_under(rb_mLiteRGSS, "InputMouse", rb_cObject);
+	rb_define_alloc_func(rb_cInputMouse, rb::Alloc<InputMouseElement>);
 
-	static constexpr const char* SFML_KEY_NAMES[] = { 
-		"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", 
-	  "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "Num0", "Num1", "Num2", "Num3",
-		"Num4", "Num5", "Num6", "Num7", "Num8", "Num9", "Escape", "LControl", "LShift",
-		"LAlt", "LSystem", "RControl", "RShift", "RAlt", "RSystem", "Menu", "LBracket",
-		"RBracket", "Semicolon", "Comma", "Period", "Quote", "Slash", "Backslash", "Tilde",
-		"Equal", "Hyphen", "Space", "Enter", "Backspace", "Tab", "PageUp", "PageDown",
-		"End", "Home", "Insert", "Delete", "Add", "Subtract", "Multiply", "Divide", "Left",
-		"Right", "Up", "Down", "Numpad0", "Numpad1", "Numpad2", "Numpad3", "Numpad4",
-		"Numpad5", "Numpad6", "Numpad7", "Numpad8", "Numpad9", "F1", "F2", "F3", "F4", "F5",
-		"F6", "F7", "F8", "F9", "F10", "F11", "F12", "F13", "F14", "F15", "Pause" };
-	
-	static_assert((sizeof(SFML_KEY_NAMES) / sizeof(SFML_KEY_NAMES[0])) == sf::Keyboard::KeyCount);
-
-	std::size_t keyIndex = 0;
-	for (const auto* key : SFML_KEY_NAMES) {
-		rb_define_const(rb_mKeyboard, key, LONG2NUM(keyIndex++));
-	}
-}
-
-void DefineRubySFMLJoypadConstants() {
-	assert(!NIL_P(rb_mInput));
-	rb_define_const(rb_mInput, "JoyAxisX", LONG2NUM(sf::Joystick::Axis::X));
-	rb_define_const(rb_mInput, "JoyAxisY", LONG2NUM(sf::Joystick::Axis::Y));
-	rb_define_const(rb_mInput, "JoyAxisZ", LONG2NUM(sf::Joystick::Axis::Z));
-	rb_define_const(rb_mInput, "JoyAxisR", LONG2NUM(sf::Joystick::Axis::R));
-	rb_define_const(rb_mInput, "JoyAxisU", LONG2NUM(sf::Joystick::Axis::U));
-	rb_define_const(rb_mInput, "JoyAxisV", LONG2NUM(sf::Joystick::Axis::V));
-	rb_define_const(rb_mInput, "JoyAxisPovX", LONG2NUM(sf::Joystick::Axis::PovX));
-	rb_define_const(rb_mInput, "JoyAxisPovY", LONG2NUM(sf::Joystick::Axis::PovY));
-}
-
-void DefineRubySFMLMouseBinding() {
-	VALUE rb_mMouseKey = rb_hash_new();
-	rb_define_const(rb_mMouse, "Keys", rb_mMouseKey);
-	rb_gc_register_address(&rb_mMouseKey); // Protect the Hash from being GC'd
-	RHASH_SET_IFNONE(rb_mMouseKey, LONG2NUM(sf::Mouse::Button::Left));
-
-	for (const auto* vkeyName : MouseInputMapping::VirtualKeyNames) {
-		const auto& physicalKeyCodes = MainInput.mouseMapping.mapping().reverseLookup(vkeyName);
-		assert(physicalKeyCodes.size() == 1);
-		VALUE tmp = LONG2NUM(physicalKeyCodes[0]);
-		rb_hash_aset(rb_mMouseKey, rb_id2sym(rb_intern(vkeyName)), tmp);
-
-		/* Add lower case aliases */
-		std::string lowerVKeyName = vkeyName;
-		std::transform(lowerVKeyName.begin(), lowerVKeyName.end(), lowerVKeyName.begin(), [](unsigned char c){ return std::tolower(c); });
-		if (MouseInputMapping::VirtualKeyNamesAliases.count(lowerVKeyName) != 0) {
-			rb_hash_aset(rb_mMouseKey, rb_id2sym(rb_intern(lowerVKeyName.c_str())), tmp);
-		}
-	}
-}
-
-void DefineRubySFMLKeyboardBinding() {
-	VALUE rb_mInputKey = rb_hash_new();
-	rb_define_const(rb_mInput, "Keys", rb_mInputKey);
-	rb_gc_register_address(&rb_mInputKey); // Protect the Hash from being GC'd
-	RHASH_SET_IFNONE(rb_mInputKey, rb_class_new_instance(0, nullptr, rb_cInputMappingTable));
-
-	for (const auto* vkeyName : KeyboardInputMapping::VirtualKeyNames) {
-		VALUE tmp = rb_class_new_instance(0, nullptr, rb_cInputMappingTable);
-		auto& tableElement = rb::Get<InputMappingTableElement>(tmp);
-
-		tableElement.vIndex = MainInput.keyMapping.mapping().lookup(vkeyName);
-		tableElement.data = &MainInput.keyMapping.mapping();
-
-		rb_hash_aset(rb_mInputKey, rb_id2sym(rb_intern(vkeyName)), tmp);
-
-		/* Add lower case aliases */
-		std::string lowerVKeyName = vkeyName;
-		std::transform(lowerVKeyName.begin(), lowerVKeyName.end(), lowerVKeyName.begin(), [](unsigned char c){ return std::tolower(c); });
-		if (KeyboardInputMapping::VirtualKeyNamesAliases.count(lowerVKeyName) != 0) {
-			rb_hash_aset(rb_mInputKey, rb_id2sym(rb_intern(lowerVKeyName.c_str())), tmp);
-		}
-	}
-}
-
-void Init_Input()
-{
-	rb_mInput = rb_define_module_under(rb_mLiteRGSS, "Input");
-	rb_define_module_function(rb_mInput, "press?", _rbf rb_Input_Press, 1);
-	rb_define_module_function(rb_mInput, "trigger?", _rbf rb_Input_Trigger, 1);
-	rb_define_module_function(rb_mInput, "repeat?", _rbf rb_Input_Repeat, 1);
-	rb_define_module_function(rb_mInput, "released?", _rbf rb_Input_Released, 1);
-	rb_define_module_function(rb_mInput, "dir4", _rbf rb_Input_dir4, 0);
-	rb_define_module_function(rb_mInput, "dir8", _rbf rb_Input_dir8, 0);
-	rb_define_module_function(rb_mInput, "main_joy", _rbf rb_Input_getMainJoypad, 0);
-	rb_define_module_function(rb_mInput, "main_joy=", _rbf rb_Input_setMainJoypad, 1);
-	rb_define_module_function(rb_mInput, "x_axis", _rbf rb_Input_getMainXAxis, 0);
-	rb_define_module_function(rb_mInput, "x_axis=", _rbf rb_Input_setMainXAxis, 1);
-	rb_define_module_function(rb_mInput, "y_axis", _rbf rb_Input_getMainYAxis, 0);
-	rb_define_module_function(rb_mInput, "y_axis=", _rbf rb_Input_setMainYAxis, 1);
-	rb_define_module_function(rb_mInput, "x_axis_inverted", _rbf rb_Input_getInvertAxisX, 0);
-	rb_define_module_function(rb_mInput, "x_axis_inverted=", _rbf rb_Input_setInvertAxisX, 1);
-	rb_define_module_function(rb_mInput, "y_axis_inverted", _rbf rb_Input_getInvertAxisY, 0);
-	rb_define_module_function(rb_mInput, "y_axis_inverted=", _rbf rb_Input_setInvertAxisY, 1);
-	rb_define_module_function(rb_mInput, "get_text", _rbf rb_Input_getText, 0);
-	rb_define_module_function(rb_mInput, "joy_connected?", _rbf rb_Input_JoyConnected, 1);
-	rb_define_module_function(rb_mInput, "joy_button_count", _rbf rb_Input_JoyGetButtonCount, 1);
-	rb_define_module_function(rb_mInput, "joy_has_axis?", _rbf rb_Input_JoyHasAxis, 2);
-	rb_define_module_function(rb_mInput, "joy_button_press?", _rbf rb_Input_JoyIsButtonPressed, 2);
-	rb_define_module_function(rb_mInput, "joy_axis_position", _rbf rb_Input_JoyGetAxisPosition, 2);
-	rb_define_module_function(rb_mInput, "joy_name", _rbf rb_Input_JoyGetName, 1);
-
-	rb_mMouse = rb_define_module_under(rb_mLiteRGSS, "Mouse");
-	rb_define_module_function(rb_mMouse, "press?", _rbf rb_Mouse_Press, 1);
-	rb_define_module_function(rb_mMouse, "trigger?", _rbf rb_Mouse_Trigger, 1);
-	rb_define_module_function(rb_mMouse, "released?", _rbf rb_Mouse_Released, 1);
-	rb_define_module_function(rb_mMouse, "x", _rbf rb_Mouse_x, 0);
-	rb_define_module_function(rb_mMouse, "y", _rbf rb_Mouse_y, 0);
-	rb_define_module_function(rb_mMouse, "wheel", _rbf rb_Mouse_Wheel, 0);
-	rb_define_module_function(rb_mMouse, "wheel=", _rbf rb_Mouse_Wheel_set, 1);
-
-	DefineRubySFMLMouseBinding();
-	DefineRubySFMLKeyboardBinding();
-
-	DefineRubySFMLJoypadConstants();
-	DefineRubySFMLKeyboardConstants();
+	rb_define_method(rb_cInputMouse, "initialize", _rbf rb_Mouse_Initialize, -1);
+	rb_define_method(rb_cInputMouse, "press?", _rbf rb_Mouse_Press, 1);
+	rb_define_method(rb_cInputMouse, "trigger?", _rbf rb_Mouse_Trigger, 1);
+	rb_define_method(rb_cInputMouse, "released?", _rbf rb_Mouse_Released, 1);
+	rb_define_method(rb_cInputMouse, "x", _rbf rb_Mouse_x, 0);
+	rb_define_method(rb_cInputMouse, "y", _rbf rb_Mouse_y, 0);
+	rb_define_method(rb_cInputMouse, "wheel", _rbf rb_Mouse_Wheel, 0);
+	rb_define_method(rb_cInputMouse, "wheel=", _rbf rb_Mouse_Wheel_set, 1);
 }

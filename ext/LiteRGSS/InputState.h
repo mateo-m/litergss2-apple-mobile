@@ -17,6 +17,11 @@ class InputState {
 	using VirtualKeyIndex = ::VirtualKeyIndex;
 	using PhysicalKeyIndex = ::PhysicalKeyIndex;
 public:
+	InputState(InputMapping<Mapping>& mapping) 
+		: m_physicalToVirtualMapping(mapping) {
+	}
+	virtual ~InputState() = default;
+
 	void update(PhysicalKeyIndex physicalKeyCode, bool state) {
 		const auto virtualIndex = m_physicalToVirtualMapping.lookup(physicalKeyCode);
 		if (virtualIndex < VirtualKeyCount && m_data[virtualIndex].state ^ state) {
@@ -130,7 +135,7 @@ private:
 		return repeatInput(virtualIndex);
 	}
 
-	InputMapping<Mapping> m_physicalToVirtualMapping {};
+	InputMapping<Mapping>& m_physicalToVirtualMapping {};
 
 	std::array<InputStateData, VirtualKeyCount> m_data {};
 };

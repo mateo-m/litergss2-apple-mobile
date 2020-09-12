@@ -15,13 +15,19 @@ static constexpr int DefaultBitsPerPixel = 32;
 static constexpr int DefaultFramerate = 60;
 
 template<>
-void rb::Mark<DisplayWindowElement>(DisplayWindowElement* rectangle) {
+void rb::Mark<DisplayWindowElement>(DisplayWindowElement* window) {
+	if (window == nullptr) {
+		return;
+	}
+	rb_gc_mark(window->rKeyboard);
+	rb_gc_mark(window->rMouse);
+	rb_gc_mark(window->rShader);
 }
 
 static VALUE rb_DisplayWindow_initialize(int argc, VALUE* argv, VALUE self) {
 	VALUE title, width, height, scale, bitsPerPixel, framerate;
 	rb_scan_args(argc, argv, "42", &title, &width, &height, &scale, &bitsPerPixel, &framerate);
-    
+  
     rb_check_type(title, T_STRING);
     std::string titleStr (RSTRING_PTR(title));
 
@@ -48,7 +54,15 @@ static VALUE rb_DisplayWindow_initialize(int argc, VALUE* argv, VALUE self) {
 
 	auto& window = rb::Get<DisplayWindowElement>(self);
 	window.init();
-    window->reload(std::move(config));
+
+	window.rKeyboard = rb_class_new_instance(0, NULL, rb_cInputKeyboard);
+	auto& keyboard = rb::Get<InputKeyboardElement>(window.rKeyboard);
+	window->cgss::Bindable<InputKeyboard>::bindValue(&keyboard);
+
+	window.rMouse = rb_class_new_instance(0, NULL, rb_cInputMouse);
+	auto& mouse = rb::Get<InputMouseElement>(window.rMouse);
+	window->cgss::Bindable<InputMouse>::bindValue(&mouse);
+	window->reload(std::move(config));
 
 	return self;
 }
@@ -172,6 +186,16 @@ static VALUE rb_DisplayWindow_sort_z(VALUE self) {
 	return self;
 }
 
+static VALUE rb_DisplayWindow_keyboard(VALUE self) {
+	auto& window = rb::Get<DisplayWindowElement>(self);
+	return window.rKeyboard;
+}
+
+static VALUE rb_DisplayWindow_mouse(VALUE self) {
+	auto& window = rb::Get<DisplayWindowElement>(self);
+	return window.rMouse;
+}
+
 void Init_DisplayWindow() {
 	rb_cDisplayWindow = rb_define_class_under(rb_mLiteRGSS, "DisplayWindow", rb_cObject);
 
@@ -197,4 +221,6 @@ void Init_DisplayWindow() {
 	rb_define_method(rb_cDisplayWindow, "icon=", _rbf rb_DisplayWindow_set_icon, 1);
 	rb_define_method(rb_cDisplayWindow, "resize_screen", _rbf rb_DisplayWindow_resize_screen, 2);
 	rb_define_method(rb_cDisplayWindow, "openGL_version", _rbf rb_DisplayWindow_get_ogl_version, 0);
+	rb_define_method(rb_cDisplayWindow, "mouse", _rbf rb_DisplayWindow_mouse, 0);
+	rb_define_method(rb_cDisplayWindow, "keyboard", _rbf rb_DisplayWindow_keyboard, 0);
 }

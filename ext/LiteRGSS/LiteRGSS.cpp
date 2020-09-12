@@ -13,6 +13,7 @@
 #include "Text.h"
 #include "InputMappingTable.h"
 #include "Input.h"
+#include "InputModule.h"
 #include "Table.h"
 #include "Table32.h"
 #include "Yuki.h"
@@ -47,6 +48,8 @@ extern "C" {
 	Init_Fonts();
 	Init_Text();
 	Init_InputMappingTable();
+	Init_InputKeyboard();
+	Init_InputMouse();
 	Init_Input();
 	Init_Table();
 	Init_Table32();

@@ -28,8 +28,8 @@ void GraphicsSingleton::init() {
 	m_gameWindow.reload(std::move(config));
 
 	/* Input adjustement */
-	MainInput.keyMapping.resetClocks();
-	MainInput.mouseMapping.resetClocks();
+	MainInput.keyMapping->resetClocks();
+	MainInput.mouseMapping->resetClocks();
 }
 
 void GraphicsSingleton::manageErrorMessage(VALUE self, const GraphicsUpdateMessage& message) {
@@ -69,44 +69,44 @@ void GraphicsSingleton::updateProcessEvent(GraphicsUpdateMessage& message) {
 				message.message = "Game Window has been closed by user.";
 				return;
 			case sf::Event::EventType::KeyPressed:
-				MainInput.keyMapping.update(event.key.code, true);
+				MainInput.keyMapping->update(event.key.code, true);
 				break;
 			case sf::Event::EventType::KeyReleased:
-				MainInput.keyMapping.update(event.key.code, false);
+				MainInput.keyMapping->update(event.key.code, false);
 				break;
 			case sf::Event::EventType::JoystickButtonPressed:
-				L_Input_Update_Joy(event.joystickButton.joystickId, event.joystickButton.button, true);
+				L_Input_Update_Joy(MainInput, event.joystickButton.joystickId, event.joystickButton.button, true);
 				break;
 			case sf::Event::EventType::JoystickButtonReleased:
-				L_Input_Update_Joy(event.joystickButton.joystickId, event.joystickButton.button, false);
+				L_Input_Update_Joy(MainInput, event.joystickButton.joystickId, event.joystickButton.button, false);
 				break;
 			case sf::Event::EventType::JoystickMoved:
-				L_Input_Update_JoyPos(event.joystickMove.joystickId,
+				L_Input_Update_JoyPos(MainInput, event.joystickMove.joystickId,
 					event.joystickMove.axis,
 					event.joystickMove.position);
 				break;
 			case sf::Event::EventType::JoystickConnected:
 			case sf::Event::EventType::JoystickDisconnected:
-				L_Input_Reset_JoyPos(event.joystickConnect.joystickId);
+				L_Input_Reset_JoyPos(MainInput, event.joystickConnect.joystickId);
 				break;
 			case sf::Event::EventType::MouseMoved:
-				L_Input_Mouse_Pos_Update(event.mouseMove.x, event.mouseMove.y);
+				L_Input_Mouse_Pos_Update(MainInput, event.mouseMove.x, event.mouseMove.y);
 				break;
 			case sf::Event::EventType::MouseButtonPressed:
-				MainInput.mouseMapping.update(event.mouseButton.button, true);
-				L_Input_Mouse_Pos_Update(event.mouseButton.x, event.mouseButton.y);
+				MainInput.mouseMapping->update(event.mouseButton.button, true);
+				L_Input_Mouse_Pos_Update(MainInput, event.mouseButton.x, event.mouseButton.y);
 				break;
 			case sf::Event::EventType::MouseButtonReleased:
-				MainInput.mouseMapping.update(event.mouseButton.button, false);
-				L_Input_Mouse_Pos_Update(event.mouseButton.x, event.mouseButton.y);
+				MainInput.mouseMapping->update(event.mouseButton.button, false);
+				L_Input_Mouse_Pos_Update(MainInput, event.mouseButton.x, event.mouseButton.y);
 				break;
 			case sf::Event::EventType::MouseWheelScrolled:
 				if(event.mouseWheelScroll.wheel == sf::Mouse::Wheel::VerticalWheel)
-					L_Input_Mouse_Wheel_Update(static_cast<long>(event.mouseWheelScroll.delta));
-				L_Input_Mouse_Pos_Update(event.mouseWheelScroll.x, event.mouseWheelScroll.y);
+					L_Input_Mouse_Wheel_Update(MainInput, static_cast<long>(event.mouseWheelScroll.delta));
+				L_Input_Mouse_Pos_Update(MainInput, event.mouseWheelScroll.x, event.mouseWheelScroll.y);
 				break;
 			case sf::Event::EventType::MouseLeft:
-				L_Input_Mouse_Pos_Update(-256, -256);
+				L_Input_Mouse_Pos_Update(MainInput, -256, -256);
 				break;
 			case sf::Event::EventType::TextEntered:
 				MainInput.enteredText.append((char*)sf::String(event.text.unicode).toUtf8().c_str());				
