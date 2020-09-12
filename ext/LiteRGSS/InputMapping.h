@@ -6,6 +6,7 @@
 #include <algorithm>
 #include <unordered_map>
 #include <vector>
+#include <string>
 #include <array>
 
 using MappingEntry = const char *;
