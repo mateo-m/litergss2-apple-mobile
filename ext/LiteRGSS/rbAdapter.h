@@ -121,6 +121,8 @@ namespace rb {
 
 	template <class T>
 	VALUE Dispose(VALUE self) {
+		// Do not soft crash if we try to dispose an already disposed object (dispose tolerance)
+		if (RDATA(self)->data == nullptr) { return Qnil; }
 		auto& element = rb::Get<T>(self);
 		element->detach();
 		return RawDispose<T>(self);
