@@ -21,8 +21,9 @@ void DisplayWindowInput::manageErrorMessage(VALUE self, const GraphicsUpdateMess
 	rb_raise(message.errorObject, "%s", message.message.c_str());
 }
 
-void DisplayWindowInput::updateProcessEvent(GraphicsUpdateMessage& message, DisplayWindowElement& window) {
+void DisplayWindowInput::updateProcessEvent(VALUE self, GraphicsUpdateMessage& message) {
 	sf::Event event;
+	auto& window = rb::Get<DisplayWindowElement>(self);
 	ID rbCall = rb_intern("call");
 
 	while(pollEvent(event))
@@ -243,7 +244,7 @@ void DisplayWindowInput::update(VALUE self, bool input) {
 	/* Message Processing */
 	GraphicsUpdateMessage localMessage {};
 	if (input) {
-		updateProcessEvent(message == nullptr ? localMessage : *message, rb::Get<DisplayWindowElement>(self));
+		updateProcessEvent(self, message == nullptr ? localMessage : *message);
 	}
 	localMessage = message == nullptr ? localMessage : *message;
 	
@@ -261,7 +262,7 @@ void DisplayWindowInput::updateOnlyInput(VALUE self) {
 	m_insideGraphicsUpdate = true;
 
 	GraphicsUpdateMessage message;
-	updateProcessEvent(message, rb::Get<DisplayWindowElement>(self));
+	updateProcessEvent(self, message);
 	if (!message.message.empty()) {
 		manageErrorMessage(self, message);
 	}

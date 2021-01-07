@@ -22,7 +22,7 @@ public:
 private:
 	std::unique_ptr<GraphicsUpdateMessage> realDraw();
 	void manageErrorMessage(VALUE self, const GraphicsUpdateMessage& message);
-	void updateProcessEvent(GraphicsUpdateMessage& message, DisplayWindowElement& window);
+	void updateProcessEvent(VALUE self, GraphicsUpdateMessage& message);
 
 	bool m_insideGraphicsUpdate = false;
 };
