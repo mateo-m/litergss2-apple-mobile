@@ -15,6 +15,32 @@ struct DisplayWindowElement :
 	VALUE rKeyboard = Qnil;
 	VALUE rMouse = Qnil;
 
+	/**
+	 * Event addition
+	 **/
+	VALUE rOnClosed = Qnil;
+	VALUE rOnResized = Qnil;
+	VALUE rOnLostFocus = Qnil;
+	VALUE rOnGainedFocus = Qnil;
+	VALUE rOnTextEntered = Qnil;
+	VALUE rOnKeyPressed = Qnil;
+	VALUE rOnKeyReleased = Qnil;
+	VALUE rOnMouseWheelScrolled = Qnil;
+	VALUE rOnMouseButtonPressed = Qnil;
+	VALUE rOnMouseButtonRelease = Qnil;
+	VALUE rOnMouseMoved = Qnil;
+	VALUE rOnMouseEntered = Qnil;
+	VALUE rOnMouseLeft = Qnil;
+	VALUE rOnJoystickButtonPressed = Qnil;
+	VALUE rOnJoystickButtonReleased = Qnil;
+	VALUE rOnJoystickMoved = Qnil;
+	VALUE rOnJoystickConnected = Qnil;
+	VALUE rOnJoystickDisconnected = Qnil;
+	VALUE rOnTouchBegan = Qnil;
+	VALUE rOnTouchMoved = Qnil;
+	VALUE rOnTouchEnded = Qnil;
+	VALUE rOnSensorChanged = Qnil;
+
 	template <class Drawable, class ... Args>
 	void initAndAdd(Drawable& drawable, Args&& ... args) {
 		drawable.init(Drawable::create(*instance(), std::forward<Args>(args)...));

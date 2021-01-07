@@ -9,15 +9,10 @@
 #include "Input.h"
 
 class DisplayWindowInput : 
-	public cgss::DisplayWindow,
-	public cgss::Bindable<InputKeyboard>,
-	public cgss::Bindable<InputMouse> {
+	public cgss::DisplayWindow {
 public:
 	DisplayWindowInput() = default;
 	virtual ~DisplayWindowInput() = default;
-
-	unsigned long frameCount() const { return m_frameCount; }
-	void setFrameCount(unsigned long frameCount) { m_frameCount = frameCount; }
 
 	void update(VALUE self, bool input = true);
 	void updateOnlyInput(VALUE self);
@@ -25,20 +20,11 @@ public:
 	void transition(VALUE self, int argc, VALUE* argv);
 
 private:
-	void updateFromValue(const InputKeyboard* value) override {
-		m_keyboard = cgss::Bindable<InputKeyboard>::value();
-	}
-	void updateFromValue(const InputMouse* value) override {
-		m_mouse = cgss::Bindable<InputMouse>::value();
-	}
 	std::unique_ptr<GraphicsUpdateMessage> realDraw();
 	void manageErrorMessage(VALUE self, const GraphicsUpdateMessage& message);
-	void updateProcessEvent(GraphicsUpdateMessage& message);
+	void updateProcessEvent(GraphicsUpdateMessage& message, DisplayWindowElement& window);
 
-	InputKeyboard* m_keyboard = nullptr;
-	InputMouse* m_mouse = nullptr;
 	bool m_insideGraphicsUpdate = false;
-	unsigned long m_frameCount = 0;
 };
 
 namespace cgss {
