@@ -36,7 +36,10 @@ struct KeyboardInputMapping {
 		"START", "SELECT", "HOME", "UP", "DOWN", "LEFT", "RIGHT"
 	};
 
-	static const std::unordered_set<std::string> VirtualKeyNamesAliases;
+	static const std::unordered_set<std::string>& VirtualKeyNamesAliases() {
+		static std::unordered_set<std::string> aliases { "start", "select", "home", "up", "down", "left", "right" };
+		return aliases;
+	}
 
 	static void fill(InputMapping<KeyboardInputMapping>&);
 };

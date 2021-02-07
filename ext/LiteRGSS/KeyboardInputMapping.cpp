@@ -1,10 +1,6 @@
 #include "InputMapping.h"
 #include "KeyboardInputMapping.h"
 
-const std::unordered_set<std::string> KeyboardInputMapping::VirtualKeyNamesAliases = { 
-	"start", "select", "home", "up", "down", "left", "right"
-};
-
 void KeyboardInputMapping::fill(InputMapping<KeyboardInputMapping>& mapping) {
 	/* This is a default mapping */
 	/* It is also possible to modify it from Ruby if an interface is provided */

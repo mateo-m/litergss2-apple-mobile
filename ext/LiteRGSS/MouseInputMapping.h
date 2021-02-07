@@ -26,7 +26,10 @@ struct MouseInputMapping {
 		"LEFT", "RIGHT", "MIDDLE", "X1", "X2"
 	};
 
-	static const std::unordered_set<std::string> VirtualKeyNamesAliases;
+	static const std::unordered_set<std::string>& VirtualKeyNamesAliases() {
+		static std::unordered_set<std::string> aliases { "left", "middle", "right" };
+		return aliases;	
+	}
 
 	static void fill(InputMapping<MouseInputMapping>&);
 };

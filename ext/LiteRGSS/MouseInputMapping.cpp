@@ -2,10 +2,6 @@
 #include "InputMapping.h"
 #include "MouseInputMapping.h"
 
-const std::unordered_set<std::string> MouseInputMapping::VirtualKeyNamesAliases = { 
-	"left", "middle", "right"
-};
-
 void MouseInputMapping::fill(InputMapping<MouseInputMapping>& mapping) {
 	/* This is a default mapping */
 	/* It is also possible to modify it from Ruby if an interface is provided */

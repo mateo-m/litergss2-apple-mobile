@@ -259,7 +259,7 @@ void DefineRubySFMLMouseBinding() {
 		/* Add lower case aliases */
 		std::string lowerVKeyName = vkeyName;
 		std::transform(lowerVKeyName.begin(), lowerVKeyName.end(), lowerVKeyName.begin(), [](unsigned char c){ return std::tolower(c); });
-		if (MouseInputMapping::VirtualKeyNamesAliases.count(lowerVKeyName) != 0) {
+		if (MouseInputMapping::VirtualKeyNamesAliases().count(lowerVKeyName) != 0) {
 			rb_hash_aset(rb_mMouseKey, rb_id2sym(rb_intern(lowerVKeyName.c_str())), tmp);
 		}
 	}
@@ -283,7 +283,7 @@ void DefineRubySFMLKeyboardBinding() {
 		/* Add lower case aliases */
 		std::string lowerVKeyName = vkeyName;
 		std::transform(lowerVKeyName.begin(), lowerVKeyName.end(), lowerVKeyName.begin(), [](unsigned char c){ return std::tolower(c); });
-		if (KeyboardInputMapping::VirtualKeyNamesAliases.count(lowerVKeyName) != 0) {
+		if (KeyboardInputMapping::VirtualKeyNamesAliases().count(lowerVKeyName) != 0) {
 			rb_hash_aset(rb_mInputKey, rb_id2sym(rb_intern(lowerVKeyName.c_str())), tmp);
 		}
 	}

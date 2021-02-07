@@ -20,7 +20,7 @@ struct InputMapping {
 			m_namedMap.emplace(Mapping::VirtualKeyNames[i], i );
 			std::string lowerVKeyName = Mapping::VirtualKeyNames[i];
 			std::transform(lowerVKeyName.begin(), lowerVKeyName.end(), lowerVKeyName.begin(), [](unsigned char c){ return std::tolower(c); });
-			if (Mapping::VirtualKeyNamesAliases.count(lowerVKeyName) > 0) {
+			if (Mapping::VirtualKeyNamesAliases().count(lowerVKeyName) > 0) {
 				m_namedMap.emplace(lowerVKeyName, i );
 			}
 		}
