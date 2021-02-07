@@ -26,10 +26,10 @@ public:
 
 private:
 	void updateFromValue(const InputKeyboard* value) override {
-		m_keyboard = cgss::Bindable<InputKeyboard>::directAccess();
+		m_keyboard = cgss::Bindable<InputKeyboard>::value();
 	}
 	void updateFromValue(const InputMouse* value) override {
-		m_mouse = cgss::Bindable<InputMouse>::directAccess();
+		m_mouse = cgss::Bindable<InputMouse>::value();
 	}
 	std::unique_ptr<GraphicsUpdateMessage> realDraw();
 	void manageErrorMessage(VALUE self, const GraphicsUpdateMessage& message);
