@@ -90,7 +90,7 @@ VALUE rb_Window_setWindowSkin(VALUE self, VALUE val) {
 	auto& framedView = rb::Get<FramedViewElement>(self);
 	if (val != Qnil) {
 		auto& bmp = rb::GetSafe<TextureElement>(val, rb_cBitmap);
-		framedView->setSkin(&bmp->getTexture());
+		framedView->setSkin(&bmp->raw());
 		framedView.rBitmap = val;		
 	} else {
 		framedView->setSkin(nullptr);
@@ -293,7 +293,7 @@ VALUE rb_Window_setCursorSkin(VALUE self, VALUE val) {
 		framedView.rCursorSkin = Qnil;
 	} else {
 		auto& bmp = rb::GetSafe<TextureElement>(val, rb_cBitmap);
-		framedView->setCursorSkin(bmp->getTexture());
+		framedView->setCursorSkin(bmp->raw());
 		framedView.rCursorSkin = val;
 	}
 	return self;
@@ -310,7 +310,7 @@ VALUE rb_Window_setPauseSkin(VALUE self, VALUE val) {
 		framedView.rPauseSkin = Qnil;
 	} else {
 		auto& bmp = rb::GetSafe<TextureElement>(val, rb_cBitmap);
-		framedView->setPauseSkin(bmp->getTexture());
+		framedView->setPauseSkin(bmp->raw());
 		framedView.rPauseSkin = val;
 	}
 	return self;

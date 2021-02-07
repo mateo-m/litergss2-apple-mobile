@@ -111,7 +111,7 @@ VALUE rb_Shader_setTextureUniform(VALUE self, VALUE name, VALUE uniform) {
 	rb_check_type(name, T_STRING);
 	if (rb_obj_is_kind_of(uniform, rb_cBitmap) == Qtrue) {
 		auto& bmp = rb::Get<TextureElement>(uniform);
-		sf::Texture& texture = bmp->getTexture();
+		sf::Texture& texture = bmp->raw();
 		renderStates.data().setShaderUniform(rb_string_value_cstr(&name), texture);
 	} else {
 		renderStates.data().setShaderUniform(rb_string_value_cstr(&name), sf::Shader::CurrentTexture);

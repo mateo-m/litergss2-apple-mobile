@@ -137,7 +137,7 @@ VALUE rb_SpriteMap_Set(int argc, VALUE* argv, VALUE self) {
 	auto& bmp = rb::GetSafe<TextureElement>(bitmap, rb_cBitmap);
 	auto& rect_el = rb::GetSafe<RectangleElement>(rect, rb_cRect);
 
-	spriteMap->setTile(NUM2LONG(index), rect_el->getValue(), bmp->getTexture());
+	spriteMap->setTile(NUM2LONG(index), rect_el->getValue(), bmp->raw());
 	return self;
 }
 

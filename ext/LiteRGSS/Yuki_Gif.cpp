@@ -126,7 +126,7 @@ VALUE rb_Yuki_GifReader_Draw(VALUE self, VALUE bitmap)
 	auto& gif = rb::Get<rb_yuki_gif_data>(self);
 	if (rb_obj_is_kind_of(bitmap, rb_cBitmap) == Qtrue)
 	{
-		sf::Texture& text = rb::Get<TextureElement>(bitmap)->getTexture();
+		sf::Texture& text = rb::Get<TextureElement>(bitmap)->raw();
 		text.update(reinterpret_cast<sf::Uint8*>(gif.gif.frame_image), gif.gif.width, gif.gif.height, 0, 0);
 	}
 	return self;
