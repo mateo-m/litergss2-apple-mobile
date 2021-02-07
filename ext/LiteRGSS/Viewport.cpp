@@ -83,7 +83,7 @@ static VALUE rb_Viewport_getRect(VALUE self) {
 static VALUE rb_Viewport_setRect(VALUE self, VALUE val) {
 	auto& viewport = rb::Get<ViewportElement>(self);
 
-	if (!rb::CheckType<RectangleElement>(self, rb_cRect).empty()) {
+	if (!rb::CheckType<RectangleElement>(val, rb_cRect).empty()) {
 		return Qnil;
 	}
 
