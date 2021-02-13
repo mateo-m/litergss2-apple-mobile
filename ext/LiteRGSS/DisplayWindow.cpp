@@ -47,8 +47,8 @@ void rb::Mark<DisplayWindowElement>(DisplayWindowElement* window) {
 }
 
 static VALUE rb_DisplayWindow_initialize(int argc, VALUE* argv, VALUE self) {
-	VALUE title, width, height, scale, bitsPerPixel, framerate;
-	rb_scan_args(argc, argv, "42", &title, &width, &height, &scale, &bitsPerPixel, &framerate);
+	VALUE title, width, height, scale, bitsPerPixel, framerate, vsync, fullscreen, visibleMouse;
+	rb_scan_args(argc, argv, "45", &title, &width, &height, &scale, &bitsPerPixel, &framerate, &vsync, &fullscreen, &visibleMouse);
   
     rb_check_type(title, T_STRING);
     std::string titleStr (RSTRING_PTR(title));
@@ -62,8 +62,9 @@ static VALUE rb_DisplayWindow_initialize(int argc, VALUE* argv, VALUE self) {
     }
 
     auto configLoader = GraphicsConfigLoader {};
+		// TODO: create configLoader.loadVideoFromData inside DisplayWindow because we don't need "CONFIG" module anymore!
     auto videoSettings = configLoader.loadVideoFromData(rb_num2long(width), rb_num2long(height), NUM2DBL(scale), rb_num2long(bitsPerPixel));
-    auto contextSettings = configLoader.loadContext();
+    auto contextSettings = sf::ContextSettings(); // configLoader.loadContext(); // Disabled because it causes issues so we take default context settings
     
 	auto config = cgss::DisplayWindowSettings {
 		false,
@@ -71,7 +72,10 @@ static VALUE rb_DisplayWindow_initialize(int argc, VALUE* argv, VALUE self) {
 		std::move(contextSettings),
 		false,
 		sf::String::fromUtf8(titleStr.begin(), titleStr.end()),
-		static_cast<unsigned int>(rb_num2long(framerate))
+		static_cast<unsigned int>(rb_num2long(framerate)),
+		RTEST(vsync),
+		RTEST(fullscreen),
+		RTEST(visibleMouse)
 	};
 
 	auto& window = rb::Get<DisplayWindowElement>(self);
