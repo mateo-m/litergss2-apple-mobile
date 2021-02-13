@@ -26,6 +26,7 @@
 #include "SpriteMap.h"
 #include "DisplayWindow.h"
 #include "SfSensor.h"
+#include "SfKeyBoard.h"
 
 VALUE rb_mLiteRGSS = Qnil;
 VALUE rb_mConfig = Qnil;
@@ -64,5 +65,6 @@ extern "C" {
 	Init_SpriteMap();
 	Init_DisplayWindow();
 	Init_SfSensor();
+	Init_SfKeyboard();
   }
 }

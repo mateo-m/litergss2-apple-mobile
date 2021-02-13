@@ -1,0 +1,38 @@
+#include <SFML/Window.hpp>
+#include "LiteRGSS.h"
+#include "rbAdapter.h"
+
+VALUE rb_SfKeyboard_press(VALUE self, VALUE key) {
+  auto vkey = RB_NUM2LONG(key);
+
+  return sf::Keyboard::isKeyPressed(static_cast<sf::Keyboard::Key>(vkey)) ? Qtrue : Qfalse;
+}
+
+void DefineRubySFMLKeyboardConstants(VALUE rb_mSfKeyboard) {
+	static constexpr const char* SFML_KEY_NAMES[] = { 
+		"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P", 
+	  "Q", "R", "S", "T", "U", "V", "W", "X", "Y", "Z", "Num0", "Num1", "Num2", "Num3",
+		"Num4", "Num5", "Num6", "Num7", "Num8", "Num9", "Escape", "LControl", "LShift",
+		"LAlt", "LSystem", "RControl", "RShift", "RAlt", "RSystem", "Menu", "LBracket",
+		"RBracket", "Semicolon", "Comma", "Period", "Quote", "Slash", "Backslash", "Tilde",
+		"Equal", "Hyphen", "Space", "Enter", "Backspace", "Tab", "PageUp", "PageDown",
+		"End", "Home", "Insert", "Delete", "Add", "Subtract", "Multiply", "Divide", "Left",
+		"Right", "Up", "Down", "Numpad0", "Numpad1", "Numpad2", "Numpad3", "Numpad4",
+		"Numpad5", "Numpad6", "Numpad7", "Numpad8", "Numpad9", "F1", "F2", "F3", "F4", "F5",
+		"F6", "F7", "F8", "F9", "F10", "F11", "F12", "F13", "F14", "F15", "Pause" };
+	
+	static_assert((sizeof(SFML_KEY_NAMES) / sizeof(SFML_KEY_NAMES[0])) == sf::Keyboard::KeyCount);
+
+	std::size_t keyIndex = 0;
+	for (const auto* key : SFML_KEY_NAMES) {
+		rb_define_const(rb_mSfKeyboard, key, LONG2NUM(keyIndex++));
+	}
+}
+
+void Init_SfKeyboard() {
+  VALUE rb_mSf = rb_define_module("Sf");
+  VALUE rb_mSfKeyboard = rb_define_module_under(rb_mSf, "Keyboard");
+
+  DefineRubySFMLKeyboardConstants(rb_mSfKeyboard);
+  rb_define_module_function(rb_mSfKeyboard, "press?", _rbf rb_SfKeyboard_press, 1);
+}
