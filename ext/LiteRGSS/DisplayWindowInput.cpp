@@ -31,11 +31,7 @@ void DisplayWindowInput::updateProcessEvent(VALUE self, GraphicsUpdateMessage& m
 		switch(event.type)
 		{
 			case sf::Event::EventType::Closed:
-				if (NIL_P(window.rOnClosed)) {
-					message.errorObject = rb_eClosedWindow;
-					message.message = "Game Window has been closed by user.";
-					return;
-				} else if (rb_funcall(window.rOnClosed, rbCall, 0) != Qfalse){
+				if (NIL_P(window.rOnClosed) || rb_funcall(window.rOnClosed, rbCall, 0) != Qfalse) {
 					message.errorObject = rb_eClosedWindow;
 					message.message = "Game Window has been closed by user.";
 					return;
