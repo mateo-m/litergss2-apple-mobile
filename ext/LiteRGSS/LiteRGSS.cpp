@@ -25,6 +25,7 @@
 #include "FramedView_Window.h"
 #include "SpriteMap.h"
 #include "DisplayWindow.h"
+#include "SfSensor.h"
 
 VALUE rb_mLiteRGSS = Qnil;
 VALUE rb_mConfig = Qnil;
@@ -62,5 +63,6 @@ extern "C" {
 	Init_Window();
 	Init_SpriteMap();
 	Init_DisplayWindow();
+	Init_SfSensor();
   }
 }
