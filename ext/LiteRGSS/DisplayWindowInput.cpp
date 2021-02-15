@@ -3,90 +3,204 @@
 #include "RubyValue.h"
 #include "Texture_Bitmap.h"
 #include "DisplayWindowInput.h"
+#include "rbAdapter.h"
+#include "DisplayWindow.h"
 
 extern VALUE rb_eStoppedGraphics;
 extern VALUE rb_eClosedWindow;
 
 void DisplayWindowInput::manageErrorMessage(VALUE self, const GraphicsUpdateMessage& message) {
-	/* If the error is ClosedWindowError, we manage the window closing 
-	 * When @on_close is defined to a proc, @on_close can decide if the window closing is allowed or not
-	 * or do things before closing the window
-	 * That's a kind of rescue process 
+	/* If the error is ClosedWindowError, we manage the window closing
 	 */
 	if(message.errorObject == rb_eClosedWindow)
 	{
-		VALUE closeHandle = rb_iv_get(self, "@on_close");
-		if(closeHandle != Qnil)
-		{
-			VALUE handleClass = rb_class_of(closeHandle);
-			if(handleClass == rb_cProc)
-				if(rb_proc_call(closeHandle, rb_ary_new()) == Qfalse) {
-					m_insideGraphicsUpdate = false;
-					return; /* If the proc returns false we doesn't show the exception */
-				}
-		}
 		stop();
 	}
 	
 	m_insideGraphicsUpdate = false;
-	//rb_raise(message.errorObject, "%s", message.message.c_str());
+	rb_raise(message.errorObject, "%s", message.message.c_str());
 }
 
-void DisplayWindowInput::updateProcessEvent(GraphicsUpdateMessage& message) {
+void DisplayWindowInput::updateProcessEvent(VALUE self, GraphicsUpdateMessage& message) {
 	sf::Event event;
-	assert(m_keyboard != nullptr && m_mouse != nullptr);
-	m_keyboard->enteredText.clear();
+	auto& window = rb::Get<DisplayWindowElement>(self);
+	ID rbCall = rb_intern("call");
 
 	while(pollEvent(event))
 	{
 		switch(event.type)
 		{
 			case sf::Event::EventType::Closed:
-				message.errorObject = rb_eClosedWindow;
-				message.message = "Game Window has been closed by user.";
-				return;
+				if (NIL_P(window.rOnClosed) || rb_funcall(window.rOnClosed, rbCall, 0) != Qfalse) {
+					message.errorObject = rb_eClosedWindow;
+					message.message = "Game Window has been closed by user.";
+					return;
+				}
+			case sf::Event::EventType::Resized:
+				if (window.rOnResized != Qnil) {
+					VALUE args[2] = {
+						ULONG2NUM(event.size.width),
+						ULONG2NUM(event.size.height)
+					};
+					rb_funcall2(window.rOnResized, rbCall, 2, args);
+				}
+				break;
+			case sf::Event::EventType::LostFocus:
+				if (window.rOnLostFocus != Qnil) {
+					rb_funcall(window.rOnLostFocus, rbCall, 0);
+				}
+				break;
+			case sf::Event::EventType::GainedFocus:
+				if (window.rOnGainedFocus != Qnil) {
+					rb_funcall(window.rOnGainedFocus, rbCall, 0);
+				}
+				break;
+			case sf::Event::TextEntered:
+				if (window.rOnTextEntered != Qnil) {
+					VALUE str = rb_utf8_str_new_cstr((char*)sf::String(event.text.unicode).toUtf8().c_str());
+					rb_funcall2(window.rOnTextEntered, rbCall, 1, &str);
+				}
+				break;
 			case sf::Event::EventType::KeyPressed:
-				m_keyboard->keyMapping->update(event.key.code, true);
+				if (window.rOnKeyPressed != Qnil) {
+					VALUE args[5] = {
+						ULONG2NUM(event.key.code),
+						event.key.alt ? Qtrue : Qfalse,
+						event.key.control ? Qtrue : Qfalse,
+						event.key.shift ? Qtrue : Qfalse,
+						event.key.system ? Qtrue : Qfalse
+					};
+					rb_funcall2(window.rOnKeyPressed, rbCall, 5, args);
+				}
 				break;
 			case sf::Event::EventType::KeyReleased:
-				m_keyboard->keyMapping->update(event.key.code, false);
-				break;
-			case sf::Event::EventType::JoystickButtonPressed:
-				L_Input_Update_Joy(*m_keyboard, event.joystickButton.joystickId, event.joystickButton.button, true);
-				break;
-			case sf::Event::EventType::JoystickButtonReleased:
-				L_Input_Update_Joy(*m_keyboard, event.joystickButton.joystickId, event.joystickButton.button, false);
-				break;
-			case sf::Event::EventType::JoystickMoved:
-				L_Input_Update_JoyPos(*m_keyboard, event.joystickMove.joystickId,
-					event.joystickMove.axis,
-					event.joystickMove.position);
-				break;
-			case sf::Event::EventType::JoystickConnected:
-			case sf::Event::EventType::JoystickDisconnected:
-				L_Input_Reset_JoyPos(*m_keyboard, event.joystickConnect.joystickId);
-				break;
-			case sf::Event::EventType::MouseMoved:
-				L_Input_Mouse_Pos_Update(*m_mouse, event.mouseMove.x, event.mouseMove.y);
-				break;
-			case sf::Event::EventType::MouseButtonPressed:
-				m_mouse->mouseMapping->update(event.mouseButton.button, true);
-				L_Input_Mouse_Pos_Update(*m_mouse, event.mouseButton.x, event.mouseButton.y);
-				break;
-			case sf::Event::EventType::MouseButtonReleased:
-				m_mouse->mouseMapping->update(event.mouseButton.button, false);
-				L_Input_Mouse_Pos_Update(*m_mouse, event.mouseButton.x, event.mouseButton.y);
+				if (window.rOnKeyReleased != Qnil) {
+					VALUE args[1] = {
+						ULONG2NUM(event.key.code)
+					};
+					rb_funcall2(window.rOnKeyReleased, rbCall, 1, args);
+				}
 				break;
 			case sf::Event::EventType::MouseWheelScrolled:
-				if (event.mouseWheelScroll.wheel == sf::Mouse::Wheel::VerticalWheel)
-					L_Input_Mouse_Wheel_Update(*m_mouse, static_cast<long>(event.mouseWheelScroll.delta));
-				L_Input_Mouse_Pos_Update(*m_mouse, event.mouseWheelScroll.x, event.mouseWheelScroll.y);
+				if (window.rOnMouseWheelScrolled != Qnil) {
+					VALUE args[2] = {
+						ULONG2NUM(event.mouseWheelScroll.wheel),
+						DBL2NUM(static_cast<double>(event.mouseWheelScroll.delta))
+					};
+					rb_funcall2(window.rOnMouseWheelScrolled, rbCall, 2, args);
+				}
+				break;
+			case sf::Event::EventType::MouseButtonPressed:
+				if (window.rOnMouseButtonPressed != Qnil) {
+					VALUE arg = ULONG2NUM(event.mouseButton.button);
+					rb_funcall2(window.rOnMouseButtonPressed, rbCall, 1, &arg);
+				} 
+				break;
+			case sf::Event::EventType::MouseButtonReleased:
+				if (window.rOnMouseButtonRelease != Qnil) {
+					VALUE arg = ULONG2NUM(event.mouseButton.button);
+					rb_funcall2(window.rOnMouseButtonRelease, rbCall, 1, &arg);
+				} 
+				break;
+			case sf::Event::EventType::MouseMoved:
+				if (window.rOnMouseMoved != Qnil) {
+					VALUE args[2] = {
+						INT2NUM(event.mouseMove.x),
+						INT2NUM(event.mouseMove.y)
+					};
+					rb_funcall2(window.rOnMouseMoved, rbCall, 2, args);
+				}
+				break;
+			case sf::Event::EventType::MouseEntered:
+				if (window.rOnMouseEntered != Qnil) {
+					rb_funcall(window.rOnMouseEntered, rbCall, 0);
+				}
 				break;
 			case sf::Event::EventType::MouseLeft:
-				L_Input_Mouse_Pos_Update(*m_mouse, -256, -256);
+				if (window.rOnMouseLeft != Qnil) {
+					rb_funcall(window.rOnMouseLeft, rbCall, 0);
+				}
 				break;
-			case sf::Event::EventType::TextEntered:
-				m_keyboard->enteredText.append((char*)sf::String(event.text.unicode).toUtf8().c_str());
+			case sf::Event::EventType::JoystickButtonPressed:
+				if (window.rOnJoystickButtonPressed != Qnil) {
+					VALUE args[2] = {
+						UINT2NUM(event.joystickButton.joystickId),
+						UINT2NUM(event.joystickButton.button)
+					};
+					rb_funcall2(window.rOnJoystickButtonPressed, rbCall, 2, args);
+				}
+				break;
+			case sf::Event::EventType::JoystickButtonReleased:
+				if (window.rOnJoystickButtonReleased != Qnil) {
+					VALUE args[2] = {
+						UINT2NUM(event.joystickButton.joystickId),
+						UINT2NUM(event.joystickButton.button)
+					};
+					rb_funcall2(window.rOnJoystickButtonReleased, rbCall, 2, args);
+				}
+				break;
+			case sf::Event::EventType::JoystickMoved:
+				if (window.rOnJoystickMoved != Qnil) {
+					VALUE args[3] = {
+						UINT2NUM(event.joystickMove.joystickId),
+						LONG2NUM(event.joystickMove.axis),
+						DBL2NUM(static_cast<double>(event.joystickMove.position))
+					};
+					rb_funcall2(window.rOnJoystickMoved, rbCall, 3, args);
+				}
+				break;
+			case sf::Event::EventType::JoystickConnected:
+				if (window.rOnJoystickConnected != Qnil) {
+					VALUE arg = UINT2NUM(event.joystickConnect.joystickId);
+					rb_funcall2(window.rOnJoystickConnected, rbCall, 1, &arg);
+				}
+				break;
+			case sf::Event::EventType::JoystickDisconnected:
+				if (window.rOnJoystickDisconnected != Qnil) {
+					VALUE arg = UINT2NUM(event.joystickConnect.joystickId);
+					rb_funcall2(window.rOnJoystickDisconnected, rbCall, 1, &arg);
+				}
+				break;
+			case sf::Event::EventType::TouchBegan:
+				if (window.rOnTouchBegan != Qnil) {
+					VALUE args[3] = {
+						UINT2NUM(event.touch.finger),
+						INT2NUM(event.touch.x),
+						INT2NUM(event.touch.y)
+					};
+					rb_funcall2(window.rOnTouchBegan, rbCall, 3, args);
+				}
+				break;
+			case sf::Event::EventType::TouchMoved:
+				if (window.rOnTouchMoved != Qnil) {
+					VALUE args[3] = {
+						UINT2NUM(event.touch.finger),
+						INT2NUM(event.touch.x),
+						INT2NUM(event.touch.y)
+					};
+					rb_funcall2(window.rOnTouchMoved, rbCall, 3, args);
+				}
+				break;
+			case sf::Event::EventType::TouchEnded:
+				if (window.rOnTouchEnded != Qnil) {
+					VALUE args[3] = {
+						UINT2NUM(event.touch.finger),
+						INT2NUM(event.touch.x),
+						INT2NUM(event.touch.y)
+					};
+					rb_funcall2(window.rOnTouchEnded, rbCall, 3, args);
+				}
+				break;
+			case sf::Event::SensorChanged:
+				if (window.rOnSensorChanged != Qnil) {
+					VALUE args[4] = {
+						UINT2NUM(event.sensor.type),
+						DBL2NUM(static_cast<double>(event.sensor.x)),
+						DBL2NUM(static_cast<double>(event.sensor.y)),
+						DBL2NUM(static_cast<double>(event.sensor.z))
+					};
+					rb_funcall2(window.rOnSensorChanged, rbCall, 4, args);
+				}
 				break;
 			default:
 				break;
@@ -126,7 +240,7 @@ void DisplayWindowInput::update(VALUE self, bool input) {
 	/* Message Processing */
 	GraphicsUpdateMessage localMessage {};
 	if (input) {
-		updateProcessEvent(message == nullptr ? localMessage : *message);
+		updateProcessEvent(self, message == nullptr ? localMessage : *message);
 	}
 	localMessage = message == nullptr ? localMessage : *message;
 	
@@ -135,9 +249,6 @@ void DisplayWindowInput::update(VALUE self, bool input) {
 	}
 
 	m_insideGraphicsUpdate = false;
-	if (input) {
-		m_frameCount++;
-	}
 }
 
 void DisplayWindowInput::updateOnlyInput(VALUE self) {
@@ -147,24 +258,10 @@ void DisplayWindowInput::updateOnlyInput(VALUE self) {
 	m_insideGraphicsUpdate = true;
 
 	GraphicsUpdateMessage message;
-	updateProcessEvent(message);
+	updateProcessEvent(self, message);
 	if (!message.message.empty()) {
 		manageErrorMessage(self, message);
 	}
 
 	m_insideGraphicsUpdate = false;
-}
-
-void DisplayWindowInput::transition(VALUE self, int argc, VALUE* argv) {
-	//8 = from RGSS doc
-	long time = 8;
-	if (argc >= 1) {
-		time = rb_num2long(argv[0]);
-	}
-	if (argc < 2 || rb_obj_is_kind_of(argv[1], rb_cBitmap) != Qtrue) {
-		cgss::DisplayWindow::transition(time, nullptr);
-	} else {
-		auto& texture = rb::Get<TextureElement>(argv[1]);
-		cgss::DisplayWindow::transition(time, texture.instance());
-	}
 }
