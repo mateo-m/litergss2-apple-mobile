@@ -2,9 +2,9 @@
 #include "LiteRGSS.h"
 #include "RubyValue.h"
 #include "NormalizeNumbers.h"
-#include "GraphicsConfigLoader.h"
+#include "DisplayWindowConfigLoader.h"
 
-cgss::DisplayWindowVideoSettings GraphicsConfigLoader::loadVideoFromConfigs() const {
+cgss::DisplayWindowVideoSettings DisplayWindowConfigLoader::loadVideoFromConfigs() const {
 	const ID screenWidthId = rb_intern("ScreenWidth");
 	const ID screenHeightId = rb_intern("ScreenHeight");
 	const ID screenScaleId = rb_intern("ScreenScale");
@@ -22,7 +22,7 @@ cgss::DisplayWindowVideoSettings GraphicsConfigLoader::loadVideoFromConfigs() co
 			screenBitsPerPixel == Qnil ? -1 : rb_num2long(screenBitsPerPixel));
 }
 
-cgss::DisplayWindowVideoSettings GraphicsConfigLoader::loadVideoFromData(long width, long height, double scale, long bitsPerPixel) const {
+cgss::DisplayWindowVideoSettings DisplayWindowConfigLoader::loadVideoFromData(long width, long height, double scale, long bitsPerPixel) const {
 	sf::VideoMode vmode(640, 480, 32);
 	
 	int bitsPerPixelDefault = 32;
@@ -57,16 +57,16 @@ cgss::DisplayWindowVideoSettings GraphicsConfigLoader::loadVideoFromData(long wi
 	return { vmode.bitsPerPixel, vmode.width, vmode.height, normalized_scale };
 }
 
-cgss::DisplayWindowContextSettings GraphicsConfigLoader::loadContext() const {
+cgss::DisplayWindowContextSettings DisplayWindowConfigLoader::loadContext() const {
 	return sf::ContextSettings(0, 0, 0, 4, 5);
 }
 
-bool GraphicsConfigLoader::loadSmoothScreenFromConfigs() const {
+bool DisplayWindowConfigLoader::loadSmoothScreenFromConfigs() const {
 	ID fsc = rb_intern("SmoothScreen");
 	return rb_const_defined(rb_mConfig, fsc) && RTEST(rb_const_get(rb_mConfig, fsc));
 }
 
-std::string GraphicsConfigLoader::loadTitleFromConfigs() const {
+std::string DisplayWindowConfigLoader::loadTitleFromConfigs() const {
 	ID title = rb_intern("Title");
 	if(rb_const_defined(rb_mConfig, title)) {
 		VALUE str_title = rb_const_get(rb_mConfig, title);
@@ -77,7 +77,7 @@ std::string GraphicsConfigLoader::loadTitleFromConfigs() const {
 	return "LiteRGSS2";
 }
 
-unsigned int GraphicsConfigLoader::loadFrameRateFromConfigs() const {
+unsigned int DisplayWindowConfigLoader::loadFrameRateFromConfigs() const {
 	ID framerate = rb_intern("FrameRate");
 	if(rb_const_defined(rb_mConfig, framerate)) {
 		return normalize_long(rb_num2long(rb_const_get(rb_mConfig, framerate)), 1, 240);
@@ -85,7 +85,7 @@ unsigned int GraphicsConfigLoader::loadFrameRateFromConfigs() const {
 	return 60;
 }
 
-bool GraphicsConfigLoader::loadVSYNCFromConfigs() const {
+bool DisplayWindowConfigLoader::loadVSYNCFromConfigs() const {
 	ID vsync = rb_intern("Vsync");
 	if(rb_const_defined(rb_mConfig, vsync)) {
 		return RTEST(rb_const_get(rb_mConfig, vsync));
@@ -93,7 +93,7 @@ bool GraphicsConfigLoader::loadVSYNCFromConfigs() const {
 	return true;
 }
 
-bool GraphicsConfigLoader::loadFullScreenFromConfigs() const {
+bool DisplayWindowConfigLoader::loadFullScreenFromConfigs() const {
 	ID fsc = rb_intern("FullScreen");
 	if(rb_const_defined(rb_mConfig, fsc)) {
 		return RTEST(rb_const_get(rb_mConfig, fsc));
@@ -101,7 +101,7 @@ bool GraphicsConfigLoader::loadFullScreenFromConfigs() const {
 	return false;
 }
 
-cgss::DisplayWindowSettings GraphicsConfigLoader::load() const {
+cgss::DisplayWindowSettings DisplayWindowConfigLoader::load() const {
 	auto vmode = loadVideoFromConfigs();
 	auto context = loadContext();
 	auto smoothScreen = loadSmoothScreenFromConfigs();

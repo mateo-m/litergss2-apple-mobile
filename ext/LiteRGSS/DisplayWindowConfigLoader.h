@@ -1,10 +1,10 @@
-#ifndef CGraphicsConfig_H
-#define CGraphicsConfig_H
+#ifndef DisplayWindowConfigLoader_H
+#define DisplayWindowConfigLoader_H
 
 #include <tuple>
 #include "LiteCGSS/Configuration/DisplayWindowSettings.h"
 
-class GraphicsConfigLoader {
+class DisplayWindowConfigLoader {
 public:
 	cgss::DisplayWindowSettings load() const;
 	cgss::DisplayWindowVideoSettings loadVideoFromData(long width, long height, double scale, long bitsPerPixel) const;
