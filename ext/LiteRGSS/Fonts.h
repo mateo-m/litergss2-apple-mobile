@@ -1,5 +1,5 @@
-#ifndef L_FONTS_HEADER
-#define L_FONTS_HEADER
+#ifndef Fonts_H
+#define Fonts_H
 
 #include "RubyValue.h"
 #include <SFML/Graphics/Font.hpp>

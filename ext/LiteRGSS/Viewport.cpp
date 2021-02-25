@@ -1,5 +1,4 @@
 #include "LiteRGSS.h"
-#include "GraphicsSingleton.h"
 #include "NormalizeNumbers.h"
 #include "rbAdapter.h"
 #include "Tone.h"
@@ -40,8 +39,8 @@ static VALUE rb_Viewport_Initialize(int argc, VALUE* argv, VALUE self) {
 		argc--;
 		argv++;
 	} else {
-		/* Viewport setting */
-		viewport.init(GraphicsSingleton::Get().addView<cgss::Viewport>());
+		rb_raise(rb_eRGSSError, "Providing a DisplayWindow as a first parameter is mandatory to instantiate a Viewport");
+		return Qnil;
 	}
 
 	/* Creating rect */

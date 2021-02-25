@@ -3,7 +3,6 @@
 #include "rbAdapter.h"
 #include "NormalizeNumbers.h"
 
-#include "GraphicsSingleton.h"
 #include "Sprite.h"
 #include "Rect.h"
 #include "Texture_Bitmap.h"
@@ -284,8 +283,13 @@ static VALUE rb_Sprite_height(VALUE self) {
 static VALUE rb_Sprite_Initialize(int argc, VALUE* argv, VALUE self) {
 	auto& sprite = rb::Get<SpriteElement>(self);
 
+	if (argc == 0) {
+		rb_raise(rb_eRGSSError, "Providing a Viewport, a DisplayWindow or a Window (FramedView) is mandatory to instantiate a Sprite");
+		return Qnil;
+	}
+
 	// If a viewport was specified 
-	if(argc == 1 && rb_obj_is_kind_of(argv[0], rb_cViewport) == Qtrue) {
+	if (rb_obj_is_kind_of(argv[0], rb_cViewport) == Qtrue) {
 		auto& viewport = rb::Get<ViewportElement>(argv[0]);		
 		if (viewport.instance() == nullptr) {
 			rb_raise(rb_eRGSSError, "Invalid viewport provided to instanciate a Sprite.");
@@ -295,7 +299,7 @@ static VALUE rb_Sprite_Initialize(int argc, VALUE* argv, VALUE self) {
 		sprite.rViewport = argv[0];
 	}
 	// If a window is specified 
-	else if (argc == 1 && rb_obj_is_kind_of(argv[0], rb_cWindow) == Qtrue) {
+	else if (rb_obj_is_kind_of(argv[0], rb_cWindow) == Qtrue) {
 		auto& window = rb::Get<FramedViewElement>(argv[0]);
 		window.initAndAdd(sprite);
 		sprite.rViewport = argv[0];
@@ -303,16 +307,15 @@ static VALUE rb_Sprite_Initialize(int argc, VALUE* argv, VALUE self) {
 		rb_Sprite_setOpacity(self, opacity);
 	}
 	// Otherwise, it must be a display window...
-	else if (argc == 1 && rb_obj_is_kind_of(argv[0], rb_cDisplayWindow) == Qtrue) {
+	else if (rb_obj_is_kind_of(argv[0], rb_cDisplayWindow) == Qtrue) {
 		auto& displayWindow = rb::Get<DisplayWindowElement>(argv[0]);
 		displayWindow.initAndAdd(sprite);
 		sprite.rViewport = Qnil;
 	} 
 	// Uh, what is that then ?!
 	else {
-		// TODO : raise exception when Graphics module will be deleted
-		sprite.init(GraphicsSingleton::Get().add<cgss::Sprite>());
-		sprite.rViewport = Qnil;
+		rb_raise(rb_eRGSSError, "First parameter type of Sprite constructor is unknown");
+		return Qnil;
 	}
 
 	/* Initializing Instance variables */

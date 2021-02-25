@@ -6,14 +6,12 @@
 #include "rbAdapter.h"
 #include "DisplayWindow.h"
 
-extern VALUE rb_eStoppedGraphics;
+extern VALUE rb_eStoppedWindowError;
 extern VALUE rb_eClosedWindow;
 
-void DisplayWindowInput::manageErrorMessage(VALUE self, const GraphicsUpdateMessage& message) {
-	/* If the error is ClosedWindowError, we manage the window closing
-	 */
-	if(message.errorObject == rb_eClosedWindow)
-	{
+void DisplayWindowInput::manageErrorMessage(VALUE self, const DisplayWindowUpdateMessage& message) {
+	/* Force window closing if the error is ClosedWindowError */
+	if (message.errorObject == rb_eClosedWindow) {
 		stop();
 	}
 	
@@ -21,7 +19,7 @@ void DisplayWindowInput::manageErrorMessage(VALUE self, const GraphicsUpdateMess
 	rb_raise(message.errorObject, "%s", message.message.c_str());
 }
 
-void DisplayWindowInput::updateProcessEvent(VALUE self, GraphicsUpdateMessage& message) {
+void DisplayWindowInput::updateProcessEvent(VALUE self, DisplayWindowUpdateMessage& message) {
 	sf::Event event;
 	auto& window = rb::Get<DisplayWindowElement>(self);
 	ID rbCall = rb_intern("call");
@@ -33,7 +31,7 @@ void DisplayWindowInput::updateProcessEvent(VALUE self, GraphicsUpdateMessage& m
 			case sf::Event::EventType::Closed:
 				if (NIL_P(window.rOnClosed) || rb_funcall(window.rOnClosed, rbCall, 0) != Qfalse) {
 					message.errorObject = rb_eClosedWindow;
-					message.message = "Game Window has been closed by user.";
+					message.message = "Game Window has been closed by user";
 					return;
 				}
 			case sf::Event::EventType::Resized:
@@ -211,20 +209,20 @@ void DisplayWindowInput::updateProcessEvent(VALUE self, GraphicsUpdateMessage& m
 void* DisplayWindowInput_Update_Internal(void* dataPtr) {
 	//NO RUBY API ACCESS MUST BE DONE HERE
 	auto& self = *reinterpret_cast<DisplayWindowInput*>(dataPtr);
-	if(self.isOpen()) {
+	if (self.isOpen()) {
 		self.draw();
 		return nullptr;
 	}
 
-	auto message = std::make_unique<GraphicsUpdateMessage>();
-	message->errorObject = rb_eStoppedGraphics;
-	message->message = "Game Window was closed during Graphics.update by an unknown cause...";
+	auto message = std::make_unique<DisplayWindowUpdateMessage>();
+	message->errorObject = rb_eStoppedWindowError;
+	message->message = "Game Window was closed during DisplayWindow.update by an unknown cause...";
 	return message.release();
 }
 
-std::unique_ptr<GraphicsUpdateMessage> DisplayWindowInput::realDraw() {
+std::unique_ptr<DisplayWindowUpdateMessage> DisplayWindowInput::realDraw() {
 	auto* result = rb_thread_call_without_gvl(DisplayWindowInput_Update_Internal, static_cast<void*>(this), NULL, NULL);
-	return std::unique_ptr<GraphicsUpdateMessage>(reinterpret_cast<GraphicsUpdateMessage*>(result));
+	return std::unique_ptr<DisplayWindowUpdateMessage>(reinterpret_cast<DisplayWindowUpdateMessage*>(result));
 }
 
 void DisplayWindowInput::update(VALUE self, bool input) {
@@ -238,7 +236,7 @@ void DisplayWindowInput::update(VALUE self, bool input) {
 	auto message = realDraw();
 	
 	/* Message Processing */
-	GraphicsUpdateMessage localMessage {};
+	DisplayWindowUpdateMessage localMessage {};
 	if (input) {
 		updateProcessEvent(self, message == nullptr ? localMessage : *message);
 	}
@@ -257,7 +255,7 @@ void DisplayWindowInput::updateOnlyInput(VALUE self) {
 	}
 	m_insideGraphicsUpdate = true;
 
-	GraphicsUpdateMessage message;
+	DisplayWindowUpdateMessage message;
 	updateProcessEvent(self, message);
 	if (!message.message.empty()) {
 		manageErrorMessage(self, message);

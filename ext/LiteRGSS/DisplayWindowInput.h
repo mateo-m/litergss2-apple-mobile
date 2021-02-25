@@ -4,9 +4,8 @@
 #include <LiteCGSS/Views/DisplayWindow.h>
 #include <LiteCGSS/Views/ViewAuthorizations.h>
 #include <LiteCGSS/Common/Bindable.h>
-#include "GraphicsUpdateMessage.h"
+#include "DisplayWindowUpdateMessage.h"
 #include "RubyValue.h"
-#include "Input.h"
 
 class DisplayWindowInput : 
 	public cgss::DisplayWindow {
@@ -20,9 +19,9 @@ public:
 	void transition(VALUE self, int argc, VALUE* argv);
 
 private:
-	std::unique_ptr<GraphicsUpdateMessage> realDraw();
-	void manageErrorMessage(VALUE self, const GraphicsUpdateMessage& message);
-	void updateProcessEvent(VALUE self, GraphicsUpdateMessage& message);
+	std::unique_ptr<DisplayWindowUpdateMessage> realDraw();
+	void manageErrorMessage(VALUE self, const DisplayWindowUpdateMessage& message);
+	void updateProcessEvent(VALUE self, DisplayWindowUpdateMessage& message);
 
 	bool m_insideGraphicsUpdate = false;
 };

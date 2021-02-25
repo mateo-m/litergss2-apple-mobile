@@ -1,5 +1,5 @@
-#ifndef Window_H
-#define Window_H
+#ifndef FramedView_Window_H
+#define FramedView_Window_H
 
 #include <LiteCGSS/Views/FramedView.h>
 #include "CgssWrapper.h"

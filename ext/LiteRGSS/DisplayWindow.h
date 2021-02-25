@@ -6,6 +6,9 @@
 #include "RubyValue.h"
 
 extern VALUE rb_cDisplayWindow;
+extern VALUE rb_eStoppedWindowError;
+extern VALUE rb_eClosedWindow;
+
 void Init_DisplayWindow();
 
 struct DisplayWindowElement : 

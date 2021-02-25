@@ -2,14 +2,15 @@
 #include "rbAdapter.h"
 #include "NormalizeNumbers.h"
 
-#include "GraphicsSingleton.h"
-#include "GraphicsConfigLoader.h"
+#include "DisplayWindowConfigLoader.h"
 #include "DisplayWindow.h"
 #include "Texture_Bitmap.h"
 #include "RenderStates_BlendMode.h"
 #include "Image.h"
 
 VALUE rb_cDisplayWindow = Qnil;
+VALUE rb_eStoppedWindowError = Qnil;
+VALUE rb_eClosedWindow = Qnil;
 
 static constexpr int DefaultBitsPerPixel = 32;
 static constexpr int DefaultFramerate = 60;
@@ -61,7 +62,7 @@ static VALUE rb_DisplayWindow_initialize(int argc, VALUE* argv, VALUE self) {
         framerate = rb_int2inum(DefaultFramerate);
     }
 
-    auto configLoader = GraphicsConfigLoader {};
+    auto configLoader = DisplayWindowConfigLoader {};
 		// TODO: create configLoader.loadVideoFromData inside DisplayWindow because we don't need "CONFIG" module anymore!
     auto videoSettings = configLoader.loadVideoFromData(rb_num2long(width), rb_num2long(height), NUM2DBL(scale), rb_num2long(bitsPerPixel));
     auto contextSettings = sf::ContextSettings(); // configLoader.loadContext(); // Disabled because it causes issues so we take default context settings
@@ -436,6 +437,10 @@ static VALUE rb_DisplayWindow_set_onSensorChanged(VALUE self, VALUE proc) {
 
 void Init_DisplayWindow() {
 	rb_cDisplayWindow = rb_define_class_under(rb_mLiteRGSS, "DisplayWindow", rb_cObject);
+
+	/* Defining the Stopped Graphics Error */
+	rb_eStoppedWindowError = rb_define_class_under(rb_cDisplayWindow, "StoppedError", rb_eStandardError);
+	rb_eClosedWindow = rb_define_class_under(rb_cDisplayWindow, "ClosedWindowError", rb_eStandardError);
 
 	rb_define_alloc_func(rb_cDisplayWindow, rb::Alloc<DisplayWindowElement>);
 

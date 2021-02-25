@@ -4,7 +4,6 @@
 #include "Texture_Bitmap.h"
 #include "rbAdapter.h"
 #include "NormalizeNumbers.h"
-#include "GraphicsSingleton.h"
 #include "Rect.h"
 #include "Viewport.h"
 #include "DisplayWindow.h"
@@ -41,15 +40,12 @@ void rb::Mark<FramedViewElement>(FramedViewElement* framedView) {
 
 VALUE rb_Window_Initialize(int argc, VALUE* argv, VALUE self) {
 	auto& framedView = rb::Get<FramedViewElement>(self);
-	VALUE viewport = Qnil;
 	
-	rb_scan_args(argc, argv, "01", &viewport);
-
-	const auto viewportIsSpecified = argc == 1 && rb_obj_is_kind_of(argv[0], rb_cViewport) == Qtrue;
+	const auto viewportIsSpecified = argc > 0 && rb_obj_is_kind_of(argv[0], rb_cViewport) == Qtrue;
 	if (viewportIsSpecified) {
 		auto& viewport = rb::Get<ViewportElement>(argv[0]);
 		if (viewport.instance() == nullptr) {
-			rb_raise(rb_eRGSSError, "Invalid viewport provided to instanciate a Sprite.");
+			rb_raise(rb_eRGSSError, "Invalid viewport provided to instantiate a FramedView");
 			return Qnil;
 		}
 		framedView.init(viewport->addView<cgss::FramedView>(viewport->weak()));
@@ -59,8 +55,8 @@ VALUE rb_Window_Initialize(int argc, VALUE* argv, VALUE self) {
 		framedView.init(window->addView<cgss::FramedView>());
 		framedView.rViewport = Qnil;
 	} else {
-		framedView.init(GraphicsSingleton::Get().addView<cgss::FramedView>());
-		framedView.rViewport = Qnil;
+		rb_raise(rb_eRGSSError, "Providing a Viewport or a DisplayWindow as first parameter is mandatory to instantiate a Window (FramedView)");
+		return Qnil;
 	}
 
 	/* Rect definition */
