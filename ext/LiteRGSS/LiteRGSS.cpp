@@ -1,7 +1,6 @@
 #include "LiteRGSS.h"
 
 #include "Drawable_Disposable.h"
-#include "Graphics.h"
 #include "Texture_Bitmap.h"
 #include "Image.h"
 #include "Sprite.h"
@@ -11,7 +10,6 @@
 #include "Tone.h"
 #include "Fonts.h"
 #include "Text.h"
-#include "Input.h"
 #include "Table.h"
 #include "Table32.h"
 #include "Yuki.h"
@@ -22,6 +20,11 @@
 #include "Shape.h"
 #include "FramedView_Window.h"
 #include "SpriteMap.h"
+#include "DisplayWindow.h"
+#include "SfSensor.h"
+#include "SfKeyBoard.h"
+#include "SfMouse.h"
+#include "SfJoystick.h"
 
 VALUE rb_mLiteRGSS = Qnil;
 VALUE rb_mConfig = Qnil;
@@ -34,7 +37,6 @@ extern "C" {
 	rb_eRGSSError = rb_define_class_under(rb_mLiteRGSS, "Error", rb_eStandardError);
 
 	Init_DrawableDisposable();
-	Init_Graphics();
 	Init_Bitmap();
 	Init_Image();
 	Init_Sprite();
@@ -44,7 +46,6 @@ extern "C" {
 	Init_Tone();
 	Init_Fonts();
 	Init_Text();
-	Init_Input();
 	Init_Table();
 	Init_Table32();
 	Init_Yuki();
@@ -55,5 +56,10 @@ extern "C" {
 	Init_Shape();
 	Init_Window();
 	Init_SpriteMap();
+	Init_DisplayWindow();
+	Init_SfSensor();
+	Init_SfKeyboard();
+	Init_SfMouse();
+	Init_SfJoystick();
   }
 }

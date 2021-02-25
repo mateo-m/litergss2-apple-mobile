@@ -1,5 +1,5 @@
-#ifndef Window_H
-#define Window_H
+#ifndef FramedView_Window_H
+#define FramedView_Window_H
 
 #include <LiteCGSS/Views/FramedView.h>
 #include "CgssWrapper.h"
@@ -9,12 +9,7 @@ extern VALUE rb_cWindow;
 void Init_Window();
 
 struct FramedViewElement : 
-    public CgssInstance<cgss::FramedView>,
-    private cgss::Observer<cgss::ViewportChangeEvent> {
-
-    FramedViewElement() : 
-        cgss::Observer<cgss::ViewportChangeEvent>(std::bind(&FramedViewElement::onViewportChange, this, std::placeholders::_1)) {
-    }
+    public CgssInstance<cgss::FramedView> {
 
     VALUE rBitmap = Qnil;
     VALUE rX = LONG2FIX(0);
@@ -42,17 +37,6 @@ struct FramedViewElement :
     void initAndAdd(Drawable& drawable, Args&& ... args) {
         drawable.init(Drawable::create(*instance(), std::forward<Args>(args)...));
     }
-
-    virtual ~FramedViewElement() {
-        (*this)->unsubscribeViewportChange(*this);
-    }
-
-private:
-    void setup() override {
-        (*this)->subscribeViewportChange(*this);
-    }
-
-    bool onViewportChange(cgss::ViewportChangeEvent& event);
 };
 
 #endif

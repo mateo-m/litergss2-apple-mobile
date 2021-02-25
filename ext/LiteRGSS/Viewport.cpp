@@ -1,5 +1,4 @@
 #include "LiteRGSS.h"
-#include "GraphicsSingleton.h"
 #include "NormalizeNumbers.h"
 #include "rbAdapter.h"
 #include "Tone.h"
@@ -10,6 +9,7 @@
 #include "Drawable_Disposable.h"
 #include "Viewport.h"
 #include "Rect.h"
+#include "DisplayWindow.h"
 
 VALUE rb_cViewport = Qnil;
 
@@ -30,9 +30,18 @@ static VALUE rb_Viewport_Copy(VALUE self) {
 }
 
 static VALUE rb_Viewport_Initialize(int argc, VALUE* argv, VALUE self) {
-	/* Viewport setting */
 	auto& viewport = rb::Get<ViewportElement>(self);
-	viewport.init(GraphicsSingleton::Get().addView<cgss::Viewport>());
+
+	// If a viewport was specified 
+	if (argc >= 1 && rb_obj_is_kind_of(argv[0], rb_cDisplayWindow) == Qtrue) {
+		auto& displayWindow = rb::Get<DisplayWindowElement>(argv[0]);
+		viewport.init(displayWindow->addView<cgss::Viewport>());
+		argc--;
+		argv++;
+	} else {
+		rb_raise(rb_eRGSSError, "Providing a DisplayWindow as a first parameter is mandatory to instantiate a Viewport");
+		return Qnil;
+	}
 
 	/* Creating rect */
 	VALUE rc = rb_class_new_instance(argc, argv, rb_cRect);

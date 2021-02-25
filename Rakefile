@@ -47,6 +47,15 @@ task :configure, [:disallow_change_ruby] do |t, args|
   }
 end
 
+desc "Build the project, in release mode"
+task :release do
+  litecgss_root_dir = File.expand_path(File.dirname(__FILE__)) + "/external/litecgss"
+  Dir.chdir(litecgss_root_dir) {
+    system("rake release")
+  }
+  Rake::Task[:compile].invoke()
+end
+
 namespace :test do
   # partial-loads-ok and undef-value-errors necessary to ignore
   # spurious (and eminently ignorable) warnings from the ruby

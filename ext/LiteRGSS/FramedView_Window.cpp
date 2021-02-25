@@ -4,18 +4,11 @@
 #include "Texture_Bitmap.h"
 #include "rbAdapter.h"
 #include "NormalizeNumbers.h"
-#include "GraphicsSingleton.h"
 #include "Rect.h"
 #include "Viewport.h"
+#include "DisplayWindow.h"
 
 VALUE rb_cWindow = Qnil;
-
-bool FramedViewElement::onViewportChange(cgss::ViewportChangeEvent& event) {
-	auto& viewportRect = rb::Get<RectangleElement>(rRect);
-	auto& viewportBox = event.viewportBox;
-	viewportRect->setValue(viewportBox);
-	return true;
-}
 
 template<>
 void rb::Mark<FramedViewElement>(FramedViewElement* framedView) {
@@ -47,27 +40,30 @@ void rb::Mark<FramedViewElement>(FramedViewElement* framedView) {
 
 VALUE rb_Window_Initialize(int argc, VALUE* argv, VALUE self) {
 	auto& framedView = rb::Get<FramedViewElement>(self);
-	VALUE viewport = Qnil;
 	
-	rb_scan_args(argc, argv, "01", &viewport);
-
-	const auto viewportIsSpecified = argc == 1 && rb_obj_is_kind_of(argv[0], rb_cViewport) == Qtrue;
+	const auto viewportIsSpecified = argc > 0 && rb_obj_is_kind_of(argv[0], rb_cViewport) == Qtrue;
 	if (viewportIsSpecified) {
-		auto& viewport = rb::Get<ViewportElement>(argv[0]);		
+		auto& viewport = rb::Get<ViewportElement>(argv[0]);
 		if (viewport.instance() == nullptr) {
-			rb_raise(rb_eRGSSError, "Invalid viewport provided to instanciate a Sprite.");
+			rb_raise(rb_eRGSSError, "Invalid viewport provided to instantiate a FramedView");
 			return Qnil;
 		}
-		framedView.init(GraphicsSingleton::Get().addViewOn<cgss::FramedView>(*viewport.instance(), viewport->weak()));
+		framedView.init(viewport->addView<cgss::FramedView>(viewport->weak()));
 		framedView.rViewport = argv[0];
-	} else {
-		framedView.init(GraphicsSingleton::Get().addView<cgss::FramedView>());
+	} else if (argc == 1 && rb_obj_is_kind_of(argv[0], rb_cDisplayWindow) == Qtrue) {
+		auto& window = rb::Get<DisplayWindowElement>(argv[0]);
+		framedView.init(window->addView<cgss::FramedView>());
 		framedView.rViewport = Qnil;
+	} else {
+		rb_raise(rb_eRGSSError, "Providing a Viewport or a DisplayWindow as first parameter is mandatory to instantiate a Window (FramedView)");
+		return Qnil;
 	}
 
 	/* Rect definition */
 	VALUE args[4] = { LONG2FIX(0), LONG2FIX(0), LONG2FIX(0), LONG2FIX(0) };
 	framedView.rRect = rb_class_new_instance(4, args, rb_cRect);
+	auto& viewportRectangle = rb::Get<RectangleElement>(framedView.rRect);
+	framedView->bindRectangleViewport(viewportRectangle.instance());
 	rb_obj_freeze(framedView.rRect);
 
 	return self;

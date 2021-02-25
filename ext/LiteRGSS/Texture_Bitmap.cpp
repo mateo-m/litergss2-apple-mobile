@@ -7,7 +7,6 @@
 #include "Color.h"
 #include "Drawable_Disposable.h"
 #include "Texture_Bitmap.h"
-#include "GraphicsSingleton.h"
 #include "Rect.h"
 
 VALUE rb_cBitmap = Qnil;
@@ -28,7 +27,6 @@ void rb::Mark<TextureElement>(TextureElement* texture) {
 static VALUE rb_Bitmap_Initialize(int argc, VALUE *argv, VALUE self) {
 	auto& bitmap = rb::Get<TextureElement>(self);
 	bitmap.init();
-	bitmap->setSmooth(GraphicsSingleton::Get().smoothScreen());
 
 	VALUE string = Qnil;
 	VALUE fromMemory = Qnil;

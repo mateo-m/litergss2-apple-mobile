@@ -1,6 +1,5 @@
 #include "LiteRGSS.h"
 #include "Shader.h"
-#include "GraphicsSingleton.h"
 #include "Texture_Bitmap.h"
 #include "Tone.h"
 #include "Color.h"
