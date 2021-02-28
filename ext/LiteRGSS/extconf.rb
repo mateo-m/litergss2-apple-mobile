@@ -22,6 +22,13 @@ have_library('sfml-window')
 have_library('sfml-system')
 have_library('LiteCGSS_engine')
 
+def is_clang_compiler()
+    CONFIG['CXX'] =~ /clang/
+end
+
+puts "C++ Compiler is #{CONFIG['CXX']}"
+
+$CXXFLAGS += " -frelaxed-template-template-args -fdeclspec " if is_clang_compiler()    
 $CXXFLAGS += " -std=c++17 -Wall "
 
 # override normal build configuration to build debug friendly library
