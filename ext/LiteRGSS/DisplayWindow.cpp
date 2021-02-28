@@ -47,12 +47,11 @@ void rb::Mark<DisplayWindowElement>(DisplayWindowElement* window) {
 	rb_gc_mark(window->rOnSensorChanged);
 }
 
-static VALUE rb_DisplayWindow_initialize(int argc, VALUE* argv, VALUE self) {
+static cgss::DisplayWindowSettings BuildSettings(int argc, VALUE* argv, VALUE self) {
 	VALUE title, width, height, scale, bitsPerPixel, framerate, vsync, fullscreen, visibleMouse;
 	rb_scan_args(argc, argv, "45", &title, &width, &height, &scale, &bitsPerPixel, &framerate, &vsync, &fullscreen, &visibleMouse);
   
     rb_check_type(title, T_STRING);
-    std::string titleStr (RSTRING_PTR(title));
 
     if (NIL_P(bitsPerPixel)) {
         bitsPerPixel = rb_int2inum(DefaultBitsPerPixel);
@@ -63,11 +62,13 @@ static VALUE rb_DisplayWindow_initialize(int argc, VALUE* argv, VALUE self) {
     }
 
     auto configLoader = DisplayWindowConfigLoader {};
-		// TODO: create configLoader.loadVideoFromData inside DisplayWindow because we don't need "CONFIG" module anymore!
     auto videoSettings = configLoader.loadVideoFromData(rb_num2long(width), rb_num2long(height), NUM2DBL(scale), rb_num2long(bitsPerPixel));
-    auto contextSettings = sf::ContextSettings(); // configLoader.loadContext(); // Disabled because it causes issues so we take default context settings
+
+	/* We take default context settings because setting one explicitely can cause issues */
+	auto contextSettings = sf::ContextSettings(); 
     
-	auto config = cgss::DisplayWindowSettings {
+	const std::string titleStr { RSTRING_PTR(title) };
+	return cgss::DisplayWindowSettings {
 		false,
 		std::move(videoSettings),
 		std::move(contextSettings),
@@ -78,12 +79,51 @@ static VALUE rb_DisplayWindow_initialize(int argc, VALUE* argv, VALUE self) {
 		RTEST(fullscreen),
 		RTEST(visibleMouse)
 	};
+}
+
+static VALUE rb_DisplayWindow_setSettings(VALUE self, VALUE settings) {
+	rb_check_type(settings, T_ARRAY);
+	const int argc = RARRAY_LEN(settings);
+	if (argc != 9) {
+		rb_raise(rb_eTypeError, "Settings are represented by an array of 9 values");
+		return self;
+	}
+
+	VALUE argv[9];
+	for (int i = 0; i < argc; i++) {
+		argv[i] = rb_ary_entry(settings, i);
+	}
+
+	auto config = BuildSettings(argc, argv, self);
 
 	auto& window = rb::Get<DisplayWindowElement>(self);
-	window.init();
-
 	window->reload(std::move(config));
 
+	return self;
+}
+
+static VALUE rb_DisplayWindow_getSettings(VALUE self) {
+	auto& window = rb::Get<DisplayWindowElement>(self);
+	const auto& settings = window->getSettings();
+
+	auto ary = rb_ary_new_capa(9);
+	rb_ary_push(ary, rb_utf8_str_new_cstr((char*) settings.title.toUtf8().c_str()));
+	rb_ary_push(ary, UINT2NUM(settings.video.width));
+	rb_ary_push(ary, UINT2NUM(settings.video.height));
+	rb_ary_push(ary, DBL2NUM(settings.video.scale));
+	rb_ary_push(ary, UINT2NUM(settings.video.bitsPerPixel));
+	rb_ary_push(ary, UINT2NUM(settings.frameRate));
+	rb_ary_push(ary, settings.vSync ? Qtrue : Qfalse);
+	rb_ary_push(ary, settings.fullscreen ? Qtrue : Qfalse);
+	rb_ary_push(ary, settings.visibleMouse ? Qtrue : Qfalse);
+	return ary;
+}
+
+static VALUE rb_DisplayWindow_initialize(int argc, VALUE* argv, VALUE self) {
+	auto& window = rb::Get<DisplayWindowElement>(self);
+	window.init();
+	auto config = BuildSettings(argc, argv, self);
+	window->reload(std::move(config), true);
 	return self;
 }
 
@@ -460,6 +500,9 @@ void Init_DisplayWindow() {
 	rb_define_method(rb_cDisplayWindow, "icon=", _rbf rb_DisplayWindow_set_icon, 1);
 	rb_define_method(rb_cDisplayWindow, "resize_screen", _rbf rb_DisplayWindow_resize_screen, 2);
 	rb_define_method(rb_cDisplayWindow, "openGL_version", _rbf rb_DisplayWindow_get_ogl_version, 0);
+	rb_define_method(rb_cDisplayWindow, "settings", _rbf rb_DisplayWindow_getSettings, 0);
+	rb_define_method(rb_cDisplayWindow, "settings=", _rbf rb_DisplayWindow_setSettings, 1);
+
 	/* Events */
 	rb_define_method(rb_cDisplayWindow, "on_closed=", _rbf rb_DisplayWindow_set_onClosed, 1);
 	rb_define_method(rb_cDisplayWindow, "on_resized=", _rbf rb_DisplayWindow_set_onResized, 1);
