@@ -1,7 +1,7 @@
+#include <LiteCGSS/Common/NormalizeNumbers.h>
 #include "LiteRGSS.h"
 #include "Tone.h"
 #include "rbAdapter.h"
-#include "NormalizeNumbers.h"
 
 VALUE rb_cTone = Qnil;
 
@@ -16,13 +16,13 @@ VALUE rb_Tone_Initialize(int argc, VALUE* argv, VALUE self)
 	auto& tone = rb::Get<ToneElement>(self);
 	auto tonev = tone.getValue();
 	if(RTEST(red))
-		tonev.x = normalize_long(rb_num2long(red), -255, 255) / 255.0f;
+		tonev.x = cgss::normalize_long(rb_num2long(red), -255, 255) / 255.0f;
 	if(RTEST(green))
-		tonev.y = normalize_long(rb_num2long(green), -255, 255) / 255.0f;
+		tonev.y = cgss::normalize_long(rb_num2long(green), -255, 255) / 255.0f;
 	if(RTEST(blue))
-		tonev.z = normalize_long(rb_num2long(blue), -255, 255) / 255.0f;
+		tonev.z = cgss::normalize_long(rb_num2long(blue), -255, 255) / 255.0f;
 	if(RTEST(alpha))
-		tonev.w = normalize_long(rb_num2long(alpha), 0, 255) / 255.0f;
+		tonev.w = cgss::normalize_long(rb_num2long(alpha), 0, 255) / 255.0f;
 	tone.setValue(std::move(tonev));
 	return self;
 }
@@ -45,7 +45,7 @@ VALUE rb_Tone_setRed(VALUE self, VALUE val)
 {
 	auto& tone = rb::Get<ToneElement>(self);
 	auto tonev = tone.getValue();
-	tonev.x = normalize_long(rb_num2long(val), -255, 255) / 255.0f;
+	tonev.x = cgss::normalize_long(rb_num2long(val), -255, 255) / 255.0f;
 	tone.setValue(std::move(tonev));
 	return self;
 }
@@ -60,7 +60,7 @@ VALUE rb_Tone_setGreen(VALUE self, VALUE val)
 {
 	auto& tone = rb::Get<ToneElement>(self);
 	auto tonev = tone.getValue();
-	tonev.y = normalize_long(rb_num2long(val), -255, 255) / 255.0f;
+	tonev.y = cgss::normalize_long(rb_num2long(val), -255, 255) / 255.0f;
 	tone.setValue(std::move(tonev));
 	return self;
 }
@@ -76,7 +76,7 @@ VALUE rb_Tone_setBlue(VALUE self, VALUE val)
 {
 	auto& tone = rb::Get<ToneElement>(self);
 	auto tonev = tone.getValue();
-	tonev.z = normalize_long(rb_num2long(val), -255, 255) / 255.0f;
+	tonev.z = cgss::normalize_long(rb_num2long(val), -255, 255) / 255.0f;
 	tone.setValue(std::move(tonev));
 	return self;
 }
@@ -92,7 +92,7 @@ VALUE rb_Tone_setGray(VALUE self, VALUE val)
 {
 	auto& tone = rb::Get<ToneElement>(self);
 	auto tonev = tone.getValue();
-	tonev.w = normalize_long(rb_num2long(val), 0, 255) / 255.0f;
+	tonev.w = cgss::normalize_long(rb_num2long(val), 0, 255) / 255.0f;
 	tone.setValue(std::move(tonev));
 	return self;
 }

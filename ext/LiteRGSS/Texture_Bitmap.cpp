@@ -1,6 +1,6 @@
 #include <LiteCGSS/Graphics/Loaders/TextureLoader.h>
+#include <LiteCGSS/Common/NormalizeNumbers.h>
 #include "LiteRGSS.h"
-#include "NormalizeNumbers.h"
 #include "log.h"
 #include "rbAdapter.h"
 

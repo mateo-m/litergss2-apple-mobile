@@ -1,7 +1,7 @@
 #include "Fonts.h"
 #include <SFML/Graphics/Font.hpp>
 #include "LiteRGSS.h"
-#include "NormalizeNumbers.h"
+#include <LiteCGSS/Common/NormalizeNumbers.h>
 #include "Color.h"
 
 VALUE rb_mFonts = Qnil;
@@ -16,7 +16,7 @@ std::vector<sf::Font> rb_Fonts_font_tbl;
 
 VALUE rb_Fonts_load_font(VALUE self, VALUE id, VALUE str)
 {
-	unsigned long position = normalize_long(rb_num2long(id), 0, 255);
+	unsigned long position = cgss::normalize_long(rb_num2long(id), 0, 255);
 	rb_check_type(str, T_STRING);
 	while(rb_Fonts_font_tbl.size() <= position)
 	{

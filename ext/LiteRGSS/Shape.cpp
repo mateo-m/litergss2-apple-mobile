@@ -1,6 +1,6 @@
+#include <LiteCGSS/Common/NormalizeNumbers.h>
 #include "LiteRGSS.h"
 #include "rbAdapter.h"
-#include "NormalizeNumbers.h"
 
 #include "Shape.h"
 #include "Texture_Bitmap.h"
