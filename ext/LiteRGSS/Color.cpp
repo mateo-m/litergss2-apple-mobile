@@ -1,7 +1,7 @@
 #include <SFML/Graphics/Color.hpp>
+#include <LiteCGSS/Common/NormalizeNumbers.h>
 #include "LiteRGSS.h"
 #include "rbAdapter.h"
-#include "NormalizeNumbers.h"
 #include "Color.h"
 
 VALUE rb_cColor = Qnil;
@@ -15,13 +15,13 @@ VALUE rb_Color_Initialize(int argc, VALUE* argv, VALUE self) {
 	auto& colorElement = rb::Get<ColorElement>(self);
 	auto color = colorElement.getValue();
 	if(RTEST(red))
-		color.r = normalize_long(rb_num2long(red), 0, 255);
+		color.r = cgss::normalize_long(rb_num2long(red), 0, 255);
 	if(RTEST(green))
-		color.g = normalize_long(rb_num2long(green), 0, 255);
+		color.g = cgss::normalize_long(rb_num2long(green), 0, 255);
 	if(RTEST(blue))
-		color.b = normalize_long(rb_num2long(blue), 0, 255);
+		color.b = cgss::normalize_long(rb_num2long(blue), 0, 255);
 	if(RTEST(alpha))
-		color.a = normalize_long(rb_num2long(alpha), 0, 255);
+		color.a = cgss::normalize_long(rb_num2long(alpha), 0, 255);
 	colorElement.setValue(std::move(color));
 	return self;
 }
@@ -40,7 +40,7 @@ VALUE rb_Color_getRed(VALUE self) {
 
 VALUE rb_Color_setRed(VALUE self, VALUE red) {
 	auto& color = rb::Get<ColorElement>(self);
-	color.setR(normalize_long(rb_num2long(red), 0, 255));
+	color.setR(cgss::normalize_long(rb_num2long(red), 0, 255));
 	return self;
 }
 
@@ -51,7 +51,7 @@ VALUE rb_Color_getGreen(VALUE self) {
 
 VALUE rb_Color_setGreen(VALUE self, VALUE red) {
 	auto& color = rb::Get<ColorElement>(self);
-	color.setG(normalize_long(rb_num2long(red), 0, 255));
+	color.setG(cgss::normalize_long(rb_num2long(red), 0, 255));
 	return self;
 }
 
@@ -62,7 +62,7 @@ VALUE rb_Color_getBlue(VALUE self) {
 
 VALUE rb_Color_setBlue(VALUE self, VALUE red) {
 	auto& color = rb::Get<ColorElement>(self);
-	color.setB(normalize_long(rb_num2long(red), 0, 255));
+	color.setB(cgss::normalize_long(rb_num2long(red), 0, 255));
 	return self;
 }
 
@@ -73,7 +73,7 @@ VALUE rb_Color_getAlpha(VALUE self) {
 
 VALUE rb_Color_setAlpha(VALUE self, VALUE red) {
 	auto& color = rb::Get<ColorElement>(self);
-	color.setA(normalize_long(rb_num2long(red), 0, 255));
+	color.setA(cgss::normalize_long(rb_num2long(red), 0, 255));
 	return self;
 }
 

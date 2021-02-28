@@ -1,9 +1,9 @@
+#include <LiteCGSS/Common/NormalizeNumbers.h>
 #include "LiteRGSS.h"
 #include "FramedView_Window.h"
 #include "Drawable_Disposable.h"
 #include "Texture_Bitmap.h"
 #include "rbAdapter.h"
-#include "NormalizeNumbers.h"
 #include "Rect.h"
 #include "Viewport.h"
 #include "DisplayWindow.h"
@@ -389,7 +389,7 @@ VALUE rb_Window_getOpacity(VALUE self) {
 
 VALUE rb_Window_setOpacity(VALUE self, VALUE val) {
 	auto& framedView = rb::Get<FramedViewElement>(self);
-	const auto opacity = normalize_long(NUM2LONG(val), 0, 255);
+	const auto opacity = cgss::normalize_long(NUM2LONG(val), 0, 255);
 	framedView->setOpacity(opacity);
 	framedView.rOpacity = LONG2NUM(opacity);
 	return self;
@@ -402,7 +402,7 @@ VALUE rb_Window_getBackOpacity(VALUE self) {
 
 VALUE rb_Window_setBackOpacity(VALUE self, VALUE val) {
 	auto& framedView = rb::Get<FramedViewElement>(self);
-	const auto backOpacity = normalize_long(NUM2LONG(val), 0, 255);
+	const auto backOpacity = cgss::normalize_long(NUM2LONG(val), 0, 255);
 	framedView->setBackOpacity(backOpacity);
 	framedView.rBackOpacity = LONG2NUM(backOpacity);
 	return self;
@@ -415,7 +415,7 @@ VALUE rb_Window_getContentsOpacity(VALUE self) {
 
 VALUE rb_Window_setContentsOpacity(VALUE self, VALUE val) {
 	auto& framedView = rb::Get<FramedViewElement>(self);
-	const auto contentOpacity = normalize_long(NUM2LONG(val), 0, 255);
+	const auto contentOpacity = cgss::normalize_long(NUM2LONG(val), 0, 255);
 	framedView->setContentsOpacity(contentOpacity);
 	framedView.rContentOpacity = LONG2NUM(contentOpacity);
 	return self;

@@ -1,6 +1,6 @@
+#include <LiteCGSS/Common/NormalizeNumbers.h>
 #include "LiteRGSS.h"
 #include "rbAdapter.h"
-#include "NormalizeNumbers.h"
 
 #include "DisplayWindowConfigLoader.h"
 #include "DisplayWindow.h"
@@ -131,7 +131,7 @@ static VALUE rb_DisplayWindow_getBrightness(VALUE self) {
 
 static VALUE rb_DisplayWindow_setBrightness(VALUE self, VALUE brightness) {
     auto& window = rb::Get<DisplayWindowElement>(self);
-	window->setBrightness(normalize_long(rb_num2long(brightness), 0, 255));
+	window->setBrightness(cgss::normalize_long(rb_num2long(brightness), 0, 255));
 	return self;
 }
 

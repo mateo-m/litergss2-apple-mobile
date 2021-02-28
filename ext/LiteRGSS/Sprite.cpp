@@ -1,7 +1,7 @@
+#include <LiteCGSS/Common/NormalizeNumbers.h>
 #include "LiteRGSS.h"
 #include "log.h"
 #include "rbAdapter.h"
-#include "NormalizeNumbers.h"
 
 #include "Sprite.h"
 #include "Rect.h"
@@ -216,7 +216,7 @@ static VALUE rb_Sprite_setZoom(VALUE self, VALUE zoom) {
 
 static VALUE rb_Sprite_setOpacity(VALUE self, VALUE val) {
 	auto& sprite = rb::Get<SpriteElement>(self);
-	const auto newOpacity = normalize_long(rb_num2long(val), 0, 255);
+	const auto newOpacity = cgss::normalize_long(rb_num2long(val), 0, 255);
 	const auto& oldColor = sprite->getColor();
 	sprite->setColor(sf::Color(oldColor.r, oldColor.g, oldColor.b, newOpacity));
 	return val;

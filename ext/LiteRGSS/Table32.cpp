@@ -1,5 +1,5 @@
+#include <LiteCGSS/Common/NormalizeNumbers.h>
 #include "rbAdapter.h"
-#include "NormalizeNumbers.h"
 #include "Table32.h"
 
 VALUE rb_cTable32 = Qnil;
@@ -172,7 +172,7 @@ VALUE rb_Table32_Load(VALUE self, VALUE str)
 	arr[0] = RB_UINT2NUM(table->header.xsize);
 	arr[1] = RB_UINT2NUM(table->header.ysize);
 	arr[2] = RB_UINT2NUM(table->header.zsize);
-	table->header.dim = normalize_long(table->header.dim, 1, 3);
+	table->header.dim = cgss::normalize_long(table->header.dim, 1, 3);
 	VALUE rtable = rb_class_new_instance(table->header.dim, arr, self);
 	Data_Get_Struct(rtable, rb_Table32_Struct, table);
 	memcpy(table->heap, RSTRING_PTR(str) + sizeof(rb_Table32_Struct_Header), table->header.data_size * sizeof(std::remove_pointer<decltype(table->heap)>::type));

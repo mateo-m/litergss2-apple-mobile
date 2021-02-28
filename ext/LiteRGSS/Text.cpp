@@ -1,6 +1,6 @@
+#include <LiteCGSS/Common/NormalizeNumbers.h>
 #include "LiteRGSS.h"
 #include "Text.h"
-#include "NormalizeNumbers.h"
 #include "rbAdapter.h"
 #include "Fonts.h"
 
@@ -33,7 +33,7 @@ VALUE rb_Text_getOpacity(VALUE self) {
 
 VALUE rb_Text_setOpacity(VALUE self, VALUE val) {
 	auto& text = rb::Get<TextElement>(self);
-	auto opacity = normalize_long(rb_num2long(val), 0, 255);
+	auto opacity = cgss::normalize_long(rb_num2long(val), 0, 255);
 	text->setOpacity(static_cast<std::uint8_t>(opacity));
 	return self;
 }
@@ -268,7 +268,7 @@ VALUE rb_Text_get_size(VALUE self) {
 
 VALUE rb_Text_set_size(VALUE self, VALUE val) {
 	auto& text = rb::Get<TextElement>(self);
-	text->setCharacterSize(normalize_long(rb_num2long(val), 1, 0xFFFF));
+	text->setCharacterSize(cgss::normalize_long(rb_num2long(val), 1, 0xFFFF));
 	return self;
 }
 
@@ -338,7 +338,7 @@ void rb_Text_Load_Font(TextElement &text, VALUE self, VALUE fontid, VALUE colori
 	// Load the size
 	VALUE size = rb_Fonts_get_default_size(rb_mFonts, sizeid);
 	if(!NIL_P(size)) {
-		text->setCharacterSize(static_cast<unsigned int>(normalize_long(rb_num2long(size), 1, 0xFFFF)));
+		text->setCharacterSize(static_cast<unsigned int>(cgss::normalize_long(rb_num2long(size), 1, 0xFFFF)));
 	}
 }
 
