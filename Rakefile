@@ -19,8 +19,7 @@ Gem::PackageTask.new(spec) do |pkg|
 end
 
 desc "Configure the project by checking / setting up a working environment"
-task :configure, [:disallow_change_ruby] do |t, args|
-  disallow_change_ruby = args[:disallow_change_ruby]
+task :configure do |t, args|
   require_relative 'external/litecgss/build/system_env'
   require_relative 'external/litecgss/build/ruby_installer'
 
@@ -29,11 +28,6 @@ task :configure, [:disallow_change_ruby] do |t, args|
     system("rake configure") 
   }
 
-  if Cgss::SystemEnv::is_windows() && (disallow_change_ruby == nil || !disallow_change_ruby.eql?("disallow_change_ruby"))
-    # Here, we have to change the current ruby executable (because LiteCGSS can install another ruby version).
-    # So we use "exec" to restart a rake configure.
-    exec("rake configure[disallow_change_ruby]")
-  end
 
   Dir.chdir(litecgss_root_dir) {
     system("rake clean")
