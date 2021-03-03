@@ -154,6 +154,28 @@ static VALUE rb_DisplayWindow_update_only_input(VALUE self) {
 	return self;
 }
 
+static VALUE rb_DisplayWindow_getX(VALUE self) {
+    const auto& window = rb::Get<DisplayWindowElement>(self);
+	return rb_int2inum(window->getX());
+}
+
+static VALUE rb_DisplayWindow_getY(VALUE self) {
+    const auto& window = rb::Get<DisplayWindowElement>(self);
+	return rb_int2inum(window->getY());
+}
+
+static VALUE rb_DisplayWindow_setX(VALUE self, VALUE x) {
+    auto& window = rb::Get<DisplayWindowElement>(self);
+	window->move(NUM2INT(x), window->getY());
+	return self;
+}
+
+static VALUE rb_DisplayWindow_setY(VALUE self, VALUE y) {
+    auto& window = rb::Get<DisplayWindowElement>(self);
+	window->move(window->getX(), NUM2INT(y));
+	return self;
+}
+
 static VALUE rb_DisplayWindow_width(VALUE self) {
     const auto& window = rb::Get<DisplayWindowElement>(self);
 	return rb_int2inum(window->screenWidth());
@@ -231,6 +253,14 @@ static VALUE rb_DisplayWindow_list_res(VALUE self) {
 		}
 	}
 	return array;
+}
+
+static VALUE rb_DisplayWindow_desktop_width(VALUE self) {
+	return rb_int2inum(cgss::DisplayWindow::DesktopWidth());
+}
+
+static VALUE rb_DisplayWindow_desktop_height(VALUE self) {
+	return rb_int2inum(cgss::DisplayWindow::DesktopHeight());
 }
 
 static VALUE rb_DisplayWindow_set_onClosed(VALUE self, VALUE proc) {
@@ -502,6 +532,10 @@ void Init_DisplayWindow() {
 	rb_define_method(rb_cDisplayWindow, "openGL_version", _rbf rb_DisplayWindow_get_ogl_version, 0);
 	rb_define_method(rb_cDisplayWindow, "settings", _rbf rb_DisplayWindow_getSettings, 0);
 	rb_define_method(rb_cDisplayWindow, "settings=", _rbf rb_DisplayWindow_setSettings, 1);
+	rb_define_method(rb_cDisplayWindow, "x", _rbf rb_DisplayWindow_getX, 0);
+	rb_define_method(rb_cDisplayWindow, "y", _rbf rb_DisplayWindow_getY, 0);
+	rb_define_method(rb_cDisplayWindow, "x=", _rbf rb_DisplayWindow_setX, 1);
+	rb_define_method(rb_cDisplayWindow, "y=", _rbf rb_DisplayWindow_setY, 1);
 
 	/* Events */
 	rb_define_method(rb_cDisplayWindow, "on_closed=", _rbf rb_DisplayWindow_set_onClosed, 1);
@@ -529,5 +563,7 @@ void Init_DisplayWindow() {
 
 	/* Utility */
 	rb_define_singleton_method(rb_cDisplayWindow, "list_resolutions", _rbf rb_DisplayWindow_list_res, 0);
+	rb_define_singleton_method(rb_cDisplayWindow, "desktop_width", _rbf rb_DisplayWindow_desktop_width, 0);
+	rb_define_singleton_method(rb_cDisplayWindow, "desktop_height", _rbf rb_DisplayWindow_desktop_height, 0);
 	rb_define_const(rb_cDisplayWindow, "MAX_TEXTURE_SIZE", LONG2FIX(sf::Texture::getMaximumSize()));
 }

@@ -17,7 +17,6 @@ struct DisplayWindowElement :
 	VALUE rShader = Qnil;
 	VALUE rKeyboard = Qnil;
 	VALUE rMouse = Qnil;
-
 	/**
 	 * Event addition
 	 **/
