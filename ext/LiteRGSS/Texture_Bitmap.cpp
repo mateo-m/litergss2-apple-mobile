@@ -1,7 +1,6 @@
 #include <LiteCGSS/Graphics/Serializers/TextureSerializer.h>
 #include <LiteCGSS/Common/NormalizeNumbers.h>
 #include "LiteRGSS.h"
-#include "log.h"
 #include "rbAdapter.h"
 
 #include "Color.h"
