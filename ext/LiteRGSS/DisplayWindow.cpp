@@ -51,22 +51,22 @@ static cgss::DisplayWindowSettings BuildSettings(int argc, VALUE* argv, VALUE se
 	VALUE title, width, height, scale, bitsPerPixel, framerate, vsync, fullscreen, visibleMouse;
 	rb_scan_args(argc, argv, "45", &title, &width, &height, &scale, &bitsPerPixel, &framerate, &vsync, &fullscreen, &visibleMouse);
   
-    rb_check_type(title, T_STRING);
+	rb_check_type(title, T_STRING);
 
-    if (NIL_P(bitsPerPixel)) {
-        bitsPerPixel = rb_int2inum(DefaultBitsPerPixel);
-    }
+	if (NIL_P(bitsPerPixel)) {
+		bitsPerPixel = rb_int2inum(DefaultBitsPerPixel);
+	}
 
-    if (NIL_P(framerate)) {
-        framerate = rb_int2inum(DefaultFramerate);
-    }
+	if (NIL_P(framerate)) {
+		framerate = rb_int2inum(DefaultFramerate);
+	}
 
-    auto configLoader = DisplayWindowConfigLoader {};
-    auto videoSettings = configLoader.loadVideoFromData(rb_num2long(width), rb_num2long(height), NUM2DBL(scale), rb_num2long(bitsPerPixel));
+	auto configLoader = DisplayWindowConfigLoader {};
+	auto videoSettings = configLoader.loadVideoFromData(rb_num2long(width), rb_num2long(height), NUM2DBL(scale), rb_num2long(bitsPerPixel));
 
 	/* We take default context settings because setting one explicitely can cause issues */
 	auto contextSettings = sf::ContextSettings(); 
-    
+	
 	const std::string titleStr { RSTRING_PTR(title) };
 	return cgss::DisplayWindowSettings {
 		false,
@@ -128,64 +128,86 @@ static VALUE rb_DisplayWindow_initialize(int argc, VALUE* argv, VALUE self) {
 }
 
 static VALUE rb_DisplayWindow_dispose(VALUE self) {
-    return rb::RawDispose<DisplayWindowElement>(self);
+	return rb::RawDispose<DisplayWindowElement>(self);
 }
 
 static VALUE rb_DisplayWindow_snap_to_bitmap(VALUE self) {
-    const auto& window = rb::Get<DisplayWindowElement>(self);
+	const auto& window = rb::Get<DisplayWindowElement>(self);
 	return TextureElement::snapToTexture(*window.instance());
 }
 
 static VALUE rb_DisplayWindow_update(VALUE self) {
-    auto& window = rb::Get<DisplayWindowElement>(self);
-    window->update(self);
+	auto& window = rb::Get<DisplayWindowElement>(self);
+	window->update(self);
 	return self;
 }
 
 static VALUE rb_DisplayWindow_update_no_input_count(VALUE self) {
 	auto& window = rb::Get<DisplayWindowElement>(self);
-    window->update(self, false);
+	window->update(self, false);
 	return self;
 }
 
 static VALUE rb_DisplayWindow_update_only_input(VALUE self) {
 	auto& window = rb::Get<DisplayWindowElement>(self);
-    window->updateOnlyInput(self);
+	window->updateOnlyInput(self);
+	return self;
+}
+
+static VALUE rb_DisplayWindow_getX(VALUE self) {
+	const auto& window = rb::Get<DisplayWindowElement>(self);
+	return rb_int2inum(window->getX());
+}
+
+static VALUE rb_DisplayWindow_getY(VALUE self) {
+	const auto& window = rb::Get<DisplayWindowElement>(self);
+	return rb_int2inum(window->getY());
+}
+
+static VALUE rb_DisplayWindow_setX(VALUE self, VALUE x) {
+	auto& window = rb::Get<DisplayWindowElement>(self);
+	window->move(NUM2INT(x), window->getY());
+	return self;
+}
+
+static VALUE rb_DisplayWindow_setY(VALUE self, VALUE y) {
+	auto& window = rb::Get<DisplayWindowElement>(self);
+	window->move(window->getX(), NUM2INT(y));
 	return self;
 }
 
 static VALUE rb_DisplayWindow_width(VALUE self) {
-    const auto& window = rb::Get<DisplayWindowElement>(self);
+	const auto& window = rb::Get<DisplayWindowElement>(self);
 	return rb_int2inum(window->screenWidth());
 }
 
 static VALUE rb_DisplayWindow_height(VALUE self) {
-    const auto& window = rb::Get<DisplayWindowElement>(self);
+	const auto& window = rb::Get<DisplayWindowElement>(self);
 	return rb_int2inum(window->screenHeight());
 }
 
 static VALUE rb_DisplayWindow_getBrightness(VALUE self) {
-    const auto& window = rb::Get<DisplayWindowElement>(self);
+	const auto& window = rb::Get<DisplayWindowElement>(self);
 	return LONG2FIX(window->brightness());
 }
 
 static VALUE rb_DisplayWindow_setBrightness(VALUE self, VALUE brightness) {
-    auto& window = rb::Get<DisplayWindowElement>(self);
+	auto& window = rb::Get<DisplayWindowElement>(self);
 	window->setBrightness(cgss::normalize_long(rb_num2long(brightness), 0, 255));
 	return self;
 }
 
 static VALUE rb_DisplayWindow_getShader(VALUE self) {
 	auto& window = rb::Get<DisplayWindowElement>(self);
-    return window.rShader;
+	return window.rShader;
 }
 
 static VALUE rb_DisplayWindow_setShader(VALUE self, VALUE shader) {
-    auto& window = rb::Get<DisplayWindowElement>(self);
+	auto& window = rb::Get<DisplayWindowElement>(self);
 	if (rb_obj_is_kind_of(shader, rb_cBlendMode) == Qtrue) {
 		window.rShader = shader;
 		sf::RenderStates* renderStates = nullptr;
-        Data_Get_Struct(shader, sf::RenderStates, renderStates);
+		Data_Get_Struct(shader, sf::RenderStates, renderStates);
 		window->setShader(renderStates);
 	} else if (shader == Qnil) {
 		window->setShader(nullptr);
@@ -196,28 +218,28 @@ static VALUE rb_DisplayWindow_setShader(VALUE self, VALUE shader) {
 static VALUE rb_DisplayWindow_resize_screen(VALUE self, VALUE width, VALUE height) {
 	const int iwidth = NUM2INT(width);
 	const int iheight = NUM2INT(height);
-    auto& window = rb::Get<DisplayWindowElement>(self);
+	auto& window = rb::Get<DisplayWindowElement>(self);
 	window->resizeScreen(iwidth, iheight);
 	return self;
 }
 
 static VALUE rb_DisplayWindow_set_icon(VALUE self, VALUE icon) {
 	const auto& iconImage = rb::GetSafe<ImageElement>(icon, rb_cImage);
-    auto& window = rb::Get<DisplayWindowElement>(self);
+	auto& window = rb::Get<DisplayWindowElement>(self);
 	window->setIcon(iconImage);
 	return self;
 }
 
 static VALUE rb_DisplayWindow_get_ogl_version(VALUE self) {
 	const auto& window = rb::Get<DisplayWindowElement>(self);
-    VALUE result = rb_ary_new2(2);
+	VALUE result = rb_ary_new2(2);
 	rb_ary_push(result, LONG2NUM(window->getContextSettings().majorVersion));
 	rb_ary_push(result, LONG2NUM(window->getContextSettings().minorVersion));
 	return result;
 }
 
 static VALUE rb_DisplayWindow_sort_z(VALUE self) {
-    auto& window = rb::Get<DisplayWindowElement>(self);
+	auto& window = rb::Get<DisplayWindowElement>(self);
 	window->sortZ();
 	return self;
 }
@@ -231,6 +253,14 @@ static VALUE rb_DisplayWindow_list_res(VALUE self) {
 		}
 	}
 	return array;
+}
+
+static VALUE rb_DisplayWindow_desktop_width(VALUE self) {
+	return rb_int2inum(cgss::DisplayWindow::DesktopWidth());
+}
+
+static VALUE rb_DisplayWindow_desktop_height(VALUE self) {
+	return rb_int2inum(cgss::DisplayWindow::DesktopHeight());
 }
 
 static VALUE rb_DisplayWindow_set_onClosed(VALUE self, VALUE proc) {
@@ -502,6 +532,10 @@ void Init_DisplayWindow() {
 	rb_define_method(rb_cDisplayWindow, "openGL_version", _rbf rb_DisplayWindow_get_ogl_version, 0);
 	rb_define_method(rb_cDisplayWindow, "settings", _rbf rb_DisplayWindow_getSettings, 0);
 	rb_define_method(rb_cDisplayWindow, "settings=", _rbf rb_DisplayWindow_setSettings, 1);
+	rb_define_method(rb_cDisplayWindow, "x", _rbf rb_DisplayWindow_getX, 0);
+	rb_define_method(rb_cDisplayWindow, "y", _rbf rb_DisplayWindow_getY, 0);
+	rb_define_method(rb_cDisplayWindow, "x=", _rbf rb_DisplayWindow_setX, 1);
+	rb_define_method(rb_cDisplayWindow, "y=", _rbf rb_DisplayWindow_setY, 1);
 
 	/* Events */
 	rb_define_method(rb_cDisplayWindow, "on_closed=", _rbf rb_DisplayWindow_set_onClosed, 1);
@@ -529,5 +563,7 @@ void Init_DisplayWindow() {
 
 	/* Utility */
 	rb_define_singleton_method(rb_cDisplayWindow, "list_resolutions", _rbf rb_DisplayWindow_list_res, 0);
+	rb_define_singleton_method(rb_cDisplayWindow, "desktop_width", _rbf rb_DisplayWindow_desktop_width, 0);
+	rb_define_singleton_method(rb_cDisplayWindow, "desktop_height", _rbf rb_DisplayWindow_desktop_height, 0);
 	rb_define_const(rb_cDisplayWindow, "MAX_TEXTURE_SIZE", LONG2FIX(sf::Texture::getMaximumSize()));
 }
