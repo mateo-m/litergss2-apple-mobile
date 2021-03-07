@@ -1,4 +1,4 @@
-#include <LiteCGSS/Graphics/Loaders/TextureLoader.h>
+#include <LiteCGSS/Graphics/Serializers/TextureSerializer.h>
 #include <LiteCGSS/Common/NormalizeNumbers.h>
 #include "LiteRGSS.h"
 #include "log.h"
@@ -34,29 +34,26 @@ static VALUE rb_Bitmap_Initialize(int argc, VALUE *argv, VALUE self) {
 	/* Load From filename */
 	if(NIL_P(fromMemory)) {
 		rb_check_type(string, T_STRING);
-		//LOG("[Bitmap] Init from filename");
 		const char* filename = RSTRING_PTR(string);
-		auto loader = cgss::TextureFileLoader{filename};
+		auto loader = cgss::TextureFileSerializer{filename};
 		if (!bitmap->load(loader)) {
 			errno = ENOENT;
 			rb_sys_fail(filename);
 		}
 	} else if(fromMemory == Qtrue) {
 		rb_check_type(string, T_STRING);
-		//LOG("[Bitmap] Init from memory");
-		const char* rawData = RSTRING_PTR(string);
+		unsigned char* rawData = reinterpret_cast<unsigned char*>(RSTRING_PTR(string));
 		const auto length = RSTRING_LEN(string);
-		auto loader = cgss::TextureMemoryLoader{std::vector<unsigned char>{ rawData, rawData + length }};
+		auto loader = cgss::TextureMemorySerializer{ { rawData, length } };
 		if (!bitmap->load(loader)) {
 			rb_raise(rb_eRGSSError, "Failed to load bitmap from memory.");
 		}
 	} else {
 		rb_check_type(string, T_FIXNUM);
 		rb_check_type(fromMemory, T_FIXNUM);
-		//LOG("[Bitmap] Init empty with dimensions");
 		const unsigned int width = static_cast<unsigned int>(rb_num2long(string));
 		const unsigned int height = static_cast<unsigned int>(rb_num2long(fromMemory));
-		auto loader = cgss::TextureEmptyLoader{width, height};
+		auto loader = cgss::TextureEmptySerializer{width, height};
 		if (!bitmap->load(loader)) {
 			rb_raise(rb_eRGSSError, "Invalid texture size (%u x %u) !", width, height);
 		}
@@ -171,19 +168,21 @@ static VALUE rb_Bitmap_fill_rect(VALUE self, VALUE x, VALUE y, VALUE width, VALU
 
 static VALUE rb_Bitmap_toPNG(VALUE self) {
 	auto& bitmap = rb::Get<TextureElement>(self);
-	auto saver = cgss::TextureMemoryLoader { {} };
+	auto saver = cgss::TextureMemorySerializer { {nullptr, 0u} };
 	bitmap->write(saver);
-	auto out = saver.stealMemory();
-	return rb_str_new(reinterpret_cast<const char*>(&out[0]), out.size());
+	VALUE out;
+	saver.finalizeMemory([&out](const cgss::MemorySerializerData& rawData) {
+		out = rb_str_new(reinterpret_cast<const char*>(rawData.first), rawData.second);
+	});
+	return out;
 }
 
 static VALUE rb_Bitmap_toPNG_file(VALUE self, VALUE filename) {
 	rb_check_type(filename, T_STRING);
 	std::string filenameValue = RSTRING_PTR(filename);
 	auto& bitmap = rb::Get<TextureElement>(self);
-	auto saver = cgss::TextureFileLoader { std::move(filenameValue) };
-	bitmap->write(saver);
-	return saver.writtenStatus() ? Qtrue : Qfalse;
+	auto saver = cgss::TextureFileSerializer { std::move(filenameValue) };
+	return bitmap->write(saver) == 0u ? Qtrue : Qfalse;
 }
 
 void Init_Bitmap() {
