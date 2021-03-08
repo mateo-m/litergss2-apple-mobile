@@ -7,7 +7,7 @@
 #include "DisplayWindowUpdateMessage.h"
 #include "RubyValue.h"
 
-class DisplayWindowInput : 
+class DisplayWindowInput :
 	public cgss::DisplayWindow {
 public:
 	DisplayWindowInput() = default;

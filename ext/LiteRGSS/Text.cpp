@@ -122,7 +122,7 @@ VALUE rb_Text_set_outline_thickness(VALUE self, VALUE val) {
 VALUE rb_Text_load_color(VALUE self, VALUE id) {
 	auto& text = rb::Get<TextElement>(self);
 	rb_Text_set_fill_color(self, rb_Fonts_get_fill_color(rb_mFonts, id));
-	
+
 	if (text->getDrawShadow()) {
 		rb_Text_set_outline_color(self, rb_Fonts_get_shadow_color(rb_mFonts, id));
 	} else {
@@ -315,29 +315,35 @@ void rb_Text_Load_Font(TextElement &text, VALUE self, VALUE fontid, VALUE colori
 	VALUE fcol;
 	VALUE ocol;
 	// Load the default parameter
-	if(NIL_P(colorid))
+	if (NIL_P(colorid)) {
 		colorid = fontid;
-	if(NIL_P(sizeid))
+	}
+	if (NIL_P(sizeid)) {
 		sizeid = fontid;
+	}
 	// Load the fill color
 	fcol = rb_Fonts_get_fill_color(rb_mFonts, colorid);
-	if(rb_obj_is_kind_of(fcol, rb_cColor) == Qtrue)
+	if (rb_obj_is_kind_of(fcol, rb_cColor) == Qtrue) {
 		rb_Text_set_fill_color(self, fcol);
+	}
 
 	// Load the outline color
-	if(text->getOutlineThickness() < 1.0f) // Loading the shadow color
+	// Loading the shadow color
+	if (text->getOutlineThickness() < 1.0f) {
 		ocol = rb_Fonts_get_shadow_color(rb_mFonts, colorid);
-	else
+	} else {
 		ocol = rb_Fonts_get_outline_color(rb_mFonts, colorid);
-	if(rb_obj_is_kind_of(ocol, rb_cColor) == Qtrue)
+	}
+	if (rb_obj_is_kind_of(ocol, rb_cColor) == Qtrue) {
 		rb_Text_set_outline_color(self, ocol);
-	
+	}
+
 	// Load the font
 	text->setFont(rb_Fonts_get_font(rb_num2long(fontid)));
-	
+
 	// Load the size
 	VALUE size = rb_Fonts_get_default_size(rb_mFonts, sizeid);
-	if(!NIL_P(size)) {
+	if (!NIL_P(size)) {
 		text->setCharacterSize(static_cast<unsigned int>(cgss::normalize_long(rb_num2long(size), 1, 0xFFFF)));
 	}
 }
@@ -347,10 +353,10 @@ VALUE rb_Text_Initialize(int argc, VALUE* argv, VALUE self) {
 	VALUE fontid, viewport, x, y, width, height, str, align, outlinesize, colorid, sizeid;
 	VALUE opacity = LONG2NUM(255);
 	rb_scan_args(argc, argv,"74", &fontid, &viewport, &x, &y, &width, &height, &str, &align, &outlinesize, &colorid, &sizeid);
-	
+
 	/* Viewport */
-	if(rb_obj_is_kind_of(viewport, rb_cViewport) == Qtrue) {
-		auto& viewportEl = rb::Get<ViewportElement>(viewport);		
+	if (rb_obj_is_kind_of(viewport, rb_cViewport) == Qtrue) {
+		auto& viewportEl = rb::Get<ViewportElement>(viewport);
 		if (viewportEl.instance() == nullptr) {
 			rb_raise(rb_eRGSSError, "Invalid viewport provided to instanciate a Text.");
 			return Qnil;
@@ -360,12 +366,12 @@ VALUE rb_Text_Initialize(int argc, VALUE* argv, VALUE self) {
 	}
 	/* If a window is specified */
 	else if (rb_obj_is_kind_of(viewport, rb_cWindow) == Qtrue) {
-		auto& window = rb::Get<FramedViewElement>(viewport);	
+		auto& window = rb::Get<FramedViewElement>(viewport);
 		window.initAndAdd(text);
 		text.rViewport = viewport;
 		opacity = LONG2NUM(NUM2LONG(window.rOpacity) * NUM2LONG(window.rContentOpacity) / 255);
 	} else if (rb_obj_is_kind_of(viewport, rb_cDisplayWindow) == Qtrue) {
-		auto& window = rb::Get<DisplayWindowElement>(viewport);	
+		auto& window = rb::Get<DisplayWindowElement>(viewport);
 		window.initAndAdd(text);
 		text.rViewport = Qnil;
 	} else {
@@ -387,7 +393,7 @@ VALUE rb_Text_Initialize(int argc, VALUE* argv, VALUE self) {
 
 	text->resize(NUM2LONG(width), NUM2LONG(height));
 	/* Aligment */
-	if(!NIL_P(align)) {
+	if (!NIL_P(align)) {
 		long ralign = rb_num2long(align);
 		if (ralign <= 2 && ralign >= 0) {
 			text.rAlign = align;
@@ -395,7 +401,7 @@ VALUE rb_Text_Initialize(int argc, VALUE* argv, VALUE self) {
 		}
 	}
 	/* Outline size */
-	if(!NIL_P(outlinesize)) {
+	if (!NIL_P(outlinesize)) {
 		text->setOutlineThickness(static_cast<float>(rb_num2dbl(outlinesize)));
 	}
 	/* Font */

@@ -8,10 +8,10 @@
 extern VALUE rb_cText;
 void Init_Text();
 
-struct TextElement : 
-    public CgssInstance<cgss::Text> {
+struct TextElement :
+	public CgssInstance<cgss::Text> {
 
-    VALUE rViewport = Qnil;
+	VALUE rViewport = Qnil;
 	VALUE rwidth = LONG2FIX(0);
 	VALUE rheight = LONG2FIX(0);
 	VALUE rtext = Qnil;

@@ -31,7 +31,7 @@ static VALUE rb_Bitmap_Initialize(int argc, VALUE *argv, VALUE self) {
 	VALUE fromMemory = Qnil;
 	rb_scan_args(argc, argv, "11", &string, &fromMemory);
 	/* Load From filename */
-	if(NIL_P(fromMemory)) {
+	if (NIL_P(fromMemory)) {
 		rb_check_type(string, T_STRING);
 		const char* filename = RSTRING_PTR(string);
 		auto loader = cgss::TextureFileSerializer{filename};
@@ -39,7 +39,7 @@ static VALUE rb_Bitmap_Initialize(int argc, VALUE *argv, VALUE self) {
 			errno = ENOENT;
 			rb_sys_fail(filename);
 		}
-	} else if(fromMemory == Qtrue) {
+	} else if (fromMemory == Qtrue) {
 		rb_check_type(string, T_STRING);
 		unsigned char* rawData = reinterpret_cast<unsigned char*>(RSTRING_PTR(string));
 		const auto length = RSTRING_LEN(string);
@@ -112,8 +112,8 @@ static VALUE rb_Bitmap_blt(VALUE self, VALUE x, VALUE y, VALUE src_bitmap, VALUE
 	auto& s_rect = rb::GetSafe<RectangleElement>(rect, rb_cRect);
 
 	auto& s_bitmap = rb::Get<TextureElement>(src_bitmap);
-	if(s_bitmap.instance() == nullptr)  {
-		rb_raise(rb_eRGSSError, "Invalid Bitmap"); 
+	if (s_bitmap.instance() == nullptr)  {
+		rb_raise(rb_eRGSSError, "Invalid Bitmap");
 		return self;
 	}
 

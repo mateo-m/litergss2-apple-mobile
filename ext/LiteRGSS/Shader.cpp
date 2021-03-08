@@ -40,7 +40,7 @@ VALUE rb_Shader_setFloatUniform(VALUE self, VALUE name, VALUE uniform) {
 		} else if (arylen == 3) {
 			sf::Glsl::Vec3 vect3(NUM2DBL(rb_ary_entry(uniform, 0)), NUM2DBL(rb_ary_entry(uniform, 1)), NUM2DBL(rb_ary_entry(uniform, 2)));
 			renderStates.data().setShaderUniform(rb_string_value_cstr(&name), vect3);
-		} else if(arylen == 2) {
+		} else if (arylen == 2) {
 			sf::Glsl::Vec2 vect2(NUM2DBL(rb_ary_entry(uniform, 0)), NUM2DBL(rb_ary_entry(uniform, 1)));
 			renderStates.data().setShaderUniform(rb_string_value_cstr(&name), vect2);
 		}
@@ -73,7 +73,7 @@ VALUE rb_Shader_setIntUniform(VALUE self, VALUE name, VALUE uniform) {
 		} else if (arylen == 3) {
 			sf::Glsl::Ivec3 vect3(rb_num2long(rb_ary_entry(uniform, 0)), rb_num2long(rb_ary_entry(uniform, 1)), rb_num2long(rb_ary_entry(uniform, 2)));
 			renderStates.data().setShaderUniform(rb_string_value_cstr(&name), vect3);
-		} else if(arylen == 2) {
+		} else if (arylen == 2) {
 			sf::Glsl::Ivec2 vect2(rb_num2long(rb_ary_entry(uniform, 0)), rb_num2long(rb_ary_entry(uniform, 1)));
 			renderStates.data().setShaderUniform(rb_string_value_cstr(&name), vect2);
 		}
@@ -95,7 +95,7 @@ VALUE rb_Shader_setBoolUniform(VALUE self, VALUE name, VALUE uniform) {
 		} else if (arylen == 3) {
 			sf::Glsl::Bvec3 vect3(RTEST(rb_ary_entry(uniform, 0)), RTEST(rb_ary_entry(uniform, 1)), RTEST(rb_ary_entry(uniform, 2)));
 			renderStates.data().setShaderUniform(rb_string_value_cstr(&name), vect3);
-		} else if(arylen == 2) {
+		} else if (arylen == 2) {
 			sf::Glsl::Bvec2 vect2(RTEST(rb_ary_entry(uniform, 0)), RTEST(rb_ary_entry(uniform, 1)));
 			renderStates.data().setShaderUniform(rb_string_value_cstr(&name), vect2);
 		}
@@ -131,7 +131,7 @@ VALUE rb_Shader_setMatrixUniform(VALUE self, VALUE name, VALUE uniform) {
 		}
 		sf::Glsl::Mat3 matrix3(floats);
 		renderStates.data().setShaderUniform(rb_string_value_cstr(&name), matrix3);
-	} else if(arylen == 16) {
+	} else if (arylen == 16) {
 		for (i = 0; i < 16; i++) {
 			floats[i] = NUM2DBL(rb_ary_entry(uniform, i));
 		}
@@ -186,7 +186,7 @@ void Init_Shader() {
 
 	rb_define_method(rb_cShader, "clone", _rbf rb_Shader_Copy, 0);
 	rb_define_method(rb_cShader, "dup", _rbf rb_Shader_Copy, 0);
-	
+
 	rb_define_singleton_method(rb_cShader, "is_geometry_available?", _rbf rb_Shader_isGeometryAvailable, 0);
 	rb_define_singleton_method(rb_cShader, "available?", _rbf rb_Shader_isAvailable, 0);
 

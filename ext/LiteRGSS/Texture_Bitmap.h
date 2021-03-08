@@ -6,10 +6,10 @@
 #include "CgssWrapper.h"
 #include "RubyValue.h"
 
-struct TextureElement : 
-    public CgssInstance<cgss::Texture> {
+struct TextureElement :
+	public CgssInstance<cgss::Texture> {
 
-    static VALUE snapToTexture(const cgss::SnapshotCapturable& toCapture);
+	static VALUE snapToTexture(const cgss::SnapshotCapturable& toCapture);
 };
 
 extern VALUE rb_cBitmap;

@@ -8,10 +8,10 @@
 extern VALUE rb_cShape;
 void Init_Shape();
 
-struct ShapeElement : 
-    public CgssInstance<cgss::Shape> {
+struct ShapeElement :
+	public CgssInstance<cgss::Shape> {
 
-    VALUE rViewport = Qnil;    
+	VALUE rViewport = Qnil;
 	VALUE rBitmap = Qnil;
 	VALUE rX = LONG2FIX(0);
 	VALUE rY = LONG2FIX(0);

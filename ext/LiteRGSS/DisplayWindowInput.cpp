@@ -14,7 +14,7 @@ void DisplayWindowInput::manageErrorMessage(VALUE self, const DisplayWindowUpdat
 	if (message.errorObject == rb_eClosedWindow) {
 		stop();
 	}
-	
+
 	m_insideGraphicsUpdate = false;
 	rb_raise(message.errorObject, "%s", message.message.c_str());
 }
@@ -24,7 +24,7 @@ void DisplayWindowInput::updateProcessEvent(VALUE self, DisplayWindowUpdateMessa
 	auto& window = rb::Get<DisplayWindowElement>(self);
 	ID rbCall = rb_intern("call");
 
-	while(pollEvent(event))
+	while (pollEvent(event))
 	{
 		switch(event.type)
 		{
@@ -92,13 +92,13 @@ void DisplayWindowInput::updateProcessEvent(VALUE self, DisplayWindowUpdateMessa
 				if (window.rOnMouseButtonPressed != Qnil) {
 					VALUE arg = ULONG2NUM(event.mouseButton.button);
 					rb_funcall2(window.rOnMouseButtonPressed, rbCall, 1, &arg);
-				} 
+				}
 				break;
 			case sf::Event::EventType::MouseButtonReleased:
 				if (window.rOnMouseButtonRelease != Qnil) {
 					VALUE arg = ULONG2NUM(event.mouseButton.button);
 					rb_funcall2(window.rOnMouseButtonRelease, rbCall, 1, &arg);
-				} 
+				}
 				break;
 			case sf::Event::EventType::MouseMoved:
 				if (window.rOnMouseMoved != Qnil) {
@@ -227,21 +227,21 @@ std::unique_ptr<DisplayWindowUpdateMessage> DisplayWindowInput::realDraw() {
 
 void DisplayWindowInput::update(VALUE self, bool input) {
 	// Prevent a Thread from calling update during an already running update process
-	if (m_insideGraphicsUpdate) { 
+	if (m_insideGraphicsUpdate) {
 		return;
 	}
 	m_insideGraphicsUpdate = true;
 
 	/* Graphics.update real process */
 	auto message = realDraw();
-	
+
 	/* Message Processing */
 	DisplayWindowUpdateMessage localMessage {};
 	if (input) {
 		updateProcessEvent(self, message == nullptr ? localMessage : *message);
 	}
 	localMessage = message == nullptr ? localMessage : *message;
-	
+
 	if (!localMessage.message.empty()) {
 		manageErrorMessage(self, localMessage);
 	}

@@ -11,7 +11,7 @@ if sfml_dir_env.nil?
     sfml_dir_env = File.expand_path(File.dirname(__FILE__) + "/../../external/litecgss/external/sfml")
     puts "SFML NOT found, taking it from default : #{sfml_dir_env}"
 else
-    puts "SFML found from SFML_DIR (#{sfml_dir_env})"    
+    puts "SFML found from SFML_DIR (#{sfml_dir_env})"
 end
 
 $INCFLAGS << " -I" + (sfml_dir_env + "/include")
@@ -28,7 +28,7 @@ end
 
 puts "C++ Compiler is #{CONFIG['CXX']}"
 
-$CXXFLAGS += " -frelaxed-template-template-args -fdeclspec " if is_clang_compiler()    
+$CXXFLAGS += " -frelaxed-template-template-args -fdeclspec " if is_clang_compiler()
 $CXXFLAGS += " -std=c++17 -Wall "
 
 # override normal build configuration to build debug friendly library

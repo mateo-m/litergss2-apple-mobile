@@ -50,7 +50,7 @@ void rb::Mark<DisplayWindowElement>(DisplayWindowElement* window) {
 static cgss::DisplayWindowSettings BuildSettings(int argc, VALUE* argv, VALUE self) {
 	VALUE title, width, height, scale, bitsPerPixel, framerate, vsync, fullscreen, visibleMouse;
 	rb_scan_args(argc, argv, "45", &title, &width, &height, &scale, &bitsPerPixel, &framerate, &vsync, &fullscreen, &visibleMouse);
-  
+
 	rb_check_type(title, T_STRING);
 
 	if (NIL_P(bitsPerPixel)) {
@@ -65,8 +65,8 @@ static cgss::DisplayWindowSettings BuildSettings(int argc, VALUE* argv, VALUE se
 	auto videoSettings = configLoader.loadVideoFromData(rb_num2long(width), rb_num2long(height), NUM2DBL(scale), rb_num2long(bitsPerPixel));
 
 	/* We take default context settings because setting one explicitely can cause issues */
-	auto contextSettings = sf::ContextSettings(); 
-	
+	auto contextSettings = sf::ContextSettings();
+
 	const std::string titleStr { RSTRING_PTR(title) };
 	return cgss::DisplayWindowSettings {
 		false,
@@ -264,7 +264,7 @@ static VALUE rb_DisplayWindow_desktop_height(VALUE self) {
 }
 
 static VALUE rb_DisplayWindow_set_onClosed(VALUE self, VALUE proc) {
-	if(!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
+	if (!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
 		rb_raise(rb_eTypeError, "`on_stuff` events must respond to #call!");
 	}
 
@@ -275,7 +275,7 @@ static VALUE rb_DisplayWindow_set_onClosed(VALUE self, VALUE proc) {
 }
 
 static VALUE rb_DisplayWindow_set_onResized(VALUE self, VALUE proc) {
-	if(!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
+	if (!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
 		rb_raise(rb_eTypeError, "`on_stuff` events must respond to #call!");
 	}
 
@@ -286,7 +286,7 @@ static VALUE rb_DisplayWindow_set_onResized(VALUE self, VALUE proc) {
 }
 
 static VALUE rb_DisplayWindow_set_onLostFocus(VALUE self, VALUE proc) {
-	if(!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
+	if (!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
 		rb_raise(rb_eTypeError, "`on_stuff` events must respond to #call!");
 	}
 
@@ -297,7 +297,7 @@ static VALUE rb_DisplayWindow_set_onLostFocus(VALUE self, VALUE proc) {
 }
 
 static VALUE rb_DisplayWindow_set_onGainedFocus(VALUE self, VALUE proc) {
-	if(!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
+	if (!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
 		rb_raise(rb_eTypeError, "`on_stuff` events must respond to #call!");
 	}
 
@@ -308,7 +308,7 @@ static VALUE rb_DisplayWindow_set_onGainedFocus(VALUE self, VALUE proc) {
 }
 
 static VALUE rb_DisplayWindow_set_onTextEntered(VALUE self, VALUE proc) {
-	if(!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
+	if (!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
 		rb_raise(rb_eTypeError, "`on_stuff` events must respond to #call!");
 	}
 
@@ -319,7 +319,7 @@ static VALUE rb_DisplayWindow_set_onTextEntered(VALUE self, VALUE proc) {
 }
 
 static VALUE rb_DisplayWindow_set_onKeyPressed(VALUE self, VALUE proc) {
-	if(!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
+	if (!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
 		rb_raise(rb_eTypeError, "`on_stuff` events must respond to #call!");
 	}
 
@@ -330,7 +330,7 @@ static VALUE rb_DisplayWindow_set_onKeyPressed(VALUE self, VALUE proc) {
 }
 
 static VALUE rb_DisplayWindow_set_onKeyReleased(VALUE self, VALUE proc) {
-	if(!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
+	if (!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
 		rb_raise(rb_eTypeError, "`on_stuff` events must respond to #call!");
 	}
 
@@ -341,7 +341,7 @@ static VALUE rb_DisplayWindow_set_onKeyReleased(VALUE self, VALUE proc) {
 }
 
 static VALUE rb_DisplayWindow_set_onMouseWheelScrolled(VALUE self, VALUE proc) {
-	if(!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
+	if (!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
 		rb_raise(rb_eTypeError, "`on_stuff` events must respond to #call!");
 	}
 
@@ -352,7 +352,7 @@ static VALUE rb_DisplayWindow_set_onMouseWheelScrolled(VALUE self, VALUE proc) {
 }
 
 static VALUE rb_DisplayWindow_set_onMouseButtonPressed(VALUE self, VALUE proc) {
-	if(!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
+	if (!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
 		rb_raise(rb_eTypeError, "`on_stuff` events must respond to #call!");
 	}
 
@@ -363,7 +363,7 @@ static VALUE rb_DisplayWindow_set_onMouseButtonPressed(VALUE self, VALUE proc) {
 }
 
 static VALUE rb_DisplayWindow_set_onMouseButtonRelease(VALUE self, VALUE proc) {
-	if(!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
+	if (!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
 		rb_raise(rb_eTypeError, "`on_stuff` events must respond to #call!");
 	}
 
@@ -374,7 +374,7 @@ static VALUE rb_DisplayWindow_set_onMouseButtonRelease(VALUE self, VALUE proc) {
 }
 
 static VALUE rb_DisplayWindow_set_onMouseMoved(VALUE self, VALUE proc) {
-	if(!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
+	if (!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
 		rb_raise(rb_eTypeError, "`on_stuff` events must respond to #call!");
 	}
 
@@ -385,7 +385,7 @@ static VALUE rb_DisplayWindow_set_onMouseMoved(VALUE self, VALUE proc) {
 }
 
 static VALUE rb_DisplayWindow_set_onMouseEntered(VALUE self, VALUE proc) {
-	if(!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
+	if (!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
 		rb_raise(rb_eTypeError, "`on_stuff` events must respond to #call!");
 	}
 
@@ -396,7 +396,7 @@ static VALUE rb_DisplayWindow_set_onMouseEntered(VALUE self, VALUE proc) {
 }
 
 static VALUE rb_DisplayWindow_set_onMouseLeft(VALUE self, VALUE proc) {
-	if(!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
+	if (!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
 		rb_raise(rb_eTypeError, "`on_stuff` events must respond to #call!");
 	}
 
@@ -407,7 +407,7 @@ static VALUE rb_DisplayWindow_set_onMouseLeft(VALUE self, VALUE proc) {
 }
 
 static VALUE rb_DisplayWindow_set_onJoystickButtonPressed(VALUE self, VALUE proc) {
-	if(!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
+	if (!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
 		rb_raise(rb_eTypeError, "`on_stuff` events must respond to #call!");
 	}
 
@@ -418,7 +418,7 @@ static VALUE rb_DisplayWindow_set_onJoystickButtonPressed(VALUE self, VALUE proc
 }
 
 static VALUE rb_DisplayWindow_set_onJoystickButtonReleased(VALUE self, VALUE proc) {
-	if(!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
+	if (!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
 		rb_raise(rb_eTypeError, "`on_stuff` events must respond to #call!");
 	}
 
@@ -429,7 +429,7 @@ static VALUE rb_DisplayWindow_set_onJoystickButtonReleased(VALUE self, VALUE pro
 }
 
 static VALUE rb_DisplayWindow_set_onJoystickMoved(VALUE self, VALUE proc) {
-	if(!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
+	if (!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
 		rb_raise(rb_eTypeError, "`on_stuff` events must respond to #call!");
 	}
 
@@ -440,7 +440,7 @@ static VALUE rb_DisplayWindow_set_onJoystickMoved(VALUE self, VALUE proc) {
 }
 
 static VALUE rb_DisplayWindow_set_onJoystickConnected(VALUE self, VALUE proc) {
-	if(!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
+	if (!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
 		rb_raise(rb_eTypeError, "`on_stuff` events must respond to #call!");
 	}
 
@@ -451,7 +451,7 @@ static VALUE rb_DisplayWindow_set_onJoystickConnected(VALUE self, VALUE proc) {
 }
 
 static VALUE rb_DisplayWindow_set_onJoystickDisconnected(VALUE self, VALUE proc) {
-	if(!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
+	if (!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
 		rb_raise(rb_eTypeError, "`on_stuff` events must respond to #call!");
 	}
 
@@ -462,7 +462,7 @@ static VALUE rb_DisplayWindow_set_onJoystickDisconnected(VALUE self, VALUE proc)
 }
 
 static VALUE rb_DisplayWindow_set_onTouchBegan(VALUE self, VALUE proc) {
-	if(!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
+	if (!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
 		rb_raise(rb_eTypeError, "`on_stuff` events must respond to #call!");
 	}
 
@@ -473,7 +473,7 @@ static VALUE rb_DisplayWindow_set_onTouchBegan(VALUE self, VALUE proc) {
 }
 
 static VALUE rb_DisplayWindow_set_onTouchMoved(VALUE self, VALUE proc) {
-	if(!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
+	if (!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
 		rb_raise(rb_eTypeError, "`on_stuff` events must respond to #call!");
 	}
 
@@ -484,7 +484,7 @@ static VALUE rb_DisplayWindow_set_onTouchMoved(VALUE self, VALUE proc) {
 }
 
 static VALUE rb_DisplayWindow_set_onTouchEnded(VALUE self, VALUE proc) {
-	if(!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
+	if (!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
 		rb_raise(rb_eTypeError, "`on_stuff` events must respond to #call!");
 	}
 
@@ -495,7 +495,7 @@ static VALUE rb_DisplayWindow_set_onTouchEnded(VALUE self, VALUE proc) {
 }
 
 static VALUE rb_DisplayWindow_set_onSensorChanged(VALUE self, VALUE proc) {
-	if(!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
+	if (!(NIL_P(proc) || rb_respond_to(proc, rb_intern("call")))) {
 		rb_raise(rb_eTypeError, "`on_stuff` events must respond to #call!");
 	}
 

@@ -11,9 +11,9 @@ extern VALUE rb_eClosedWindow;
 
 void Init_DisplayWindow();
 
-struct DisplayWindowElement : 
+struct DisplayWindowElement :
 	public CgssInstance<DisplayWindowInput> {
-	
+
 	VALUE rShader = Qnil;
 	VALUE rKeyboard = Qnil;
 	VALUE rMouse = Qnil;

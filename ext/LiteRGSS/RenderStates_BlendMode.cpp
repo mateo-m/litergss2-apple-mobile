@@ -125,7 +125,7 @@ VALUE rb_BlendMode_Copy(VALUE self) {
 }
 
 void Init_BlendMode() {
-	rb_cBlendMode = rb_define_class_under(rb_mLiteRGSS, "BlendMode", rb_cObject); 
+	rb_cBlendMode = rb_define_class_under(rb_mLiteRGSS, "BlendMode", rb_cObject);
 	rb_define_alloc_func(rb_cBlendMode, rb::Alloc<RenderStatesElement>);
 
 	rb_define_method(rb_cBlendMode, "color_src_factor", _rbf rb_BlendMode_getColorSrcFactor, 0);

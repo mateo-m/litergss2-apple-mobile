@@ -4,28 +4,24 @@
 
 VALUE rb_cTable32 = Qnil;
 
-void rb_Table32_Free(void* data)
-{
+void rb_Table32_Free(void* data) {
 	rb_Table32_Struct* table = reinterpret_cast<rb_Table32_Struct*>(data);
-	if(table != nullptr)
-	{
-		if(table->heap != nullptr)
+	if (table != nullptr) {
+		if (table->heap != nullptr) {
 			delete[] table->heap;
+		}
 		table->heap = nullptr;
 		delete table;
 	}
 }
 
-VALUE rb_Table32_Alloc(VALUE klass)
-{
+VALUE rb_Table32_Alloc(VALUE klass) {
 	return Data_Wrap_Struct(klass, NULL, rb_Table32_Free, new rb_Table32_Struct());
 }
 
-VALUE rb_Table32_initialize(int argc, VALUE* argv, VALUE self)
-{
+VALUE rb_Table32_initialize(int argc, VALUE* argv, VALUE self) {
 	auto& table = rb::Get<rb_Table32_Struct>(self);
-	switch(argc)
-	{
+	switch(argc) {
 		case 1:
 			table.header.xsize = rb_num2ulong(argv[0]);
 			table.header.ysize = 1;
@@ -45,20 +41,22 @@ VALUE rb_Table32_initialize(int argc, VALUE* argv, VALUE self)
 			rb_raise(rb_eRGSSError, "Table32 can be 1D, 2D or 3D but nothing else, requested dimension : %dD", argc);
 			return Qnil;
 	}
-	if(table.header.xsize == 0)
+	if (table.header.xsize == 0) {
 		table.header.xsize = 1;
-	if(table.header.ysize == 0)
+	}
+	if (table.header.ysize == 0) {
 		table.header.ysize = 1;
-	if(table.header.zsize == 0)
+	}
+	if (table.header.zsize == 0) {
 		table.header.zsize = 1;
+	}
 	table.header.dim = argc;
 	table.header.data_size = table.header.xsize * table.header.ysize * table.header.zsize;
 	table.heap = new int32_t[table.header.data_size]();
 	return self;
 }
 
-VALUE rb_Table32_get(int argc, VALUE* argv, VALUE self)
-{
+VALUE rb_Table32_get(int argc, VALUE* argv, VALUE self) {
 	auto& table = rb::Get<rb_Table32_Struct>(self);
 	VALUE rx, ry, rz;
 	unsigned long x, y, z;
@@ -66,91 +64,78 @@ VALUE rb_Table32_get(int argc, VALUE* argv, VALUE self)
 	x = rb_num2ulong(rx);
 	y = NIL_P(ry) ? 0 : rb_num2ulong(ry);
 	z = NIL_P(rz) ? 0 : rb_num2ulong(rz);
-	if(x >= table.header.xsize || y >= table.header.ysize || z >= table.header.zsize)
+	if (x >= table.header.xsize || y >= table.header.ysize || z >= table.header.zsize) {
 		return Qnil;
+	}
 	return rb_int2inum(table.heap[x + (y * table.header.xsize) + (z * table.header.xsize * table.header.ysize)]);
 }
 
-VALUE rb_Table32_set(int argc, VALUE* argv, VALUE self)
-{
+VALUE rb_Table32_set(int argc, VALUE* argv, VALUE self) {
 	auto& table = rb::Get<rb_Table32_Struct>(self);
 	VALUE rx, ry, rz, rv;
 	unsigned long x, y, z;
 	long v;
 	rb_scan_args(argc, argv, "22", &rx, &ry, &rz, &rv);
 	x = rb_num2ulong(rx);
-	if(NIL_P(rz))
-	{
+	if (NIL_P(rz)) {
 		v = RB_NUM2LONG(ry);
 		z = y = 0;
-	}
-	else if(NIL_P(rv))
-	{
+	} else if (NIL_P(rv)) {
 		v = RB_NUM2LONG(rz);
 		y = rb_num2ulong(ry);
 		z = 0;
-	}
-	else
-	{
+	} else {
 		y = rb_num2ulong(ry);
 		z = rb_num2ulong(rz);
 		v = RB_NUM2LONG(rv);
 	}
-	if(x >= table.header.xsize || y >= table.header.ysize || z >= table.header.zsize)
+	if (x >= table.header.xsize || y >= table.header.ysize || z >= table.header.zsize) {
 		return Qnil;
+	}
 	table.heap[x + (y * table.header.xsize) + (z * table.header.xsize * table.header.ysize)] = v;
 	return self;
 }
 
-VALUE rb_Table32_xSize(VALUE self)
-{
+VALUE rb_Table32_xSize(VALUE self) {
 	auto& table = rb::Get<rb_Table32_Struct>(self);
 	return rb_uint2inum(table.header.xsize);
 }
 
-VALUE rb_Table32_ySize(VALUE self)
-{
+VALUE rb_Table32_ySize(VALUE self) {
 	auto& table = rb::Get<rb_Table32_Struct>(self);
 	return rb_uint2inum(table.header.ysize);
 }
 
-VALUE rb_Table32_zSize(VALUE self)
-{
+VALUE rb_Table32_zSize(VALUE self) {
 	auto& table = rb::Get<rb_Table32_Struct>(self);
 	return rb_uint2inum(table.header.zsize);
 }
 
-VALUE rb_Table32_dim(VALUE self)
-{
+VALUE rb_Table32_dim(VALUE self) {
 	auto& table = rb::Get<rb_Table32_Struct>(self);
 	return rb_uint2inum(table.header.dim);
 }
 
 void table_copy(int32_t* dheap, int32_t* sheap, unsigned long dxsize, unsigned long dysize,
-	unsigned long dzsize, unsigned long sxsize, unsigned long sysize, unsigned long szsize)
-{
+	unsigned long dzsize, unsigned long sxsize, unsigned long sysize, unsigned long szsize) {
 	unsigned long xsize, ysize, zsize, soy, soz, doy, doz, x, y, z;
 	xsize = dxsize < sxsize ? dxsize : sxsize;
 	ysize = dysize < sysize ? dysize : sysize;
 	zsize = dzsize < szsize ? dzsize : szsize;
-	for(z = 0; z < zsize; z++)
-	{
+	for (z = 0; z < zsize; z++) {
 		doz = z * dxsize * dysize;
 		soz = z * sxsize * sysize; // optimisable => del soz, repl soz par soy
-		for(y = 0; y < ysize; y++)
-		{
+		for (y = 0; y < ysize; y++) {
 			doy = doz + (y * dxsize);
-			soy = soz + (y * sxsize); // optimisable => add after for{} soy += sxsize; 
-			for(x = 0; x < xsize; x++)
-			{
+			soy = soz + (y * sxsize); // optimisable => add after for{} soy += sxsize;
+			for (x = 0; x < xsize; x++) {
 				dheap[doy++] = sheap[soy++];
 			}
 		}
 	}
 }
 
-VALUE rb_Table32_resize(int argc, VALUE* argv, VALUE self)
-{
+VALUE rb_Table32_resize(int argc, VALUE* argv, VALUE self) {
 	auto& table = rb::Get<rb_Table32_Struct>(self);
 	auto table2 = table;
 	rb_Table32_initialize(argc, argv, self);
@@ -164,8 +149,7 @@ VALUE rb_Table32_resize(int argc, VALUE* argv, VALUE self)
 }
 
 
-VALUE rb_Table32_Load(VALUE self, VALUE str)
-{
+VALUE rb_Table32_Load(VALUE self, VALUE str) {
 	rb_check_type(str, T_STRING);
 	rb_Table32_Struct* table = reinterpret_cast<rb_Table32_Struct*>(RSTRING_PTR(str));
 	VALUE arr[3];
@@ -179,29 +163,25 @@ VALUE rb_Table32_Load(VALUE self, VALUE str)
 	return rtable;
 }
 
-VALUE rb_Table32_Save(VALUE self, VALUE limit)
-{
+VALUE rb_Table32_Save(VALUE self, VALUE limit) {
 	auto& table = rb::Get<rb_Table32_Struct>(self);
 	VALUE str1 = rb_str_new(reinterpret_cast<char*>(&table.header), sizeof(rb_Table32_Struct_Header));
 	VALUE str2 = rb_str_new(reinterpret_cast<char*>(table.heap), table.header.data_size * sizeof(std::remove_pointer<decltype(table.heap)>::type));
 	return rb_str_concat(str1, str2);
 }
 
-VALUE rb_Table32_Fill(VALUE self, VALUE val)
-{
+VALUE rb_Table32_Fill(VALUE self, VALUE val) {
 	auto& table = rb::Get<rb_Table32_Struct>(self);
 	long v = RB_NUM2LONG(val);
 	unsigned long sz = table.header.data_size;
 	int32_t* data = table.heap;
-	for(unsigned long i = 0;i < sz;i++)
-	{
+	for (unsigned long i = 0; i < sz; i++) {
 		data[i] = v;
 	}
 	return self;
 }
 
-void Init_Table32()
-{
+void Init_Table32() {
 	rb_cTable32 = rb_define_class("Table32", rb_cObject);
 	rb_define_alloc_func(rb_cTable32, rb_Table32_Alloc);
 	rb_define_method(rb_cTable32, "initialize", _rbf rb_Table32_initialize, -1);

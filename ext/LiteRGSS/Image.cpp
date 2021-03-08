@@ -219,9 +219,7 @@ VALUE rb_Image_create_mask(VALUE self, VALUE color, VALUE alpha) {
 	return self;
 }
 
-
-void Init_Image()
-{
+void Init_Image() {
 	rb_cImage = rb_define_class_under(rb_mLiteRGSS, "Image", rb_cDisposable);
 	rb_define_alloc_func(rb_cImage, rb::Alloc<ImageElement>);
 	rb_define_method(rb_cImage, "initialize", _rbf rb_Image_Initialize, -1);
