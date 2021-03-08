@@ -3,7 +3,7 @@ ext_name = 'LiteRGSS'
 
 # add include path to the internal folder
 # $(srcdir) is a root folder, where "extconf.rb" is stored
-$INCFLAGS << " -I/usr/include/LiteCGSS/ -I$(srcdir)/../../ -I$(srcdir)/../../external/litecgss/src/src -I$(srcdir)/../../external/litecgss/external/skalog/src/src -I$(srcdir)/../../external/litecgss/external/lodepng/"
+$INCFLAGS << " -I/usr/include/LiteCGSS/ -I$(srcdir)/../../ -I$(srcdir)/../../external/litecgss/src/src -I$(srcdir)/../../external/litecgss/external/skalog/src/src"
 $LDFLAGS << " -L$(srcdir)/../../external/litecgss/bin -L/usr/i686-w64-mingw32/lib/ "
 
 sfml_dir_env = ENV["SFML_DIR"]
