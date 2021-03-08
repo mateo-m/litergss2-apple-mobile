@@ -1,6 +1,5 @@
 #include <LiteCGSS/Common/NormalizeNumbers.h>
 #include "LiteRGSS.h"
-#include "log.h"
 #include "rbAdapter.h"
 
 #include "Sprite.h"
