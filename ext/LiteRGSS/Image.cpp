@@ -1,4 +1,4 @@
-#include <lodepng.h>
+#include <LiteCGSS/Image/Serializers/ImageSerializer.h>
 #include "LiteRGSS.h"
 #include "rbAdapter.h"
 #include "Image.h"
@@ -13,384 +13,209 @@ template<>
 void rb::Mark<ImageElement>(ImageElement* image) {
 }
 
-bool rb_Image_LoadLodePNG(ImageElement& img, char* str, long from_memory_size)
-{
-	unsigned char* out = nullptr;
-	unsigned w;
-	unsigned h;
-	if (from_memory_size > 0)
-	{
-		if (lodepng_decode32(&out, &w, &h, reinterpret_cast<unsigned char*>(str), from_memory_size) != 0)
-		{
-			if (out)
-				free(out);
-			return false;
-		}
-	}
-	else
-	{
-		if (lodepng_decode32_file(&out, &w, &h, str) != 0)
-		{
-			if (out)
-				free(out);
-			return false;
-		}
-	}
-	img.create(w, h, reinterpret_cast<sf::Uint8*>(out));
-	free(out);
-	return true;
-}
-
-VALUE rb_Image_Initialize(int argc, VALUE *argv, VALUE self)
-{
+VALUE rb_Image_Initialize(int argc, VALUE *argv, VALUE self) {
 	VALUE string;
 	VALUE fromMemory;
-	auto& img = rb::Get<ImageElement>(self);
+	auto& image = rb::Get<ImageElement>(self);
+	image.init();
 	rb_scan_args(argc, argv, "11", &string, &fromMemory);
+
 	/* Load From filename */
-	if(NIL_P(fromMemory))
-	{
+	if (NIL_P(fromMemory)) {
 		rb_check_type(string, T_STRING);
-		if(!rb_Image_LoadLodePNG(img, RSTRING_PTR(string), 0))
-			if(!img.loadFromFile(RSTRING_PTR(string)))
-			{
-				errno = ENOENT;
-				rb_sys_fail(RSTRING_PTR(string));
-			}
-	}
-	/* Load From Memory */
-	else if(fromMemory == Qtrue)
-	{
+		const char* filename = RSTRING_PTR(string);
+		const auto loader = cgss::ImageFileSerializer{filename};
+		if (!image->load(loader)) {
+			rb_raise(rb_eRGSSError, "Failed to load image from file %s.", filename);
+		}
+	} else if (fromMemory == Qtrue) {
+		/* Load From Memory */
 		rb_check_type(string, T_STRING);
-		if(!rb_Image_LoadLodePNG(img, RSTRING_PTR(string), RSTRING_LEN(string)))
-			if(!img.loadFromMemory(RSTRING_PTR(string), RSTRING_LEN(string)))
-				rb_raise(rb_eRGSSError, "Failed to load image from memory.");
-	}
-	else
-	{
+		unsigned char* rawData = reinterpret_cast<unsigned char*>(RSTRING_PTR(string));
+		const auto length = RSTRING_LEN(string);
+		const auto loader = cgss::ImageMemorySerializer{ { rawData, length } };
+		if (!image->load(loader)) {
+			rb_raise(rb_eRGSSError, "Failed to load image from memory.");
+		}
+	} else {
 		rb_check_type(string, T_FIXNUM);
 		rb_check_type(fromMemory, T_FIXNUM);
-		img.create(rb_num2long(string), rb_num2long(fromMemory), sf::Color(0, 0, 0, 0));
-		//rb_raise(rb_eRGSSError, "Bitmap no longer allow drawing, thus Bitmap.new(width, height) is not allowed.");
+		const unsigned int width = static_cast<unsigned int>(rb_num2long(string));
+		const unsigned int height = static_cast<unsigned int>(rb_num2long(fromMemory));
+		const auto loader = cgss::ImageEmptySerializer{width, height};
+		if (!image->load(loader)) {
+			rb_raise(rb_eRGSSError, "Invalid image size (%u x %u) !", width, height);
+		}
 	}
 	return self;
 }
 
-VALUE rb_Image_Initialize_Copy(VALUE self, VALUE other)
-{
-	//rb_notimplement();
+VALUE rb_Image_Initialize_Copy(VALUE self, VALUE other) {
 	rb_check_frozen(self);
-	if(rb_obj_is_kind_of(other, rb_cImage) != Qtrue)
-	{
-		rb_raise(rb_eTypeError, "Cannot clone %s into Image.", RSTRING_PTR(rb_class_name(CLASS_OF(other))));
+	auto& imageElement = rb::Get<ImageElement>(self);
+	const auto* otherImage = rb::GetSafeOrNull<ImageElement>(other, rb_cImage);
+	if (otherImage == nullptr) {
+		rb_raise(rb_eTypeError, "Cannot clone %s into Image, or invalid Image.", RSTRING_PTR(rb_class_name(CLASS_OF(other))));
 		return self;
 	}
-	ImageElement* img;
-	ImageElement* imgo;
-	Data_Get_Struct(self, ImageElement, img);
-	Data_Get_Struct(other, ImageElement, imgo);
-	if(imgo == nullptr)
-		rb_raise(rb_eRGSSError, "Disposed Image.");
-	img->create(imgo->getSize().x, imgo->getSize().y, imgo->getPixelsPtr());
+
+	/* Uses copy operator */
+	*imageElement.instance() = *otherImage->instance();
 	return self;
 }
 
-VALUE rb_Image_Dispose(VALUE self)
-{
+VALUE rb_Image_Dispose(VALUE self) {
 	return rb::RawDispose<ImageElement>(self);
 }
 
-VALUE rb_Image_Width(VALUE self)
-{
-	auto& img = rb::Get<ImageElement>(self);
-	sf::Vector2u size = img.getSize();
-	return rb_int2inum(size.x);
+VALUE rb_Image_Width(VALUE self) {
+	const auto& image = rb::Get<ImageElement>(self);
+	return rb_int2inum(image->width());
 }
 
-VALUE rb_Image_Height(VALUE self)
-{
-	auto& img = rb::Get<ImageElement>(self);
-	sf::Vector2u size = img.getSize();
-	return rb_int2inum(size.y);
+VALUE rb_Image_Height(VALUE self) {
+	const auto& image = rb::Get<ImageElement>(self);
+	return rb_int2inum(image->height());
 }
 
-VALUE rb_Image_Rect(VALUE self)
-{
-	auto& img = rb::Get<ImageElement>(self);
-	sf::Vector2u size = img.getSize();
-	VALUE argv[4] = {LONG2FIX(0), LONG2FIX(0), rb_int2inum(size.x), rb_int2inum(size.y)};
+VALUE rb_Image_Rect(VALUE self) {
+	const auto& image = rb::Get<ImageElement>(self);
+	const auto box = image->box();
+	VALUE argv[4] = {LONG2FIX(box.left), LONG2FIX(box.top), rb_int2inum(box.width), rb_int2inum(box.height)};
 	return rb_class_new_instance(4, argv, rb_cRect);
 }
 
-VALUE rb_Image_Copy_to_Bitmap(VALUE self, VALUE bitmap)
-{
-	auto& img = rb::Get<ImageElement>(self);
-	auto& bmp = rb::GetSafe<TextureElement>(bitmap, rb_cBitmap);
-	bmp->update(&img);
-	return self;
-}
-
-VALUE rb_Image_blt_fast(VALUE self, VALUE x, VALUE y, VALUE src_image, VALUE rect)
-{
-	auto& img = rb::Get<ImageElement>(self);
-	auto& img2 = rb::GetSafe<ImageElement>(src_image, rb_cImage);
-	auto& s_rect = rb::GetSafe<RectangleElement>(rect, rb_cRect);
-	img.copy(
-		img2,
-		NUM2ULONG(x),
-		NUM2ULONG(y),
-		s_rect->getValue()
-	);
-	return self;
-}
-
-VALUE rb_Image_blt(VALUE self, VALUE x, VALUE y, VALUE src_image, VALUE rect)
-{
-	auto& img = rb::Get<ImageElement>(self);
-	auto& img2 = rb::GetSafe<ImageElement>(src_image, rb_cImage);
-	auto& s_rect = rb::GetSafe<RectangleElement>(rect, rb_cRect);
-	img.copy(
-		img2,
-		NUM2ULONG(x),
-		NUM2ULONG(y),
-		s_rect->getValue(),
-		true
-	);
-	return self;
-}
-
-VALUE rb_Image_clear_rect(VALUE self, VALUE x, VALUE y, VALUE width, VALUE height)
-{
-	auto& img = rb::Get<ImageElement>(self);
-	rb_check_type(x, T_FIXNUM);
-	rb_check_type(y, T_FIXNUM);
-	rb_check_type(width, T_FIXNUM);
-	rb_check_type(height, T_FIXNUM);
-	long x1 = NUM2LONG(x);
-	long x2 = NUM2LONG(width) + x1;
-	if (x1 < 0)
-		x1 = 0;
-	long y1 = NUM2LONG(y);
-	long y2 = NUM2LONG(height) + y1;
-	if (y1 < 0)
-		y1 = 0;
-	sf::Color clr = sf::Color(0, 0, 0, 0);
-	while (y1 < y2)
-	{
-		for (long x3 = x1; x3 < x2; x3++)
-			img.setPixel(x3, y1, clr);
-		y1++;
+VALUE rb_Image_Copy_to_Bitmap(VALUE self, VALUE texture) {
+	const auto& image = rb::Get<ImageElement>(self);
+	auto* textureElement = rb::GetSafeOrNull<TextureElement>(texture, rb_cBitmap);
+	if (textureElement != nullptr) {
+		(*textureElement)->update(*image.instance());
 	}
 	return self;
 }
 
-VALUE rb_Image_fill_rect(VALUE self, VALUE x, VALUE y, VALUE width, VALUE height, VALUE color)
-{
-	auto& img = rb::Get<ImageElement>(self);
-	if (rb_obj_is_kind_of(color, rb_cColor) != Qtrue)
+VALUE rb_Image_blt_fast(VALUE self, VALUE x, VALUE y, VALUE src_image, VALUE rect) {
+	auto& image = rb::Get<ImageElement>(self);
+	const auto* sourceImage = rb::GetSafeOrNull<ImageElement>(src_image, rb_cImage);
+	const auto* sourceRect = rb::GetSafeOrNull<RectangleElement>(rect, rb_cRect);
+	if (sourceImage != nullptr && sourceRect != nullptr) {
+		image->blit((*sourceImage)->raw(), NUM2ULONG(x), NUM2ULONG(y), *sourceRect->instance());
+	}
+	return self;
+}
+
+VALUE rb_Image_blt(VALUE self, VALUE x, VALUE y, VALUE src_image, VALUE rect) {
+	auto& image = rb::Get<ImageElement>(self);
+	const auto& sourceImage = rb::GetSafeOrNull<ImageElement>(src_image, rb_cImage);
+	const auto& sourceRect = rb::GetSafeOrNull<RectangleElement>(rect, rb_cRect);
+	if (sourceImage != nullptr && sourceRect != nullptr) {
+		image->blit((*sourceImage)->raw(), NUM2ULONG(x), NUM2ULONG(y), *sourceRect->instance(), true);
+	}
+	return self;
+}
+
+VALUE rb_Image_clear_rect(VALUE self, VALUE x, VALUE y, VALUE width, VALUE height) {
+	auto& image = rb::Get<ImageElement>(self);
+	rb_check_type(x, T_FIXNUM);
+	rb_check_type(y, T_FIXNUM);
+	rb_check_type(width, T_FIXNUM);
+	rb_check_type(height, T_FIXNUM);
+	image->fillRect(sf::Color(0, 0, 0, 0), NUM2LONG(x), NUM2LONG(y), NUM2LONG(width), NUM2LONG(height));
+	return self;
+}
+
+VALUE rb_Image_fill_rect(VALUE self, VALUE x, VALUE y, VALUE width, VALUE height, VALUE color) {
+	auto& image = rb::Get<ImageElement>(self);
+	if (!rb::CheckType<ColorElement>(color, rb_cColor).empty()) {
 		return self;
-	auto* rcolor = rb::GetPtr<ColorElement>(color);
+	}
+
 	rb_check_type(x, T_FIXNUM);
 	rb_check_type(y, T_FIXNUM);
 	rb_check_type(width, T_FIXNUM);
 	rb_check_type(height, T_FIXNUM);
 	long x1 = NUM2LONG(x);
-	long x2 = NUM2LONG(width) + x1;
-	if (x1 < 0)
-		x1 = 0;
+	if (x1 < 0) { x1 = 0; }
 	long y1 = NUM2LONG(y);
-	long y2 = NUM2LONG(height) + y1;
-	if (y1 < 0)
-		y1 = 0;
-	auto realColor = rcolor == nullptr ? sf::Color{} : rcolor->getValue();
-	while (y1 < y2)
-	{
-		for (long x3 = x1; x3 < x2; x3++)
-			img.setPixel(x3, y1, realColor);
-		y1++;
-	}
+	if (y1 < 0) { y1 = 0; }
+	const auto* rcolor = rb::GetPtr<ColorElement>(color);
+	const auto realColor = rcolor == nullptr ? sf::Color{} : rcolor->getValue();
+	image->fillRect(realColor, x1, y1, NUM2LONG(width), NUM2LONG(height));
 	return self;
 }
 
-VALUE rb_Image_toPNG(VALUE self)
-{
-	auto& img = rb::Get<ImageElement>(self);
-	unsigned char* out;
-	size_t size;
-	if (lodepng_encode32(&out, &size, img.getPixelsPtr(), img.getSize().x, img.getSize().y) != 0)
-	{
-		if (out)
-			free(out);
-		return Qnil;
-	}
-	VALUE ret_val = rb_str_new(reinterpret_cast<const char*>(out), size);
-	free(out);
-	return ret_val;
+VALUE rb_Image_toPNG(VALUE self) {
+	auto& image = rb::Get<ImageElement>(self);
+	auto saver = cgss::ImageMemorySerializer { {nullptr, 0u} };
+	image->write(saver);
+	VALUE out;
+	saver.finalizeMemory([&out](const cgss::MemorySerializerData& rawData) {
+		out = rb_str_new(reinterpret_cast<const char*>(rawData.first), rawData.second);
+	});
+	return out;
 }
 
-VALUE rb_Image_toPNG_file(VALUE self, VALUE filename)
-{
+VALUE rb_Image_toPNG_file(VALUE self, VALUE filename) {
 	rb_check_type(filename, T_STRING);
-	auto& img = rb::Get<ImageElement>(self);
-	if (lodepng_encode32_file(RSTRING_PTR(filename), img.getPixelsPtr(), img.getSize().x, img.getSize().y) != 0)
-		return Qfalse;
-	return Qtrue;
+	std::string filenameValue = RSTRING_PTR(filename);
+	auto& image = rb::Get<ImageElement>(self);
+	auto saver = cgss::ImageFileSerializer { std::move(filenameValue) };
+	return image->write(saver) == 0u ? Qtrue : Qfalse;
 }
 
-VALUE rb_Image_get_pixel(VALUE self, VALUE x, VALUE y)
-{
-	auto& img = rb::Get<ImageElement>(self);
-	unsigned long px = NUM2ULONG(x);
-	unsigned long py = NUM2ULONG(y);
-	sf::Vector2u size = img.getSize();
-	if (px < size.x && py < size.y)
-	{
-		sf::Color color = img.getPixel(px, py);
-		VALUE argv[4] = { LONG2FIX(color.r), LONG2FIX(color.g), LONG2FIX(color.b), LONG2FIX(color.a) };
+VALUE rb_Image_get_pixel(VALUE self, VALUE x, VALUE y) {
+	const auto& image = rb::Get<ImageElement>(self);
+	const auto color = image->getPixel(NUM2ULONG(x), NUM2ULONG(y));
+	if (color.has_value()) {
+		VALUE argv[4] = { LONG2FIX(color->r), LONG2FIX(color->g), LONG2FIX(color->b), LONG2FIX(color->a) };
 		return rb_class_new_instance(4, argv, rb_cColor);
 	}
 	return Qnil;
 }
 
-VALUE rb_Image_get_pixel_alpha(VALUE self, VALUE x, VALUE y)
-{
-	auto& img = rb::Get<ImageElement>(self);
-	unsigned long px = NUM2ULONG(x);
-	unsigned long py = NUM2ULONG(y);
-	sf::Vector2u size = img.getSize();
-	if (px < size.x && py < size.y)
-	{
-		sf::Color color = img.getPixel(px, py);
-		return LONG2FIX(color.a);
-	}
-	return LONG2FIX(0);
+VALUE rb_Image_get_pixel_alpha(VALUE self, VALUE x, VALUE y) {
+	const auto& image = rb::Get<ImageElement>(self);
+	const auto color = image->getPixel(NUM2ULONG(x), NUM2ULONG(y));
+	return LONG2FIX(color.has_value() ? color->a : 0);
 }
 
-VALUE rb_Image_set_pixel(VALUE self, VALUE x, VALUE y, VALUE color)
-{
-	auto& img = rb::Get<ImageElement>(self);
-	unsigned long px = NUM2ULONG(x);
-	unsigned long py = NUM2ULONG(y);
-	sf::Vector2u size = img.getSize();
-	if (px < size.x && py < size.y)
-	{
-		auto& color2 = rb::GetSafe<ColorElement>(color, rb_cColor).getValue();
-		img.setPixel(px, py, color2);
+VALUE rb_Image_set_pixel(VALUE self, VALUE x, VALUE y, VALUE color) {
+	auto& image = rb::Get<ImageElement>(self);
+	const auto* colorElement = rb::GetSafeOrNull<ColorElement>(color, rb_cColor);
+	if (colorElement != nullptr) {
+		image->setPixel(NUM2ULONG(x), NUM2ULONG(y), colorElement->getValue());
 	}
 	return self;
 }
 
-VALUE rb_Image_stretch_blt_fast(VALUE self, VALUE dest_rect, VALUE src_image, VALUE src_rect)
-{
-	auto& img = rb::Get<ImageElement>(self);
-	auto& dst_rc = rb::GetSafe<RectangleElement>(dest_rect, rb_cRect);
-	auto& src_rc = rb::GetSafe<RectangleElement>(src_rect, rb_cRect);
-	ImageElement& src_img = rb::GetSafe<ImageElement>(src_image, rb_cImage);
-	int s_w = src_rc->getValue().width;
-	int d_w = dst_rc->getValue().width;
-	int s_h = src_rc->getValue().height;
-	int d_h = dst_rc->getValue().height;
-	int os_x = src_rc->getValue().left;
-	int os_y = src_rc->getValue().top;
-	int od_x = dst_rc->getValue().left;
-	int od_y = dst_rc->getValue().top;
-	sf::Vector2u simg_size = src_img.getSize();
-	sf::Vector2u dimg_size = img.getSize();
-	int s_x, s_y, d_x, d_y;
-	for (int y = 0; y < d_h; y++)
-	{
-		d_y = y + od_y;
-		if (d_y >= static_cast<int>(dimg_size.y))
-			break;
-		if (d_y < 0)
-			continue;
-		s_y = y * s_h / d_h + os_y;
-		if (s_y >= static_cast<int>(simg_size.y))
-			break;
-		if (s_y < 0)
-			continue;
-		for (int x = 0; x < d_w; x++)
-		{
-			d_x = x + od_x;
-			if (d_x >= static_cast<int>(dimg_size.x))
-				break;
-			if (d_x < 0)
-				continue;
-			s_x = x * s_w / d_w + os_x;
-			if (s_x >= static_cast<int>(simg_size.x))
-				break;
-			if (s_x < 0)
-				continue;
-			img.setPixel(d_x, d_y, src_img.getPixel(s_x, s_y));
-		}
+VALUE rb_Image_stretch_blt_fast(VALUE self, VALUE dest_rect, VALUE src_image, VALUE src_rect) {
+	auto& image = rb::Get<ImageElement>(self);
+	const auto* destinationRectElement = rb::GetSafeOrNull<RectangleElement>(dest_rect, rb_cRect);
+	const auto* sourceRectElement = rb::GetSafeOrNull<RectangleElement>(src_rect, rb_cRect);
+	const auto* imageSourceElement = rb::GetSafeOrNull<ImageElement>(src_image, rb_cImage);
+	if (destinationRectElement != nullptr && sourceRectElement != nullptr && imageSourceElement != nullptr) {
+		image->stretchBlit((*imageSourceElement)->raw(), *destinationRectElement->instance(), *sourceRectElement->instance());
 	}
 	return self;
 }
 
-VALUE rb_Image_stretch_blt(VALUE self, VALUE dest_rect, VALUE src_image, VALUE src_rect)
-{
-	auto& img = rb::Get<ImageElement>(self);
-	auto& dst_rc = rb::GetSafe<RectangleElement>(dest_rect, rb_cRect);
-	auto& src_rc = rb::GetSafe<RectangleElement>(src_rect, rb_cRect);
-	ImageElement& src_img = rb::GetSafe<ImageElement>(src_image, rb_cImage);
-	sf::Color src, dest;
-	int s_w = src_rc->getValue().width;
-	int d_w = dst_rc->getValue().width;
-	int s_h = src_rc->getValue().height;
-	int d_h = dst_rc->getValue().height;
-	int os_x = src_rc->getValue().left;
-	int os_y = src_rc->getValue().top;
-	int od_x = dst_rc->getValue().left;
-	int od_y = dst_rc->getValue().top;
-	sf::Vector2u simg_size = src_img.getSize();
-	sf::Vector2u dimg_size = img.getSize();
-	int s_x, s_y, d_x, d_y;
-	unsigned char mina;
-	for (int y = 0; y < d_h; y++)
-	{
-		d_y = y + od_y;
-		if (d_y >= static_cast<int>(dimg_size.y))
-			break;
-		if (d_y < 0)
-			continue;
-		s_y = y * s_h / d_h + os_y;
-		if (s_y >= static_cast<int>(simg_size.y))
-			break;
-		if (s_y < 0)
-			continue;
-		for (int x = 0; x < d_w; x++)
-		{
-			d_x = x + od_x;
-			if (d_x >= static_cast<int>(dimg_size.x))
-				break;
-			if (d_x < 0)
-				continue;
-			s_x = x * s_w / d_w + os_x;
-			if (s_x >= static_cast<int>(simg_size.x))
-				break;
-			if (s_x < 0)
-				continue;
-			src = src_img.getPixel(s_x, s_y);
-			dest = img.getPixel(d_x, d_y);
-			if(dest.a > 0)
-			{
-				mina = 255 - src.a;
-				src.r = (src.r * src.a + dest.r * mina) / 255;
-				src.g = (src.g * src.a + dest.g * mina) / 255;
-				src.b = (src.b * src.a + dest.b * mina) / 255;
-				src.a += (dest.a * mina / 255);
-			}
-			img.setPixel(d_x, d_y, src);
-		}
+VALUE rb_Image_stretch_blt(VALUE self, VALUE dest_rect, VALUE src_image, VALUE src_rect) {
+	auto& image = rb::Get<ImageElement>(self);
+	const auto* destinationRectElement = rb::GetSafeOrNull<RectangleElement>(dest_rect, rb_cRect);
+	const auto* sourceRectElement = rb::GetSafeOrNull<RectangleElement>(src_rect, rb_cRect);
+	const auto* imageSourceElement = rb::GetSafeOrNull<ImageElement>(src_image, rb_cImage);
+	if (destinationRectElement != nullptr && sourceRectElement != nullptr && imageSourceElement != nullptr) {
+		image->stretchBlit((*imageSourceElement)->raw(), *destinationRectElement->instance(), *sourceRectElement->instance(), true);
 	}
 	return self;
 }
 
-VALUE rb_Image_create_mask(VALUE self, VALUE color, VALUE alpha)
-{
-	auto& img = rb::Get<ImageElement>(self);
-	auto& col = rb::GetSafe<ColorElement>(color, rb_cColor).getValue();
-	img.createMaskFromColor(col, NUM2ULONG(alpha));
+VALUE rb_Image_create_mask(VALUE self, VALUE color, VALUE alpha) {
+	auto& image = rb::Get<ImageElement>(self);
+	const auto* colorElement = rb::GetSafeOrNull<ColorElement>(color, rb_cColor);
+	if (colorElement != nullptr) {
+		image->createMaskFromColor(colorElement->getValue(), NUM2ULONG(alpha));
+	}
 	return self;
 }
 
