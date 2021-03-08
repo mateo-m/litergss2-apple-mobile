@@ -43,16 +43,20 @@ VALUE rb_Window_Initialize(int argc, VALUE* argv, VALUE self) {
 
 	const auto viewportIsSpecified = argc > 0 && rb_obj_is_kind_of(argv[0], rb_cViewport) == Qtrue;
 	if (viewportIsSpecified) {
-		auto& viewport = rb::Get<ViewportElement>(argv[0]);
-		if (viewport.instance() == nullptr) {
-			rb_raise(rb_eRGSSError, "Invalid viewport provided to instantiate a FramedView");
+		auto* viewport = rb::GetSafeOrNull<ViewportElement>(argv[0], rb_cViewport);
+		if (viewport == nullptr) {
+			rb_raise(rb_eRGSSError, "Invalid Viewport provided to instanciate a Window (FramedView).");
 			return Qnil;
 		}
-		framedView.init(viewport->addView<cgss::FramedView>(viewport->weak()));
+		framedView.init((*viewport)->addView<cgss::FramedView>((*viewport)->weak()));
 		framedView.rViewport = argv[0];
 	} else if (argc == 1 && rb_obj_is_kind_of(argv[0], rb_cDisplayWindow) == Qtrue) {
-		auto& window = rb::Get<DisplayWindowElement>(argv[0]);
-		framedView.init(window->addView<cgss::FramedView>());
+		auto* window = rb::GetSafeOrNull<DisplayWindowElement>(argv[0], rb_cDisplayWindow);
+		if (window == nullptr) {
+			rb_raise(rb_eRGSSError, "Invalid DisplayWindow provided to instanciate a Window (FramedView).");
+			return Qnil;
+		}
+		framedView.init((*window)->addView<cgss::FramedView>());
 		framedView.rViewport = Qnil;
 	} else {
 		rb_raise(rb_eRGSSError, "Providing a Viewport or a DisplayWindow as first parameter is mandatory to instantiate a Window (FramedView)");
@@ -85,14 +89,16 @@ VALUE rb_Window_Disposed(VALUE self) {
 VALUE rb_Window_setWindowSkin(VALUE self, VALUE val) {
 	auto& framedView = rb::Get<FramedViewElement>(self);
 	if (val != Qnil) {
-		auto& bmp = rb::GetSafe<TextureElement>(val, rb_cBitmap);
-		framedView->setSkin(&bmp->raw());
-		framedView.rBitmap = val;
-	} else {
-		framedView->setSkin(nullptr);
-		framedView.rBitmap = Qnil;
+		auto* texture = rb::GetSafeOrNull<TextureElement>(val, rb_cBitmap);
+		if (texture != nullptr) {
+			framedView->setSkin(&(*texture)->raw());
+			framedView.rBitmap = val;
+			return self;
+		}
 	}
 
+	framedView->setSkin(nullptr);
+	framedView.rBitmap = Qnil;
 	return self;
 }
 
@@ -271,9 +277,9 @@ VALUE rb_Window_setCursorRect(VALUE self, VALUE val) {
 	auto& framedView = rb::Get<FramedViewElement>(self);
 	rb_Window_getCursorRect(self);
 
-	const auto& rectSource = rb::GetSafe<RectangleElement>(val, rb_cRect);
-	if (rectSource.instance() == nullptr) { return Qnil; }
-	framedView->setCursorRectangle(rectSource->getValue());
+	const auto* rectSource = rb::GetSafeOrNull<RectangleElement>(val, rb_cRect);
+	if (rectSource == nullptr || rectSource->instance() == nullptr) { return Qnil; }
+	framedView->setCursorRectangle((*rectSource)->getValue());
 
 	return self;
 }
@@ -285,13 +291,15 @@ VALUE rb_Window_getCursorSkin(VALUE self) {
 
 VALUE rb_Window_setCursorSkin(VALUE self, VALUE val) {
 	auto& framedView = rb::Get<FramedViewElement>(self);
-	if (NIL_P(val)) {
-		framedView.rCursorSkin = Qnil;
-	} else {
-		auto& bmp = rb::GetSafe<TextureElement>(val, rb_cBitmap);
-		framedView->setCursorSkin(bmp->raw());
-		framedView.rCursorSkin = val;
+	if (!NIL_P(val)) {
+		auto* textureElement = rb::GetSafeOrNull<TextureElement>(val, rb_cBitmap);
+		if (textureElement != nullptr) {
+			framedView->setCursorSkin((*textureElement)->raw());
+			framedView.rCursorSkin = val;
+			return self;
+		}
 	}
+	framedView.rCursorSkin = Qnil;
 	return self;
 }
 
@@ -302,13 +310,15 @@ VALUE rb_Window_getPauseSkin(VALUE self) {
 
 VALUE rb_Window_setPauseSkin(VALUE self, VALUE val) {
 	auto& framedView = rb::Get<FramedViewElement>(self);
-	if (NIL_P(val)) {
-		framedView.rPauseSkin = Qnil;
-	} else {
-		auto& bmp = rb::GetSafe<TextureElement>(val, rb_cBitmap);
-		framedView->setPauseSkin(bmp->raw());
-		framedView.rPauseSkin = val;
+	if (!NIL_P(val)) {
+		auto* texture = rb::GetSafeOrNull<TextureElement>(val, rb_cBitmap);
+		if (texture != nullptr) {
+			framedView->setPauseSkin((*texture)->raw());
+			framedView.rPauseSkin = val;
+			return self;
+		}
 	}
+	framedView.rPauseSkin = Qnil;
 	return self;
 }
 

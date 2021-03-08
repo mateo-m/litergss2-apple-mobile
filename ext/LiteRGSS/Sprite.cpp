@@ -47,20 +47,22 @@ VALUE rb_Sprite_Disposed(VALUE self) {
 static VALUE rb_Sprite_setBitmap(VALUE self, VALUE bitmap) {
 	auto& sprite = rb::Get<SpriteElement>(self);
 
-	if (bitmap == Qnil) {
+	auto* textureElement = bitmap == Qnil ? nullptr : rb::GetSafeOrNull<TextureElement>(bitmap, rb_cBitmap);
+	if (textureElement == nullptr) {
 		sprite->setVisible(false);
 		sprite.rBitmap = bitmap;
 		return self;
 	}
-	auto& bmp = rb::GetSafe<TextureElement>(bitmap, rb_cBitmap);
 
-	sprite->setTexture(*bmp.instance(), true);
+	sprite->setTexture(*textureElement->instance(), true);
 	sprite->setVisible(true);
 	sprite.rBitmap = bitmap;
 
 	if (!NIL_P(sprite.rRect)) {
-		auto& rect = rb::Get<RectangleElement>(sprite.rRect);
-		rect->setValue(sprite->getTextureRect());
+		auto* rect = rb::GetSafeOrNull<RectangleElement>(sprite.rRect, rb_cRect);
+		if (rect != nullptr) {
+			(*rect)->setValue(sprite->getTextureRect());
+		}
 	}
 	return self;
 }
@@ -289,26 +291,34 @@ static VALUE rb_Sprite_Initialize(int argc, VALUE* argv, VALUE self) {
 
 	// If a viewport was specified
 	if (rb_obj_is_kind_of(argv[0], rb_cViewport) == Qtrue) {
-		auto& viewport = rb::Get<ViewportElement>(argv[0]);
-		if (viewport.instance() == nullptr) {
-			rb_raise(rb_eRGSSError, "Invalid viewport provided to instanciate a Sprite.");
+		auto* viewport = rb::GetSafeOrNull<ViewportElement>(argv[0], rb_cViewport);
+		if (viewport == nullptr) {
+			rb_raise(rb_eRGSSError, "Invalid Viewport provided to instanciate a Sprite.");
 			return Qnil;
 		}
-		viewport.initAndAdd(sprite);
+		viewport->initAndAdd(sprite);
 		sprite.rViewport = argv[0];
 	}
 	// If a window is specified
 	else if (rb_obj_is_kind_of(argv[0], rb_cWindow) == Qtrue) {
-		auto& window = rb::Get<FramedViewElement>(argv[0]);
-		window.initAndAdd(sprite);
+		auto* window = rb::GetSafeOrNull<FramedViewElement>(argv[0], rb_cWindow);
+		if (window == nullptr) {
+			rb_raise(rb_eRGSSError, "Invalid FramedView provided to instanciate a Sprite.");
+			return Qnil;
+		}
+		window->initAndAdd(sprite);
 		sprite.rViewport = argv[0];
-		VALUE opacity = LONG2NUM(NUM2LONG(window.rOpacity) * NUM2LONG(window.rBackOpacity) / 255);
+		VALUE opacity = LONG2NUM(NUM2LONG(window->rOpacity) * NUM2LONG(window->rBackOpacity) / 255);
 		rb_Sprite_setOpacity(self, opacity);
 	}
 	// Otherwise, it must be a display window...
 	else if (rb_obj_is_kind_of(argv[0], rb_cDisplayWindow) == Qtrue) {
-		auto& displayWindow = rb::Get<DisplayWindowElement>(argv[0]);
-		displayWindow.initAndAdd(sprite);
+		auto* displayWindow = rb::GetSafeOrNull<DisplayWindowElement>(argv[0], rb_cDisplayWindow);
+		if (displayWindow == nullptr) {
+			rb_raise(rb_eRGSSError, "Invalid DisplayWindow provided to instanciate a Sprite.");
+			return Qnil;
+		}
+		displayWindow->initAndAdd(sprite);
 		sprite.rViewport = Qnil;
 	}
 	// Uh, what is that then ?!

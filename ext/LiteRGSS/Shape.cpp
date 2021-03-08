@@ -44,7 +44,11 @@ VALUE rb_Shape_Initialize(int argc, VALUE* argv, VALUE self) {
 	auto& shape = rb::Get<ShapeElement>(self);
 	rb_scan_args(argc, argv, "22", &viewport, &type, &rad_numPoint, &numPoint);
 
-	auto& viewportEl = rb::GetSafe<ViewportElement>(viewport, rb_cViewport);
+	auto* viewportEl = rb::GetSafeOrNull<ViewportElement>(viewport, rb_cViewport);
+	if (viewportEl == nullptr) {
+		rb_raise(rb_eRGSSError, "Shapes require having a valid Viewport as first parameter.");
+		return Qnil;
+	}
 	shape.rViewport = viewport;
 
 	// Shape initialization
@@ -90,7 +94,7 @@ VALUE rb_Shape_Initialize(int argc, VALUE* argv, VALUE self) {
 	}
 
 	auto data = cgss::ShapeData{ innerShapeType, std::move(innerShape) };
-	viewportEl.initAndAdd(shape, std::move(data));
+	viewportEl->initAndAdd(shape, std::move(data));
 
 	return self;
 }
@@ -108,19 +112,20 @@ VALUE rb_Shape_getBitmap(VALUE self) {
 	return shape.rBitmap;
 }
 
-VALUE rb_Shape_setBitmap(VALUE self, VALUE bitmap) {
+VALUE rb_Shape_setBitmap(VALUE self, VALUE texture) {
 	auto& shape = rb::Get<ShapeElement>(self);
 
-	if (bitmap == Qnil) {
-		shape->setVisible(false);
-		shape.rBitmap = bitmap;
-		return self;
+	if (texture != Qnil) {
+		auto* textureElement = rb::GetSafeOrNull<TextureElement>(texture, rb_cBitmap);
+		if (textureElement != nullptr) {
+			shape->setTexture(textureElement->instance(), true);
+			shape->setVisible(true);
+			shape.rBitmap = texture;
+			return self;
+		}
 	}
-	auto& bmp = rb::GetSafe<TextureElement>(bitmap, rb_cBitmap);
-
-	shape->setTexture(bmp.instance(), true);
-	shape->setVisible(true);
-	shape.rBitmap = bitmap;
+	shape->setVisible(false);
+	shape.rBitmap = Qnil;
 	return self;
 }
 
@@ -351,9 +356,11 @@ VALUE rb_Shape_getColor(VALUE self) {
 
 VALUE rb_Shape_setColor(VALUE self, VALUE val) {
 	auto& shape = rb::Get<ShapeElement>(self);
-	auto& color = rb::GetSafe<ColorElement>(val, rb_cColor);
-	shape->setFillColor(color.getValue());
-	shape.rColor = val;
+	const auto* color = rb::GetSafeOrNull<ColorElement>(val, rb_cColor);
+	if (color != nullptr) {
+		shape->setFillColor(color->getValue());
+		shape.rColor = val;
+	}
 	return self;
 }
 
@@ -374,9 +381,11 @@ VALUE rb_Shape_getOutlineColor(VALUE self) {
 
 VALUE rb_Shape_setOutlineColor(VALUE self, VALUE val) {
 	auto& shape = rb::Get<ShapeElement>(self);
-	auto& color = rb::GetSafe<ColorElement>(val, rb_cColor);
-	shape->setOutlineColor(color.getValue());
-	shape.rOutlineColor = val;
+	const auto* color = rb::GetSafeOrNull<ColorElement>(val, rb_cColor);
+	if (color != nullptr) {
+		shape->setOutlineColor(color->getValue());
+		shape.rOutlineColor = val;
+	}
 	return self;
 }
 
@@ -424,7 +433,7 @@ VALUE rb_Shape_setShader(VALUE self, VALUE shader) {
 	// TODO : avoid copy.
 	// Bind instead to existing element, as it's done for Rect.
 	if (rb_obj_is_kind_of(shader, rb_cBlendMode) == Qtrue) {
-		auto* renderState = rb::GetPtr<sf::RenderStates>(shader);
+		auto* renderState = rb::GetSafeOrNull<sf::RenderStates>(shader, rb_cBlendMode);
 		if (renderState != nullptr) {
 			shape.rRenderStates = shader;
 			shape->setRenderState(*renderState);

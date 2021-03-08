@@ -232,7 +232,13 @@ VALUE rb_Table_Fill(VALUE self, VALUE val) {
 
 VALUE rb_Table_Copy(VALUE self, VALUE source, VALUE dest_offset_x, VALUE dest_offset_y) {
 	auto& table = rb::Get<rb_Table_Struct>(self);
-	auto& source_table = rb::GetSafe<rb_Table_Struct>(source, rb_cTable);
+	const auto* source_table_raw = rb::GetSafeOrNull<rb_Table_Struct>(source, rb_cTable);
+	if (source_table_raw == nullptr) {
+		rb_raise(rb_eRGSSError, "Tables require having another Table as first parameter of copy method.");
+		return Qfalse;
+	}
+
+	const auto& source_table = *source_table_raw;
 	long offsetx = NUM2LONG(dest_offset_x);
 	long offsety = NUM2LONG(dest_offset_y);
 	if (offsetx < 0 || static_cast<std::size_t>(offsetx) >= table.header.xsize) {
@@ -294,7 +300,13 @@ VALUE rb_Table_Copy(VALUE self, VALUE source, VALUE dest_offset_x, VALUE dest_of
 
 VALUE rb_Table_CopyModulo(VALUE self, VALUE source, VALUE source_origin_x, VALUE source_origin_y, VALUE dest_offset_x, VALUE dest_offset_y, VALUE dest_width, VALUE dest_height) {
 	auto& table = rb::Get<rb_Table_Struct>(self);
-	auto& source_table = rb::GetSafe<rb_Table_Struct>(source, rb_cTable);
+	const auto* source_table_raw = rb::GetSafeOrNull<rb_Table_Struct>(source, rb_cTable);
+	if (source_table_raw == nullptr) {
+		rb_raise(rb_eRGSSError, "Tables require having another Table as first parameter of copy_modulo method.");
+		return Qfalse;
+	}
+
+	const auto& source_table = *source_table_raw;
 	long offsetx = NUM2LONG(dest_offset_x);
 	long offsety = NUM2LONG(dest_offset_y);
 	long ox2 = NUM2LONG(source_origin_x);

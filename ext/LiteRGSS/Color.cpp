@@ -28,8 +28,10 @@ VALUE rb_Color_Initialize(int argc, VALUE* argv, VALUE self) {
 
 VALUE rb_Color_InitializeCopy(VALUE self, VALUE original) {
 	auto& colorElement = rb::Get<ColorElement>(self);
-	auto colorSource = rb::GetSafe<ColorElement>(original, rb_cColor).getValue();
-	colorElement.setValue(std::move(colorSource));
+	const auto* colorSource = rb::GetSafeOrNull<ColorElement>(original, rb_cColor);
+	if (colorSource != nullptr) {
+		colorElement.setValue(colorSource->getValue());
+	}
 	return self;
 }
 

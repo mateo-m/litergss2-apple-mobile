@@ -85,8 +85,12 @@ VALUE rb_Text_get_fill_color(VALUE self) {
 
 VALUE rb_Text_set_fill_color(VALUE self, VALUE val) {
 	auto& text = rb::Get<TextElement>(self);
-	auto& color = rb::GetSafe<ColorElement>(val, rb_cColor);
-	text->setFillColor(color.getValue());
+	const auto* colorElement = rb::GetSafeOrNull<ColorElement>(val, rb_cColor);
+	if (colorElement != nullptr) {
+		text->setFillColor(colorElement->getValue());
+	} else {
+		rb_raise(rb_eRGSSError, "Texts require having a valid Color as first parameter of fill_color= method.");
+	}
 	return val;
 }
 
@@ -103,8 +107,12 @@ VALUE rb_Text_get_outline_color(VALUE self) {
 
 VALUE rb_Text_set_outline_color(VALUE self, VALUE val) {
 	auto& text = rb::Get<TextElement>(self);
-	auto& color = rb::GetSafe<ColorElement>(val, rb_cColor).getValue();
-	text->setOutlineColor(color);
+	const auto* colorElement = rb::GetSafeOrNull<ColorElement>(val, rb_cColor);
+	if (colorElement != nullptr) {
+		text->setOutlineColor(colorElement->getValue());
+	} else {
+		rb_raise(rb_eRGSSError, "Texts require having a valid Color as first parameter of outline_color= method.");
+	}
 	return val;
 }
 
@@ -356,23 +364,31 @@ VALUE rb_Text_Initialize(int argc, VALUE* argv, VALUE self) {
 
 	/* Viewport */
 	if (rb_obj_is_kind_of(viewport, rb_cViewport) == Qtrue) {
-		auto& viewportEl = rb::Get<ViewportElement>(viewport);
-		if (viewportEl.instance() == nullptr) {
-			rb_raise(rb_eRGSSError, "Invalid viewport provided to instanciate a Text.");
+		auto* viewportEl = rb::GetSafeOrNull<ViewportElement>(viewport, rb_cViewport);
+		if (viewportEl == nullptr) {
+			rb_raise(rb_eRGSSError, "Invalid Viewport provided to instanciate a Text.");
 			return Qnil;
 		}
-		viewportEl.initAndAdd(text);
+		viewportEl->initAndAdd(text);
 		text.rViewport = viewport;
 	}
 	/* If a window is specified */
 	else if (rb_obj_is_kind_of(viewport, rb_cWindow) == Qtrue) {
-		auto& window = rb::Get<FramedViewElement>(viewport);
-		window.initAndAdd(text);
+		auto* window = rb::GetSafeOrNull<FramedViewElement>(viewport, rb_cWindow);
+		if (window == nullptr) {
+			rb_raise(rb_eRGSSError, "Invalid FramedView provided to instanciate a Text.");
+			return Qnil;
+		}
+		window->initAndAdd(text);
 		text.rViewport = viewport;
-		opacity = LONG2NUM(NUM2LONG(window.rOpacity) * NUM2LONG(window.rContentOpacity) / 255);
+		opacity = LONG2NUM(NUM2LONG(window->rOpacity) * NUM2LONG(window->rContentOpacity) / 255);
 	} else if (rb_obj_is_kind_of(viewport, rb_cDisplayWindow) == Qtrue) {
-		auto& window = rb::Get<DisplayWindowElement>(viewport);
-		window.initAndAdd(text);
+		auto* window = rb::GetSafeOrNull<DisplayWindowElement>(viewport, rb_cDisplayWindow);
+		if (window == nullptr) {
+			rb_raise(rb_eRGSSError, "Invalid DisplayWindow provided to instanciate a Text.");
+			return Qnil;
+		}
+		window->initAndAdd(text);
 		text.rViewport = Qnil;
 	} else {
 		rb_raise(rb_eRGSSError, "Providing a Viewport, a DisplayWindow or a Window (FramedView) is mandatory to instantiate a Text");

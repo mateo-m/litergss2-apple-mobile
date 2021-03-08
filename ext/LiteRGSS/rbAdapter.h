@@ -5,15 +5,33 @@
 #include <functional>
 #include "RubyValue.h"
 #include <LiteCGSS/Common/Meta/metadata.h>
+#include <type_traits>
 
 extern VALUE rb_eRGSSError;
 
 namespace rb {
+	namespace detail {
+		template<class ...Ts>
+		struct voider{
+			using type = void;
+		};
+	}
+
+	template<class T, class = void>
+	struct has_instance_method : std::false_type{};
+
+	template<class T>
+	struct has_instance_method<T, typename detail::voider<decltype(std::declval<T>().instance())>::type> : std::true_type{};
+
 	using ErrorCallback = std::function<void(const std::string&)>;
+
+	static bool CheckDisposedBool(VALUE self) {
+		return RDATA(self)->data == nullptr;
+	}
 
 	template <class T, bool raise = true>
 	std::string CheckDisposed(VALUE self) {
-		if (RDATA(self)->data == nullptr) {
+		if (CheckDisposedBool(self)) {
 			auto errorMessage = std::string { "Disposed "};
 			errorMessage += cgss::meta::Log<T>::classname;
 			errorMessage += ".";
@@ -31,16 +49,6 @@ namespace rb {
 	}
 
 	template <class T>
-	auto& GetOr(VALUE self, const ErrorCallback& errorCallback) {
-		auto errorMessage = CheckDisposed<T, false>(self);
-		if (!errorMessage.empty()) {
-			errorCallback(errorMessage);
-			throw std::runtime_error(errorMessage);
-		}
-		return *GetPtr<T>(self);
-	}
-
-	template <class T>
 	auto& Get(VALUE self) {
 		auto errorMessage = CheckDisposed<T>(self);
 		if (!errorMessage.empty()) {
@@ -49,9 +57,13 @@ namespace rb {
 		return *GetPtr<T>(self);
 	}
 
+	static bool CheckTypeInvalidBool(VALUE self, VALUE expectedType) {
+		return rb_obj_is_kind_of(self, expectedType) != Qtrue;
+	}
+
 	template <class T, bool raise = true>
 	std::string CheckType(VALUE self, VALUE expectedType) {
-		if (rb_obj_is_kind_of(self, expectedType) != Qtrue) {
+		if (CheckTypeInvalidBool(self, expectedType)) {
 			auto errorMessage = std::string { "Expected " };
 			errorMessage += cgss::meta::Log<T>::classname;
 			errorMessage += " got ";
@@ -66,34 +78,22 @@ namespace rb {
 	}
 
 	template <class T>
-	auto& GetSafeOr(VALUE self, VALUE expectedType, const ErrorCallback& errorCallback) {
-		auto errorMessage = CheckType<T, false>(self, expectedType);
-		if (!errorMessage.empty()) {
-			errorCallback(errorMessage);
-			throw std::runtime_error(errorMessage);
-		}
-
-		return GetOr<T>(self, errorCallback);
-	}
-
-	template <class T>
-	auto& GetSafe(VALUE self, VALUE expectedType) {
-		auto errorMessage = CheckType<T>(self, expectedType);
-		if (!errorMessage.empty()) {
-			throw std::runtime_error(errorMessage);
-		}
-
-		return Get<T>(self);
-	}
-
-	template <class T>
 	T* GetSafeOrNull(VALUE self, VALUE expectedType) {
-		if (!CheckType<T, false>(self, expectedType).empty() ||
-			!CheckDisposed<T, false>(self).empty()) {
+		if (CheckTypeInvalidBool(self, expectedType) ||
+			  CheckDisposedBool(self)) {
 			return nullptr;
 		}
 
-		return GetPtr<T>(self);
+		auto* result = GetPtr<T>(self);
+		if constexpr(has_instance_method<T>::value) {
+			/* Here we ensure that if it is a LiteCGSS binding, it has been correctly initialized
+			   (In order to avoid throwing C++ exception when accessing a badly initialized object) */
+			if (result == nullptr || result->instance() == nullptr) {
+				return nullptr;
+			}
+		}
+
+		return result;
 	}
 
 	template <class T>
