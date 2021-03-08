@@ -67,9 +67,9 @@ protected:
 private:
 	void protect() const {
 		if (data == nullptr) {
-			auto errorMessage = std::string { "Disposed "};
+			auto errorMessage = std::string { "[BUG] Invalid "};
 			errorMessage += cgss::meta::Log<T>::classname;
-			errorMessage += ".";
+			errorMessage += ". abort() is mandatory. Please report the issue to maintainers.";
 			rb_raise(rb_eRGSSError, "%s", errorMessage.c_str());
 			throw std::runtime_error(errorMessage);
 		}

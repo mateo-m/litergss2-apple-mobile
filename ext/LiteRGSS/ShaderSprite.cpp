@@ -33,7 +33,7 @@ VALUE rb_ShaderSprite_getShader(VALUE self) {
 VALUE rb_ShaderSprite_setShader(VALUE self, VALUE shader) {
 	auto& sprite = rb::Get<ShaderSpriteElement>(self);
 	if (rb_obj_is_kind_of(shader, rb_cBlendMode) == Qtrue)  {
-		auto* renderStates = rb::GetPtr<RenderStatesElement>(shader);
+		auto* renderStates = rb::GetSafeOrNull<RenderStatesElement>(shader, rb_cBlendMode);
 		if (renderStates != nullptr) {
 			sprite.rRenderStates = shader;
 			sprite->bindRenderStates(renderStates);

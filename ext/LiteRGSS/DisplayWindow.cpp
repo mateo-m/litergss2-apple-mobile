@@ -224,9 +224,11 @@ static VALUE rb_DisplayWindow_resize_screen(VALUE self, VALUE width, VALUE heigh
 }
 
 static VALUE rb_DisplayWindow_set_icon(VALUE self, VALUE icon) {
-	const auto& iconImage = rb::GetSafe<ImageElement>(icon, rb_cImage);
-	auto& window = rb::Get<DisplayWindowElement>(self);
-	window->setIcon(iconImage->raw());
+	const auto* iconImage = rb::GetSafeOrNull<ImageElement>(icon, rb_cImage);
+	if (iconImage != nullptr) {
+		auto& window = rb::Get<DisplayWindowElement>(self);
+		window->setIcon((*iconImage)->raw());
+	}
 	return self;
 }
 

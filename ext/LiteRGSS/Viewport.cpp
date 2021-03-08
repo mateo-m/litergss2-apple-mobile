@@ -34,8 +34,12 @@ static VALUE rb_Viewport_Initialize(int argc, VALUE* argv, VALUE self) {
 
 	// If a viewport was specified
 	if (argc >= 1 && rb_obj_is_kind_of(argv[0], rb_cDisplayWindow) == Qtrue) {
-		auto& displayWindow = rb::Get<DisplayWindowElement>(argv[0]);
-		viewport.init(displayWindow->addView<cgss::Viewport>());
+		auto* displayWindow = rb::GetSafeOrNull<DisplayWindowElement>(argv[0], rb_cDisplayWindow);
+		if (displayWindow == nullptr) {
+			rb_raise(rb_eRGSSError, "Invalid DisplayWindow provided to instanciate a Viewport.");
+			return Qnil;
+		}
+		viewport.init((*displayWindow)->addView<cgss::Viewport>());
 		argc--;
 		argv++;
 	} else {
@@ -92,11 +96,7 @@ static VALUE rb_Viewport_getRect(VALUE self) {
 static VALUE rb_Viewport_setRect(VALUE self, VALUE val) {
 	auto& viewport = rb::Get<ViewportElement>(self);
 
-	if (!rb::CheckType<RectangleElement>(val, rb_cRect).empty()) {
-		return Qnil;
-	}
-
-	auto* rect = rb::GetPtr<RectangleElement>(val);
+	auto* rect = rb::GetSafeOrNull<RectangleElement>(val, rb_cRect);
 	if (rect == nullptr || *rect == nullptr) {
 		viewport->bindRectangle(nullptr);
 		viewport.rRect = Qnil;
@@ -171,7 +171,7 @@ static VALUE rb_Viewport_getRenderState(VALUE self) {
 static VALUE rb_Viewport_setRenderState(VALUE self, VALUE val) {
 	auto& viewport = rb::Get<ViewportElement>(self);
 	if (rb_obj_is_kind_of(val, rb_cBlendMode) == Qtrue) {
-		auto* renderStates = rb::GetPtr<RenderStatesElement>(val);
+		auto* renderStates = rb::GetSafeOrNull<RenderStatesElement>(val, rb_cBlendMode);
 		if (renderStates) {
 			viewport->bindRenderStates(renderStates);
 			viewport.rRenderState = val;

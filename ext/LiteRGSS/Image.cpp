@@ -126,10 +126,6 @@ VALUE rb_Image_clear_rect(VALUE self, VALUE x, VALUE y, VALUE width, VALUE heigh
 
 VALUE rb_Image_fill_rect(VALUE self, VALUE x, VALUE y, VALUE width, VALUE height, VALUE color) {
 	auto& image = rb::Get<ImageElement>(self);
-	if (!rb::CheckType<ColorElement>(color, rb_cColor).empty()) {
-		return self;
-	}
-
 	rb_check_type(x, T_FIXNUM);
 	rb_check_type(y, T_FIXNUM);
 	rb_check_type(width, T_FIXNUM);
@@ -138,7 +134,7 @@ VALUE rb_Image_fill_rect(VALUE self, VALUE x, VALUE y, VALUE width, VALUE height
 	if (x1 < 0) { x1 = 0; }
 	long y1 = NUM2LONG(y);
 	if (y1 < 0) { y1 = 0; }
-	const auto* rcolor = rb::GetPtr<ColorElement>(color);
+	const auto* rcolor = rb::GetSafeOrNull<ColorElement>(color, rb_cColor);
 	const auto realColor = rcolor == nullptr ? sf::Color{} : rcolor->getValue();
 	image->fillRect(realColor, x1, y1, NUM2LONG(width), NUM2LONG(height));
 	return self;

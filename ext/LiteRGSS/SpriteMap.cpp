@@ -28,9 +28,11 @@ VALUE rb_SpriteMap_Initialize(int argc, VALUE* argv, VALUE self) {
 	VALUE viewport, tile_width, tile_count;
 	rb_scan_args(argc, argv, "30", &viewport, &tile_width, &tile_count);
 
-	auto &viewport_el = rb::GetSafe<ViewportElement>(viewport, rb_cViewport);
-	viewport_el.initAndAdd(spriteMap);
-	spriteMap.rViewport = viewport;
+	auto* viewportElement = rb::GetSafeOrNull<ViewportElement>(viewport, rb_cViewport);
+	if (viewportElement != nullptr) {
+		viewportElement->initAndAdd(spriteMap);
+		spriteMap.rViewport = viewport;
+	}
 
 	spriteMap->defineMap(NUM2ULONG(tile_width), NUM2ULONG(tile_count));
 	return self;
@@ -134,10 +136,12 @@ VALUE rb_SpriteMap_Set(int argc, VALUE* argv, VALUE self) {
 	auto& spriteMap = rb::Get<SpriteMapElement>(self);
 	VALUE index, bitmap, rect;
 	rb_scan_args(argc, argv, "30", &index, &bitmap, &rect);
-	auto& bmp = rb::GetSafe<TextureElement>(bitmap, rb_cBitmap);
-	auto& rect_el = rb::GetSafe<RectangleElement>(rect, rb_cRect);
 
-	spriteMap->setTile(NUM2LONG(index), rect_el->getValue(), bmp->raw());
+	auto* textureElement = rb::GetSafeOrNull<TextureElement>(bitmap, rb_cBitmap);
+	const auto* rectangleElement = rb::GetSafeOrNull<RectangleElement>(rect, rb_cRect);
+	if (textureElement != nullptr && rectangleElement != nullptr) {
+		spriteMap->setTile(NUM2LONG(index), (*rectangleElement)->getValue(), (*textureElement)->raw());
+	}
 	return self;
 }
 
@@ -147,8 +151,12 @@ VALUE rb_SpriteMap_SetRect(int argc, VALUE* argv, VALUE self) {
 	rb_scan_args(argc, argv, "23", &index, &x, &y, &width, &height);
 
 	if (NIL_P(y)) {
-		auto& rect_el = rb::GetSafe<RectangleElement>(x, rb_cRect);
-		spriteMap->setTileRect(NUM2LONG(index), rect_el->getValue());
+		const auto* rectangleElement = rb::GetSafeOrNull<RectangleElement>(x, rb_cRect);
+		if (rectangleElement != nullptr) {
+			spriteMap->setTileRect(NUM2LONG(index), (*rectangleElement)->getValue());
+		} else {
+			rb_raise(rb_eRGSSError, "SpriteMaps require having a Rect as 2nd parameter in set_rect method, or list of 4 integers representing Rect dimensions.");
+		}
 	} else {
 		sf::IntRect rect = sf::IntRect(NUM2INT(x), NUM2INT(y), NUM2INT(width), NUM2INT(height));
 		spriteMap->setTileRect(NUM2LONG(index), rect);

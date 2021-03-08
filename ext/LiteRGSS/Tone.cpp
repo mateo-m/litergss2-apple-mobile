@@ -32,8 +32,12 @@ VALUE rb_Tone_Initialize(int argc, VALUE* argv, VALUE self) {
 
 VALUE rb_Tone_InitializeCopy(VALUE self, VALUE original) {
 	auto& tonev = rb::Get<ToneElement>(self);
-	auto toneov = rb::GetSafe<ToneElement>(original, rb_cTone).getValue();
-	tonev.setValue(std::move(toneov));
+	const auto* toneov = rb::GetSafeOrNull<ToneElement>(original, rb_cTone);
+	if (toneov != nullptr) {
+		tonev.setValue(std::move(toneov->getValue()));
+	} else {
+		rb_raise(rb_eRGSSError, "Tones require having a valid Tone as first parameter of initialize_copy method.");
+	}
 	return self;
 }
 
@@ -92,16 +96,12 @@ VALUE rb_Tone_setGray(VALUE self, VALUE val) {
 }
 
 VALUE rb_Tone_eql(VALUE self, VALUE other) {
-	if (rb_obj_is_kind_of(other, rb_cTone) != Qtrue) {
+	const auto& tonev = rb::Get<ToneElement>(self).getValue();
+	const auto* otoneElement = rb::GetSafeOrNull<ToneElement>(other, rb_cTone);
+	if (otoneElement == nullptr) {
 		return Qfalse;
 	}
-	auto& tonev = rb::Get<ToneElement>(self).getValue();
-	ToneElement* otone;
-	Data_Get_Struct(other, ToneElement, otone);
-	if (otone == nullptr) {
-		return Qfalse;
-	}
-	const auto& otonev = otone->getValue();
+	const auto& otonev = otoneElement->getValue();
 	if (tonev.x != otonev.x) {
 		return Qfalse;
 	}

@@ -65,16 +65,18 @@ static VALUE rb_Bitmap_Initialize_Copy(VALUE self, VALUE other) {
 
 	auto& destination = rb::Get<TextureElement>(self);
 	destination.init();
-	const auto& source = rb::GetSafeOr<TextureElement>(other, rb_cBitmap, [&](const std::string& message) {
+	const auto* source = rb::GetSafeOrNull<TextureElement>(other, rb_cBitmap);
+	if (source == nullptr) {
 		rb_raise(rb_eTypeError, "Cannot clone %s into Bitmap.", RSTRING_PTR(rb_class_name(CLASS_OF(other))));
-	});
+		return self;
+	}
 
 	if (destination.instance() == nullptr) {
 		rb_raise(rb_eTypeError, "Cannot clone into an empty Bitmap.");
 		return self;
 	}
 
-	*destination.instance() = source->clone();
+	*destination.instance() = (*source)->clone();
 	return self;
 }
 
@@ -109,20 +111,25 @@ static VALUE rb_Bitmap_Update(VALUE self) {
 
 static VALUE rb_Bitmap_blt(VALUE self, VALUE x, VALUE y, VALUE src_bitmap, VALUE rect) {
 	auto& bitmap = rb::Get<TextureElement>(self);
-	auto& s_rect = rb::GetSafe<RectangleElement>(rect, rb_cRect);
 
-	auto& s_bitmap = rb::Get<TextureElement>(src_bitmap);
-	if (s_bitmap.instance() == nullptr)  {
-		rb_raise(rb_eRGSSError, "Invalid Bitmap");
+	const auto* sourceRectangleElement = rb::GetSafeOrNull<RectangleElement>(rect, rb_cRect);
+	if (sourceRectangleElement == nullptr) {
+		rb_raise(rb_eRGSSError, "Textures require having a valid Rect as 4th parameter of blt method.");
+		return self;
+	}
+
+	const auto* sourceTextureElement = rb::GetSafeOrNull<TextureElement>(src_bitmap, rb_cBitmap);
+	if (sourceTextureElement == nullptr)  {
+		rb_raise(rb_eRGSSError, "Textures require having a valid Texture as 3rd parameter of blt method.");
 		return self;
 	}
 
 	auto rectangle = cgss::Rectangle{};
-	rectangle.setValue(s_rect->getValue());
+	rectangle.setValue((*sourceRectangleElement)->getValue());
 	bitmap->blit(
 		NUM2ULONG(x),
 		NUM2ULONG(y),
-		*s_bitmap.instance(),
+		*sourceTextureElement->instance(),
 		rectangle
 	);
 	return self;
@@ -153,7 +160,11 @@ static VALUE rb_Bitmap_fill_rect(VALUE self, VALUE x, VALUE y, VALUE width, VALU
 	rb_check_type(height, T_FIXNUM);
 
 	auto& bitmap = rb::Get<TextureElement>(self);
-	auto& rcolor = rb::GetSafe<ColorElement>(color, rb_cColor).getValue();
+	const auto* rcolor = rb::GetSafeOrNull<ColorElement>(color, rb_cColor);
+	if (rcolor == nullptr) {
+		rb_raise(rb_eRGSSError, "Textures require having a valid Color as 5th parameter of blt method.");
+		return self;
+	}
 
 	long xValue = NUM2LONG(x);
 	xValue = xValue < 0 ? 0 : xValue;
@@ -161,7 +172,7 @@ static VALUE rb_Bitmap_fill_rect(VALUE self, VALUE x, VALUE y, VALUE width, VALU
 	long yValue = NUM2LONG(y);
 	yValue = yValue < 0 ? 0 : yValue;
 
-	bitmap->fillRect(xValue, yValue, static_cast<unsigned int>(NUM2LONG(width)), static_cast<unsigned int>(NUM2LONG(height)), rcolor);
+	bitmap->fillRect(xValue, yValue, static_cast<unsigned int>(NUM2LONG(width)), static_cast<unsigned int>(NUM2LONG(height)), rcolor->getValue());
 	return self;
 }
 

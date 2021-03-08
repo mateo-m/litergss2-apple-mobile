@@ -45,14 +45,14 @@ VALUE rb_Shader_setFloatUniform(VALUE self, VALUE name, VALUE uniform) {
 			renderStates.data().setShaderUniform(rb_string_value_cstr(&name), vect2);
 		}
 	} else if (rb_obj_is_kind_of(uniform, rb_cColor) == Qtrue) {
-		auto* color = rb::GetPtr<ColorElement>(uniform);
+		auto* color = rb::GetSafeOrNull<ColorElement>(uniform, rb_cColor);
 		if (color != nullptr) {
 			auto& colorValue = color->getValue();
 			sf::Glsl::Vec4 vect4(colorValue.r / 255.0, colorValue.g / 255.0, colorValue.b / 255.0, colorValue.a / 255.0);
 			renderStates.data().setShaderUniform(rb_string_value_cstr(&name), vect4);
 		}
 	} else if (rb_obj_is_kind_of(uniform, rb_cTone) == Qtrue) {
-		auto* tone = rb::GetPtr<ToneElement>(uniform);
+		auto* tone = rb::GetSafeOrNull<ToneElement>(uniform, rb_cTone);
 		if (tone != nullptr) {
 			renderStates.data().setShaderUniform(rb_string_value_cstr(&name), tone->getValue());
 		}
@@ -109,9 +109,11 @@ VALUE rb_Shader_setTextureUniform(VALUE self, VALUE name, VALUE uniform) {
 	auto& renderStates = rb::Get<RenderStatesElement>(self);
 	rb_check_type(name, T_STRING);
 	if (rb_obj_is_kind_of(uniform, rb_cBitmap) == Qtrue) {
-		auto& bmp = rb::Get<TextureElement>(uniform);
-		sf::Texture& texture = bmp->raw();
-		renderStates.data().setShaderUniform(rb_string_value_cstr(&name), texture);
+		auto* textureElement = rb::GetSafeOrNull<TextureElement>(uniform, rb_cBitmap);
+		if (textureElement != nullptr) {
+			sf::Texture& texture = (*textureElement)->raw();
+			renderStates.data().setShaderUniform(rb_string_value_cstr(&name), texture);
+		}
 	} else {
 		renderStates.data().setShaderUniform(rb_string_value_cstr(&name), sf::Shader::CurrentTexture);
 	}
