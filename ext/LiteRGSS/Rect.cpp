@@ -193,7 +193,7 @@ VALUE rb_Rect_eql(VALUE self, VALUE other) {
 	auto& rect = rb::Get<RectangleElement>(self);
 	if (rb_obj_is_kind_of(other, rb_cRect) == Qtrue) {
 		return rb_Rect_eql_rect(rect, other);
-	} else if(rb_obj_is_kind_of(other, rb_cArray) == Qtrue) {
+	} else if (rb_obj_is_kind_of(other, rb_cArray) == Qtrue) {
 		return rb_Rect_eql_array(rect, other);
 	}
 	return Qfalse;

@@ -13,8 +13,8 @@ namespace rb {
 
 	template <class T, bool raise = true>
 	std::string CheckDisposed(VALUE self) {
-		if(RDATA(self)->data == nullptr) { 
-			auto errorMessage = std::string { "Disposed "}; 
+		if (RDATA(self)->data == nullptr) {
+			auto errorMessage = std::string { "Disposed "};
 			errorMessage += cgss::meta::Log<T>::classname;
 			errorMessage += ".";
 			if constexpr (raise) {

@@ -7,6 +7,5 @@
 void Init_BlendMode();
 extern VALUE rb_cBlendMode;
 
-
 using RenderStatesElement = cgss::RenderStates;
 #endif

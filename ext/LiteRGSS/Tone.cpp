@@ -9,40 +9,40 @@ template<>
 void rb::Mark<ToneElement>(ToneElement* tone) {
 }
 
-VALUE rb_Tone_Initialize(int argc, VALUE* argv, VALUE self)
-{
+VALUE rb_Tone_Initialize(int argc, VALUE* argv, VALUE self) {
 	VALUE red, green, blue, alpha;
 	rb_scan_args(argc, argv, "13", &red, &green, &blue, &alpha);
 	auto& tone = rb::Get<ToneElement>(self);
 	auto tonev = tone.getValue();
-	if(RTEST(red))
+	if (RTEST(red)) {
 		tonev.x = cgss::normalize_long(rb_num2long(red), -255, 255) / 255.0f;
-	if(RTEST(green))
+	}
+	if (RTEST(green)) {
 		tonev.y = cgss::normalize_long(rb_num2long(green), -255, 255) / 255.0f;
-	if(RTEST(blue))
+	}
+	if (RTEST(blue)) {
 		tonev.z = cgss::normalize_long(rb_num2long(blue), -255, 255) / 255.0f;
-	if(RTEST(alpha))
+	}
+	if (RTEST(alpha)) {
 		tonev.w = cgss::normalize_long(rb_num2long(alpha), 0, 255) / 255.0f;
+	}
 	tone.setValue(std::move(tonev));
 	return self;
 }
 
-VALUE rb_Tone_InitializeCopy(VALUE self, VALUE original)
-{
+VALUE rb_Tone_InitializeCopy(VALUE self, VALUE original) {
 	auto& tonev = rb::Get<ToneElement>(self);
 	auto toneov = rb::GetSafe<ToneElement>(original, rb_cTone).getValue();
 	tonev.setValue(std::move(toneov));
 	return self;
 }
 
-VALUE rb_Tone_getRed(VALUE self)
-{
+VALUE rb_Tone_getRed(VALUE self) {
 	auto& tonev = rb::Get<ToneElement>(self).getValue();
 	return rb_int2inum(static_cast<long>(tonev.x * 255.0f));
 }
 
-VALUE rb_Tone_setRed(VALUE self, VALUE val)
-{
+VALUE rb_Tone_setRed(VALUE self, VALUE val) {
 	auto& tone = rb::Get<ToneElement>(self);
 	auto tonev = tone.getValue();
 	tonev.x = cgss::normalize_long(rb_num2long(val), -255, 255) / 255.0f;
@@ -50,14 +50,12 @@ VALUE rb_Tone_setRed(VALUE self, VALUE val)
 	return self;
 }
 
-VALUE rb_Tone_getGreen(VALUE self)
-{
+VALUE rb_Tone_getGreen(VALUE self) {
 	auto& tonev = rb::Get<ToneElement>(self).getValue();
 	return rb_int2inum(static_cast<long>(tonev.y * 255.0f));
 }
 
-VALUE rb_Tone_setGreen(VALUE self, VALUE val)
-{
+VALUE rb_Tone_setGreen(VALUE self, VALUE val) {
 	auto& tone = rb::Get<ToneElement>(self);
 	auto tonev = tone.getValue();
 	tonev.y = cgss::normalize_long(rb_num2long(val), -255, 255) / 255.0f;
@@ -65,15 +63,13 @@ VALUE rb_Tone_setGreen(VALUE self, VALUE val)
 	return self;
 }
 
-VALUE rb_Tone_getBlue(VALUE self)
-{
+VALUE rb_Tone_getBlue(VALUE self) {
 	auto& tone = rb::Get<ToneElement>(self);
 	auto& tonev = tone.getValue();
 	return rb_int2inum(static_cast<long>(tonev.z * 255.0f));
 }
 
-VALUE rb_Tone_setBlue(VALUE self, VALUE val)
-{
+VALUE rb_Tone_setBlue(VALUE self, VALUE val) {
 	auto& tone = rb::Get<ToneElement>(self);
 	auto tonev = tone.getValue();
 	tonev.z = cgss::normalize_long(rb_num2long(val), -255, 255) / 255.0f;
@@ -81,15 +77,13 @@ VALUE rb_Tone_setBlue(VALUE self, VALUE val)
 	return self;
 }
 
-VALUE rb_Tone_getGray(VALUE self)
-{
+VALUE rb_Tone_getGray(VALUE self) {
 	auto& tone = rb::Get<ToneElement>(self);
 	auto& tonev = tone.getValue();
 	return rb_int2inum(static_cast<long>(tonev.w * 255.0f));
 }
 
-VALUE rb_Tone_setGray(VALUE self, VALUE val)
-{
+VALUE rb_Tone_setGray(VALUE self, VALUE val) {
 	auto& tone = rb::Get<ToneElement>(self);
 	auto tonev = tone.getValue();
 	tonev.w = cgss::normalize_long(rb_num2long(val), 0, 255) / 255.0f;
@@ -97,42 +91,44 @@ VALUE rb_Tone_setGray(VALUE self, VALUE val)
 	return self;
 }
 
-VALUE rb_Tone_eql(VALUE self, VALUE other)
-{
-	if(rb_obj_is_kind_of(other, rb_cTone) != Qtrue)
+VALUE rb_Tone_eql(VALUE self, VALUE other) {
+	if (rb_obj_is_kind_of(other, rb_cTone) != Qtrue) {
 		return Qfalse;
+	}
 	auto& tonev = rb::Get<ToneElement>(self).getValue();
 	ToneElement* otone;
 	Data_Get_Struct(other, ToneElement, otone);
-	if(otone == nullptr)
+	if (otone == nullptr) {
 		return Qfalse;
+	}
 	const auto& otonev = otone->getValue();
-	if(tonev.x != otonev.x)
+	if (tonev.x != otonev.x) {
 		return Qfalse;
-	if(tonev.y != otonev.y)
+	}
+	if (tonev.y != otonev.y) {
 		return Qfalse;
-	if(tonev.z != otonev.z)
+	}
+	if (tonev.z != otonev.z) {
 		return Qfalse;
-	if(tonev.w != otonev.w)
+	}
+	if (tonev.w != otonev.w) {
 		return Qfalse;
+	}
 	return Qtrue;
 }
 
-VALUE rb_Tone_to_s(VALUE self)
-{
+VALUE rb_Tone_to_s(VALUE self) {
 	auto& tonev = rb::Get<ToneElement>(self).getValue();
-	return rb_sprintf("(%d, %d, %d, %d)", static_cast<int>(tonev.x * 255), 
+	return rb_sprintf("(%d, %d, %d, %d)", static_cast<int>(tonev.x * 255),
 		static_cast<int>(tonev.y * 255),
 		static_cast<int>(tonev.z * 255),
 		static_cast<int>(tonev.w * 255));
 }
 
-VALUE rb_Tone_Load(VALUE self, VALUE str)
-{
+VALUE rb_Tone_Load(VALUE self, VALUE str) {
 	rb_check_type(str, T_STRING);
 	VALUE arr[4];
-	if(RSTRING_LEN(str) < static_cast<long>(sizeof(double) * 4))
-	{
+	if (RSTRING_LEN(str) < static_cast<long>(sizeof(double) * 4)) {
 		arr[3] = arr[2] = arr[1] = arr[0] = LONG2FIX(0);
 		return rb_class_new_instance(4, arr, self);
 	}
@@ -144,8 +140,7 @@ VALUE rb_Tone_Load(VALUE self, VALUE str)
 	return rb_class_new_instance(4, arr, self);
 }
 
-VALUE rb_Tone_Save(VALUE self, VALUE limit)
-{
+VALUE rb_Tone_Save(VALUE self, VALUE limit) {
 	auto& tonev = rb::Get<ToneElement>(self).getValue();
 	double tone_data[4];
 	tone_data[0] = static_cast<double>(tonev.x * 255);
@@ -155,8 +150,7 @@ VALUE rb_Tone_Save(VALUE self, VALUE limit)
 	return rb_str_new(reinterpret_cast<const char*>(tone_data), sizeof(double) * 4);
 }
 
-void Init_Tone()
-{
+void Init_Tone() {
 	rb_cTone = rb_define_class_under(rb_mLiteRGSS, "Tone", rb_cObject);
 	rb_define_alloc_func(rb_cTone, rb::Alloc<ToneElement>);
 

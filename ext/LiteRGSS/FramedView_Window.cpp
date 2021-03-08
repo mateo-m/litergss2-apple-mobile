@@ -40,7 +40,7 @@ void rb::Mark<FramedViewElement>(FramedViewElement* framedView) {
 
 VALUE rb_Window_Initialize(int argc, VALUE* argv, VALUE self) {
 	auto& framedView = rb::Get<FramedViewElement>(self);
-	
+
 	const auto viewportIsSpecified = argc > 0 && rb_obj_is_kind_of(argv[0], rb_cViewport) == Qtrue;
 	if (viewportIsSpecified) {
 		auto& viewport = rb::Get<ViewportElement>(argv[0]);
@@ -87,12 +87,12 @@ VALUE rb_Window_setWindowSkin(VALUE self, VALUE val) {
 	if (val != Qnil) {
 		auto& bmp = rb::GetSafe<TextureElement>(val, rb_cBitmap);
 		framedView->setSkin(&bmp->raw());
-		framedView.rBitmap = val;		
+		framedView.rBitmap = val;
 	} else {
 		framedView->setSkin(nullptr);
 		framedView.rBitmap = Qnil;
 	}
-	
+
 	return self;
 }
 
@@ -140,7 +140,7 @@ VALUE rb_Window_setSize(VALUE self, VALUE x, VALUE y) {
 VALUE rb_Window_setWindowBuilder(VALUE self, VALUE val) {
 	auto& framedView = rb::Get<FramedViewElement>(self);
 	Check_Type(val, T_ARRAY);
-	
+
 	// Lenght check
 	if (rb_array_len(val) < 6) {
 		rb_raise(rb_eArgError, "framedView Builder should be 6 Integer long.");
@@ -267,7 +267,7 @@ VALUE rb_Window_getCursorRect(VALUE self) {
 	return rb_Rect_LazyInitDrawable(framedView.rCursorRect, *framedView.instance(), framedView->getCursorRectangle());
 }
 
-VALUE rb_Window_setCursorRect(VALUE self, VALUE val) {	
+VALUE rb_Window_setCursorRect(VALUE self, VALUE val) {
 	auto& framedView = rb::Get<FramedViewElement>(self);
 	rb_Window_getCursorRect(self);
 

@@ -8,8 +8,8 @@
 extern VALUE rb_cSprite;
 void Init_Sprite();
 
-struct SpriteElement : 
-    public CgssInstance<cgss::Sprite> {
+struct SpriteElement :
+	public CgssInstance<cgss::Sprite> {
 
 	VALUE rBitmap = Qnil;
 	VALUE rViewport = Qnil;

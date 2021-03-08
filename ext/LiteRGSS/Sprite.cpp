@@ -46,7 +46,7 @@ VALUE rb_Sprite_Disposed(VALUE self) {
 
 static VALUE rb_Sprite_setBitmap(VALUE self, VALUE bitmap) {
 	auto& sprite = rb::Get<SpriteElement>(self);
-	
+
 	if (bitmap == Qnil) {
 		sprite->setVisible(false);
 		sprite.rBitmap = bitmap;
@@ -287,9 +287,9 @@ static VALUE rb_Sprite_Initialize(int argc, VALUE* argv, VALUE self) {
 		return Qnil;
 	}
 
-	// If a viewport was specified 
+	// If a viewport was specified
 	if (rb_obj_is_kind_of(argv[0], rb_cViewport) == Qtrue) {
-		auto& viewport = rb::Get<ViewportElement>(argv[0]);		
+		auto& viewport = rb::Get<ViewportElement>(argv[0]);
 		if (viewport.instance() == nullptr) {
 			rb_raise(rb_eRGSSError, "Invalid viewport provided to instanciate a Sprite.");
 			return Qnil;
@@ -297,7 +297,7 @@ static VALUE rb_Sprite_Initialize(int argc, VALUE* argv, VALUE self) {
 		viewport.initAndAdd(sprite);
 		sprite.rViewport = argv[0];
 	}
-	// If a window is specified 
+	// If a window is specified
 	else if (rb_obj_is_kind_of(argv[0], rb_cWindow) == Qtrue) {
 		auto& window = rb::Get<FramedViewElement>(argv[0]);
 		window.initAndAdd(sprite);
@@ -310,7 +310,7 @@ static VALUE rb_Sprite_Initialize(int argc, VALUE* argv, VALUE self) {
 		auto& displayWindow = rb::Get<DisplayWindowElement>(argv[0]);
 		displayWindow.initAndAdd(sprite);
 		sprite.rViewport = Qnil;
-	} 
+	}
 	// Uh, what is that then ?!
 	else {
 		rb_raise(rb_eRGSSError, "First parameter type of Sprite constructor is unknown");

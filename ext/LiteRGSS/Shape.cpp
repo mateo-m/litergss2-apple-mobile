@@ -43,13 +43,13 @@ VALUE rb_Shape_Initialize(int argc, VALUE* argv, VALUE self) {
 
 	auto& shape = rb::Get<ShapeElement>(self);
 	rb_scan_args(argc, argv, "22", &viewport, &type, &rad_numPoint, &numPoint);
-	
+
 	auto& viewportEl = rb::GetSafe<ViewportElement>(viewport, rb_cViewport);
 	shape.rViewport = viewport;
 
 	// Shape initialization
 	ID itype = SYM2ID(type);
-	
+
 	cgss::ShapeType innerShapeType;
 	std::unique_ptr<sf::Shape> innerShape;
 
@@ -110,7 +110,7 @@ VALUE rb_Shape_getBitmap(VALUE self) {
 
 VALUE rb_Shape_setBitmap(VALUE self, VALUE bitmap) {
 	auto& shape = rb::Get<ShapeElement>(self);
-	
+
 	if (bitmap == Qnil) {
 		shape->setVisible(false);
 		shape.rBitmap = bitmap;
@@ -306,7 +306,7 @@ VALUE rb_Shape_getRadius(VALUE self) {
 
 VALUE rb_Shape_setRadius(VALUE self, VALUE val) {
 	auto& shape = rb::Get<ShapeElement>(self);
-	shape->setRadius(NUM2DBL(val));	
+	shape->setRadius(NUM2DBL(val));
 	return self;
 }
 

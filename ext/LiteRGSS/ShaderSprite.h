@@ -8,9 +8,9 @@ extern VALUE rb_cShaderSprite;
 void Init_ShaderSprite();
 
 struct ShaderSpriteElement :
-    public SpriteElement {
+	public SpriteElement {
 
-    VALUE rRenderStates;
+	VALUE rRenderStates;
 };
 
 #endif

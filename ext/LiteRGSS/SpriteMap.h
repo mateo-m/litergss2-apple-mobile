@@ -9,14 +9,14 @@ extern VALUE rb_cSpriteMap;
 void Init_SpriteMap();
 
 struct SpriteMapElement :
-  public CgssInstance<cgss::SpriteMap> {
+	public CgssInstance<cgss::SpriteMap> {
 
-  VALUE rViewport = Qnil;
-  VALUE rX = LONG2FIX(0);
-  VALUE rY = LONG2FIX(0);
-  VALUE rOX = LONG2FIX(0);
-  VALUE rOY = LONG2FIX(0);
-  VALUE rScale = LONG2FIX(1);
+	VALUE rViewport = Qnil;
+	VALUE rX = LONG2FIX(0);
+	VALUE rY = LONG2FIX(0);
+	VALUE rOX = LONG2FIX(0);
+	VALUE rOY = LONG2FIX(0);
+	VALUE rScale = LONG2FIX(1);
 };
 
 #endif

@@ -32,7 +32,7 @@ static VALUE rb_Viewport_Copy(VALUE self) {
 static VALUE rb_Viewport_Initialize(int argc, VALUE* argv, VALUE self) {
 	auto& viewport = rb::Get<ViewportElement>(self);
 
-	// If a viewport was specified 
+	// If a viewport was specified
 	if (argc >= 1 && rb_obj_is_kind_of(argv[0], rb_cDisplayWindow) == Qtrue) {
 		auto& displayWindow = rb::Get<DisplayWindowElement>(argv[0]);
 		viewport.init(displayWindow->addView<cgss::Viewport>());
@@ -96,8 +96,8 @@ static VALUE rb_Viewport_setRect(VALUE self, VALUE val) {
 		return Qnil;
 	}
 
-	auto* rect = rb::GetPtr<RectangleElement>(val);	
-	if (rect == nullptr || *rect == nullptr) { 
+	auto* rect = rb::GetPtr<RectangleElement>(val);
+	if (rect == nullptr || *rect == nullptr) {
 		viewport->bindRectangle(nullptr);
 		viewport.rRect = Qnil;
 		return Qnil;
