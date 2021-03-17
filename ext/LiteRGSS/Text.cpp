@@ -389,7 +389,7 @@ VALUE rb_Text_Initialize(int argc, VALUE* argv, VALUE self) {
 			return Qnil;
 		}
 		window->initAndAdd(text);
-		text.rViewport = Qnil;
+		text.rViewport = viewport;
 	} else {
 		rb_raise(rb_eRGSSError, "Providing a Viewport, a DisplayWindow or a Window (FramedView) is mandatory to instantiate a Text");
 		return Qnil;
