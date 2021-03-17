@@ -319,7 +319,7 @@ static VALUE rb_Sprite_Initialize(int argc, VALUE* argv, VALUE self) {
 			return Qnil;
 		}
 		displayWindow->initAndAdd(sprite);
-		sprite.rViewport = Qnil;
+		sprite.rViewport = argv[0];
 	}
 	// Uh, what is that then ?!
 	else {

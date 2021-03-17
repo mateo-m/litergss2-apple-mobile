@@ -57,7 +57,7 @@ VALUE rb_Window_Initialize(int argc, VALUE* argv, VALUE self) {
 			return Qnil;
 		}
 		framedView.init((*window)->addView<cgss::FramedView>());
-		framedView.rViewport = Qnil;
+		framedView.rViewport = argv[0];
 	} else {
 		rb_raise(rb_eRGSSError, "Providing a Viewport or a DisplayWindow as first parameter is mandatory to instantiate a Window (FramedView)");
 		return Qnil;
