@@ -10,6 +10,8 @@
 #include "Color.h"
 #include "Rect.h"
 #include "Viewport.h"
+#include "DisplayWindow.h"
+#include "FramedView_Window.h"
 
 VALUE rb_cShape = Qnil;
 ID rb_iShapeCircle = Qnil;
@@ -43,13 +45,6 @@ VALUE rb_Shape_Initialize(int argc, VALUE* argv, VALUE self) {
 
 	auto& shape = rb::Get<ShapeElement>(self);
 	rb_scan_args(argc, argv, "22", &viewport, &type, &rad_numPoint, &numPoint);
-
-	auto* viewportEl = rb::GetSafeOrNull<ViewportElement>(viewport, rb_cViewport);
-	if (viewportEl == nullptr) {
-		rb_raise(rb_eRGSSError, "Shapes require having a valid Viewport as first parameter.");
-		return Qnil;
-	}
-	shape.rViewport = viewport;
 
 	// Shape initialization
 	ID itype = SYM2ID(type);
@@ -93,8 +88,39 @@ VALUE rb_Shape_Initialize(int argc, VALUE* argv, VALUE self) {
 		shape.rShapeType = ID2SYM(rb_iShapeRectangle);
 	}
 
-	auto data = cgss::ShapeData{ innerShapeType, std::move(innerShape) };
-	viewportEl->initAndAdd(shape, std::move(data));
+	auto shapeData = cgss::ShapeData{ innerShapeType, std::move(innerShape) };
+
+	/* Viewport */
+	if (rb_obj_is_kind_of(viewport, rb_cViewport) == Qtrue) {
+		auto* parentEl = rb::GetSafeOrNull<ViewportElement>(viewport, rb_cViewport);
+		if (parentEl == nullptr) {
+			rb_raise(rb_eRGSSError, "Invalid Viewport provided to instanciate a Shape.");
+			return Qnil;
+		}
+		parentEl->initAndAdd(shape, std::move(shapeData));
+		shape.rViewport = viewport;
+	}
+	/* If a window is specified */
+	else if (rb_obj_is_kind_of(viewport, rb_cWindow) == Qtrue) {
+		auto* parentEl = rb::GetSafeOrNull<FramedViewElement>(viewport, rb_cWindow);
+		if (parentEl == nullptr) {
+			rb_raise(rb_eRGSSError, "Invalid FramedView provided to instanciate a Shape.");
+			return Qnil;
+		}
+		parentEl->initAndAdd(shape, std::move(shapeData));
+		shape.rViewport = viewport;
+	} else if (rb_obj_is_kind_of(viewport, rb_cDisplayWindow) == Qtrue) {
+		auto* parentEl = rb::GetSafeOrNull<DisplayWindowElement>(viewport, rb_cDisplayWindow);
+		if (parentEl == nullptr) {
+			rb_raise(rb_eRGSSError, "Invalid DisplayWindow provided to instanciate a Shape.");
+			return Qnil;
+		}
+		parentEl->initAndAdd(shape, std::move(shapeData));
+		shape.rViewport = viewport;
+	} else {
+		rb_raise(rb_eRGSSError, "Providing a Viewport, a DisplayWindow or a Window (FramedView) is mandatory to instantiate a Shape");
+		return Qnil;
+	}
 
 	return self;
 }
