@@ -72,6 +72,11 @@ VALUE rb_Text_getRealWidth(VALUE self) {
 	return rb_int2inum(text->getRealWidth());
 }
 
+VALUE rb_Text_getRealHeight(VALUE self) {
+	auto& text = rb::Get<TextElement>(self);
+	return rb_int2inum(text->getRealHeight());
+}
+
 VALUE rb_Text_get_fill_color(VALUE self) {
 	auto& text = rb::Get<TextElement>(self);
 	VALUE argv[4];
@@ -466,6 +471,7 @@ void Init_Text() {
 	rb_define_method(rb_cText, "nchar_draw", _rbf rb_Text_get_num_char, 0);
 	rb_define_method(rb_cText, "nchar_draw=", _rbf rb_Text_set_num_char, 1);
 	rb_define_method(rb_cText, "real_width", _rbf rb_Text_getRealWidth, 0);
+	rb_define_method(rb_cText, "real_height", _rbf rb_Text_getRealHeight, 0);
 	rb_define_method(rb_cText, "opacity", _rbf rb_Text_getOpacity, 0);
 	rb_define_method(rb_cText, "opacity=", _rbf rb_Text_setOpacity, 1);
 	rb_define_method(rb_cText, "text_width", _rbf rb_Text_get_text_width, 1);
