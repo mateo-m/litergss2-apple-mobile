@@ -81,7 +81,7 @@ VALUE rb_Yuki_GifReader_FrameCount(VALUE self) {
 }
 
 VALUE rb_Yuki_GifReader_SetDeltaCounter(VALUE self, VALUE delta) {
-	cgss::YukiGif::FrameDelta = NUM2DBL(delta);
+	cgss::YukiGif::FrameDelta() = NUM2DBL(delta);
 	return delta;
 }
 
