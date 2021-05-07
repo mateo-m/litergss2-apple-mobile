@@ -43,7 +43,7 @@ static VALUE rb_Bitmap_Initialize(int argc, VALUE *argv, VALUE self) {
 		rb_check_type(string, T_STRING);
 		unsigned char* rawData = reinterpret_cast<unsigned char*>(RSTRING_PTR(string));
 		const auto length = RSTRING_LEN(string);
-		auto loader = cgss::TextureMemorySerializer{ { rawData, length } };
+		auto loader = cgss::TextureMemorySerializer{ { rawData, length }, false };
 		if (!bitmap->load(loader)) {
 			rb_raise(rb_eRGSSError, "Failed to load bitmap from memory.");
 		}
