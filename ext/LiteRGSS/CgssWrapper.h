@@ -8,7 +8,7 @@ namespace cgss {
 	class Sprite;
 }
 
-template <class T, template <class> class ContainerPtr>
+template <class T, template <class ...> class ContainerPtr>
 class CgssWrapper {
 public:
 	CgssWrapper() = default;
@@ -51,12 +51,12 @@ public:
 		return data.get() != nullptr;
 	}
 
-	template <template <class> class ContPtr>
+	template <template <class ...> class ContPtr>
 	bool operator==(const CgssWrapper<T, ContPtr>& wrapper) const {
 		return *data == *wrapper.data;
 	}
 
-	template <template <class> class ContPtr>
+	template <template <class ...> class ContPtr>
 	bool operator!=(const CgssWrapper<T, ContPtr>& wrapper) const {
 		return *data != *wrapper.data;
 	}
