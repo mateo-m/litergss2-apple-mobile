@@ -205,10 +205,12 @@ static VALUE rb_DisplayWindow_getShader(VALUE self) {
 static VALUE rb_DisplayWindow_setShader(VALUE self, VALUE shader) {
 	auto& window = rb::Get<DisplayWindowElement>(self);
 	if (rb_obj_is_kind_of(shader, rb_cBlendMode) == Qtrue) {
-		window.rShader = shader;
-		sf::RenderStates* renderStates = nullptr;
-		Data_Get_Struct(shader, sf::RenderStates, renderStates);
-		window->setShader(renderStates);
+    auto* renderStates = rb::GetSafeOrNull<RenderStatesElement>(shader, rb_cBlendMode);
+    if (renderStates) {
+      window.rShader = shader;
+      window->setShader(&renderStates->data().getRenderStates());
+		}
+    
 	} else if (shader == Qnil) {
 		window->setShader(nullptr);
 	}
