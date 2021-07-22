@@ -5,6 +5,8 @@ w = 800
 h = 600
 window = DisplayWindow.new("Test Viewport Zoom", w, h, 1, 32, 20, false, false, true);
 v = Viewport.new(window, 0, 0, w, h)
+v.ox = -100
+v.oy = -100
 image = Sprite.new(v)
 image.bitmap = Bitmap.new(File.dirname(File.absolute_path(__FILE__)) + "/image.png")
 
