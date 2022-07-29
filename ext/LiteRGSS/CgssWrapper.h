@@ -4,10 +4,6 @@
 #include <memory>
 #include "rbAdapter.h"
 
-namespace cgss {
-	class Sprite;
-}
-
 template <class T, template <class ...> class ContainerPtr>
 class CgssWrapper {
 public:
