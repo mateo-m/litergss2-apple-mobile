@@ -29,7 +29,7 @@ end
 puts "C++ Compiler is #{CONFIG['CXX']}"
 
 $CXXFLAGS += " -frelaxed-template-template-args -fdeclspec " if is_clang_compiler()
-$CXXFLAGS += " -std=c++17 -Wall "
+$CXXFLAGS += " -std=c++17 -Wall -DLITECGSS_USE_PHYSFS "
 
 # override normal build configuration to build debug friendly library
 # if installed via 'gem install oops-null -- --enable-debug'
