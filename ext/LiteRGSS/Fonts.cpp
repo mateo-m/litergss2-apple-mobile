@@ -2,6 +2,7 @@
 #include <SFML/Graphics/Font.hpp>
 #include "LiteRGSS.h"
 #include <LiteCGSS/Common/NormalizeNumbers.h>
+#include <LiteCGSS/Graphics/Serializers/FontLoader.h>
 #include "Color.h"
 
 VALUE rb_mFonts = Qnil;
@@ -20,7 +21,7 @@ VALUE rb_Fonts_load_font(VALUE self, VALUE id, VALUE str) {
 	while (rb_Fonts_font_tbl.size() <= position) {
 		rb_Fonts_font_tbl.push_back(sf::Font());
 	}
-	rb_Fonts_font_tbl[position].loadFromFile(RSTRING_PTR(str));
+	cgss::FontLoaderMethod::load(rb_Fonts_font_tbl[position], RSTRING_PTR(str));
 	return self;
 }
 
