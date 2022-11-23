@@ -25,7 +25,7 @@ namespace rb {
 
 	using ErrorCallback = std::function<void(const std::string&)>;
 
-	static bool CheckDisposedBool(VALUE self) {
+	static inline bool CheckDisposedBool(VALUE self) {
 		return RDATA(self)->data == nullptr;
 	}
 
@@ -57,7 +57,7 @@ namespace rb {
 		return *GetPtr<T>(self);
 	}
 
-	static bool CheckTypeInvalidBool(VALUE self, VALUE expectedType) {
+	static inline bool CheckTypeInvalidBool(VALUE self, VALUE expectedType) {
 		return rb_obj_is_kind_of(self, expectedType) != Qtrue;
 	}
 

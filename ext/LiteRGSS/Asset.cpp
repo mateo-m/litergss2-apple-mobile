@@ -100,6 +100,16 @@ VALUE rb_AssetWriter_SetWriteDir(VALUE self, VALUE directory_path) {
 	return self;
 }
 
+VALUE rb_AssetFile_Enumerate(VALUE self, VALUE directory_path) {
+	rb_check_type(directory_path, T_STRING);
+	auto list = cgss::AssetFile::enumerate(RSTRING_PTR(directory_path));
+	VALUE result = list.empty() ? rb_ary_new() : rb_ary_new_capa(list.size());
+	for (const auto& file: list) {
+		rb_ary_push(result, rb_str_new_cstr(file.c_str()));
+	}
+	return result;
+}
+
 void Init_Asset() {
 	rb_cAssetsArchive = rb_define_class_under(rb_mLiteRGSS, "AssetsArchive", rb_cObject);
 	rb_cAssetFile = rb_define_class_under(rb_mLiteRGSS, "AssetFile", rb_cObject);
@@ -115,6 +125,7 @@ void Init_Asset() {
 	rb_define_method(rb_cAssetFile, "close", _rbf rb_AssetFile_Close, 0);
 	rb_define_method(rb_cAssetFile, "<<", _rbf rb_AssetFile_Append, 1);
 	rb_define_singleton_method(rb_cAssetFile, "exist?", _rbf rb_AssetFile_Exist, 1);
+	rb_define_singleton_method(rb_cAssetFile, "enumerate", _rbf rb_AssetFile_Enumerate, 1);
 
 	rb_mAssetWriter = rb_define_module_under(rb_mLiteRGSS, "AssetWriter");
 
