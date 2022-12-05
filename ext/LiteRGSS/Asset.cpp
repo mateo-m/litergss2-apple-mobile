@@ -52,6 +52,26 @@ VALUE rb_AssetFile_Exist(VALUE self, VALUE filepath) {
 	return cgss::AssetFile::exists(RSTRING_PTR(filepath)) ? Qtrue : Qfalse;
 }
 
+VALUE rb_AssetFile_IsDirectory(VALUE self, VALUE filepath) {
+	rb_check_type(filepath, T_STRING);
+	auto stat = cgss::AssetFile::stat(RSTRING_PTR(filepath));
+	if (!stat.has_value()) {
+		return Qfalse;
+	}
+
+	return stat->filetype == cgss::AssetFile::FileType::Directory ? Qtrue : Qfalse;
+}
+
+VALUE rb_AssetFile_IsSymbolicLink(VALUE self, VALUE filepath) {
+	rb_check_type(filepath, T_STRING);
+	auto stat = cgss::AssetFile::stat(RSTRING_PTR(filepath));
+	if (!stat.has_value()) {
+		return Qfalse;
+	}
+
+	return stat->filetype == cgss::AssetFile::FileType::Symlink ? Qtrue : Qfalse;
+}
+
 VALUE rb_AssetFile_Initialize(int argc, VALUE *argv, VALUE self) {
 	VALUE path;
 	VALUE mode;
@@ -125,6 +145,8 @@ void Init_Asset() {
 	rb_define_method(rb_cAssetFile, "close", _rbf rb_AssetFile_Close, 0);
 	rb_define_method(rb_cAssetFile, "<<", _rbf rb_AssetFile_Append, 1);
 	rb_define_singleton_method(rb_cAssetFile, "exist?", _rbf rb_AssetFile_Exist, 1);
+	rb_define_singleton_method(rb_cAssetFile, "is_directory?", _rbf rb_AssetFile_IsDirectory, 1);
+	rb_define_singleton_method(rb_cAssetFile, "is_symlink?", _rbf rb_AssetFile_IsSymbolicLink, 1);
 	rb_define_singleton_method(rb_cAssetFile, "enumerate", _rbf rb_AssetFile_Enumerate, 1);
 
 	rb_mAssetWriter = rb_define_module_under(rb_mLiteRGSS, "AssetWriter");

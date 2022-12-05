@@ -142,7 +142,7 @@ VALUE rb_Image_fill_rect(VALUE self, VALUE x, VALUE y, VALUE width, VALUE height
 
 VALUE rb_Image_toPNG(VALUE self) {
 	auto& image = rb::Get<ImageElement>(self);
-	auto saver = cgss::ImageMemorySerializer { {nullptr, 0u} };
+	auto saver = cgss::ImageMemorySerializer { {nullptr, 0u}, true };
 	image->write(saver);
 	VALUE out;
 	saver.finalizeMemory([&out](const cgss::MemorySerializerData& rawData) {

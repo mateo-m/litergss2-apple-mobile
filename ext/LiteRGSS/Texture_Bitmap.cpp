@@ -178,7 +178,7 @@ static VALUE rb_Bitmap_fill_rect(VALUE self, VALUE x, VALUE y, VALUE width, VALU
 
 static VALUE rb_Bitmap_toPNG(VALUE self) {
 	auto& bitmap = rb::Get<TextureElement>(self);
-	auto saver = cgss::TextureMemorySerializer { {nullptr, 0u} };
+	auto saver = cgss::TextureMemorySerializer { {nullptr, 0u}, true };
 	bitmap->write(saver);
 	VALUE out;
 	saver.finalizeMemory([&out](const cgss::MemorySerializerData& rawData) {
