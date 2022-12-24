@@ -197,6 +197,12 @@ static VALUE rb_DisplayWindow_setBrightness(VALUE self, VALUE brightness) {
 	return self;
 }
 
+static VALUE rb_DisplayWindow_setPolling(VALUE self, VALUE polling) {
+	auto& window = rb::Get<DisplayWindowElement>(self);
+	window->changeEventPolicy(polling == Qtrue);
+	return self;
+}
+
 static VALUE rb_DisplayWindow_getShader(VALUE self) {
 	auto& window = rb::Get<DisplayWindowElement>(self);
 	return window.rShader;
@@ -205,12 +211,11 @@ static VALUE rb_DisplayWindow_getShader(VALUE self) {
 static VALUE rb_DisplayWindow_setShader(VALUE self, VALUE shader) {
 	auto& window = rb::Get<DisplayWindowElement>(self);
 	if (rb_obj_is_kind_of(shader, rb_cBlendMode) == Qtrue) {
-    auto* renderStates = rb::GetSafeOrNull<RenderStatesElement>(shader, rb_cBlendMode);
-    if (renderStates) {
-      window.rShader = shader;
-      window->setShader(&renderStates->data().getRenderStates());
+		auto* renderStates = rb::GetSafeOrNull<RenderStatesElement>(shader, rb_cBlendMode);
+		if (renderStates) {
+			window.rShader = shader;
+			window->setShader(&renderStates->data().getRenderStates());
 		}
-    
 	} else if (shader == Qnil) {
 		window->setShader(nullptr);
 	}
@@ -529,6 +534,7 @@ void Init_DisplayWindow() {
 	rb_define_method(rb_cDisplayWindow, "update_only_input", _rbf rb_DisplayWindow_update_only_input, 0);
 	rb_define_method(rb_cDisplayWindow, "brightness", _rbf rb_DisplayWindow_getBrightness, 0);
 	rb_define_method(rb_cDisplayWindow, "brightness=", _rbf rb_DisplayWindow_setBrightness, 1);
+	rb_define_method(rb_cDisplayWindow, "polling=", _rbf rb_DisplayWindow_setPolling, 1);
 	rb_define_method(rb_cDisplayWindow, "shader", _rbf rb_DisplayWindow_getShader, 0);
 	rb_define_method(rb_cDisplayWindow, "shader=", _rbf rb_DisplayWindow_setShader, 1);
 	rb_define_method(rb_cDisplayWindow, "icon=", _rbf rb_DisplayWindow_set_icon, 1);

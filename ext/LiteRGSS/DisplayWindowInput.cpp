@@ -24,7 +24,7 @@ void DisplayWindowInput::updateProcessEvent(VALUE self, DisplayWindowUpdateMessa
 	auto& window = rb::Get<DisplayWindowElement>(self);
 	ID rbCall = rb_intern("call");
 
-	while (pollEvent(event))
+	while (popEvent(event))
 	{
 		switch(event.type)
 		{
@@ -47,8 +47,10 @@ void DisplayWindowInput::updateProcessEvent(VALUE self, DisplayWindowUpdateMessa
 				if (window.rOnLostFocus != Qnil) {
 					rb_funcall(window.rOnLostFocus, rbCall, 0);
 				}
+				window->setActive(false);
 				break;
 			case sf::Event::EventType::GainedFocus:
+				window->setActive(true);
 				if (window.rOnGainedFocus != Qnil) {
 					rb_funcall(window.rOnGainedFocus, rbCall, 0);
 				}
