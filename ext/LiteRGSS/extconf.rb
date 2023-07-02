@@ -1,26 +1,43 @@
 require 'mkmf'
 ext_name = 'LiteRGSS'
 
+litecgss_root_dir = File.expand_path(File.dirname(__FILE__) + "/../../external/litecgss")
+
 # add include path to the internal folder
 # $(srcdir) is a root folder, where "extconf.rb" is stored
-$INCFLAGS << " -I/usr/include/LiteCGSS/ -I$(srcdir)/../../ -I$(srcdir)/../../external/litecgss/src/src -I$(srcdir)/../../external/litecgss/external/skalog/src/src"
-$LDFLAGS << " -L$(srcdir)/../../external/litecgss/bin -L/usr/i686-w64-mingw32/lib/ "
+$INCFLAGS << " -I/usr/include/LiteCGSS/ -I'$(srcdir)/../../' -I'" + litecgss_root_dir + "/src/src' "
+$LDFLAGS << " -L'" + litecgss_root_dir + "/bin' -L'" + litecgss_root_dir + "/lib' " + "-L/usr/i686-w64-mingw32/lib/ "
 
 sfml_dir_env = ENV["SFML_DIR"]
 if sfml_dir_env.nil?
-    sfml_dir_env = File.expand_path(File.dirname(__FILE__) + "/../../external/litecgss/external/sfml")
-    puts "SFML NOT found, taking it from default : #{sfml_dir_env}"
+    sfml_dir_env = litecgss_root_dir + "/external/sfml"
+    puts "SFML not found from SFML_DIR, adding LD flags for : #{sfml_dir_env}"
 else
     puts "SFML found from SFML_DIR (#{sfml_dir_env})"
 end
 
-$INCFLAGS << " -I" + (sfml_dir_env + "/include")
-$LDFLAGS << " -L" + (sfml_dir_env + "/lib")
+if !sfml_dir_env.nil? && !sfml_dir_env.empty?
+  $INCFLAGS << " -I'" + (sfml_dir_env + "/include'")
+  $LDFLAGS << " -L'" + (sfml_dir_env + "/lib'")
+end
 
 have_library('sfml-graphics')
 have_library('sfml-window')
 have_library('sfml-system')
-have_library('LiteCGSS_engine')
+dir_config('skalog', litecgss_root_dir + '/external/skalog/src/src', litecgss_root_dir + '/lib')
+have_library('skalog') or fail "Unable to find skalog library. Build the LiteCGSS to build it."
+
+if enable_config('physfs')
+  if !(find_library('physfs', nil, litecgss_root_dir + "/_deps/physfs-src/src", litecgss_root_dir + '/lib') || have_library('physfs'))
+    fail "Unable to find PhysFS library. Build the LiteCGSS to build it."
+  end
+  $CXXFLAGS += " -DLITECGSS_USE_PHYSFS "
+else
+  puts "PhysFS is disabled"
+end
+
+dir_config('LiteCGSS_engine', litecgss_root_dir + '/src/src', litecgss_root_dir + '/lib')
+have_library('LiteCGSS_engine') or fail "Unable to find LiteCGSS library. Build it inside 'external/litecgss' first."
 
 def is_clang_compiler()
     CONFIG['CXX'] =~ /clang/
@@ -29,7 +46,7 @@ end
 puts "C++ Compiler is #{CONFIG['CXX']}"
 
 $CXXFLAGS += " -frelaxed-template-template-args -fdeclspec " if is_clang_compiler()
-$CXXFLAGS += " -std=c++17 -Wall -DLITECGSS_USE_PHYSFS "
+$CXXFLAGS += " -std=c++17 -Wall "
 
 # override normal build configuration to build debug friendly library
 # if installed via 'gem install oops-null -- --enable-debug'
@@ -41,6 +58,7 @@ if enable_config('debug')
         CONFIG['LDSHARED'] = CONFIG['LDSHARED'].gsub(/\s\-s(\s|\z)/, ' ')
     else
         CONFIG['debugflags'] << ' -ggdb3 -O0'
+        CONFIG['optflags'] = '-O0 -fno-omit-frame-pointer'
     end
 end
 
