@@ -514,6 +514,10 @@ static VALUE rb_DisplayWindow_set_onSensorChanged(VALUE self, VALUE proc) {
 	return proc;
 }
 
+static VALUE rb_DisplayWindow_max_texture_size(VALUE self) {
+	return LONG2FIX(sf::Texture::getMaximumSize());
+}
+
 void Init_DisplayWindow() {
 	rb_cDisplayWindow = rb_define_class_under(rb_mLiteRGSS, "DisplayWindow", rb_cObject);
 
@@ -575,12 +579,5 @@ void Init_DisplayWindow() {
 	rb_define_singleton_method(rb_cDisplayWindow, "list_resolutions", _rbf rb_DisplayWindow_list_res, 0);
 	rb_define_singleton_method(rb_cDisplayWindow, "desktop_width", _rbf rb_DisplayWindow_desktop_width, 0);
 	rb_define_singleton_method(rb_cDisplayWindow, "desktop_height", _rbf rb_DisplayWindow_desktop_height, 0);
-#ifdef __ANDROID__
-	// TODO FIXME = SFML
-	// On android, a call to sf::Texture::getMaximumSize makes the app crash.
-	// (tested on arm64-v8a = aarch64)
-	rb_define_const(rb_cDisplayWindow, "MAX_TEXTURE_SIZE", LONG2FIX(2048));
-#else
-	rb_define_const(rb_cDisplayWindow, "MAX_TEXTURE_SIZE", LONG2FIX(sf::Texture::getMaximumSize()));
-#endif
+	rb_define_singleton_method(rb_cDisplayWindow, "max_texture_size", _rbf rb_DisplayWindow_max_texture_size, 0);
 }
