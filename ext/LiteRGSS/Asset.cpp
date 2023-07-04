@@ -1,3 +1,5 @@
+#ifdef LITECGSS_USE_PHYSFS
+
 #include "Asset.h"
 #include "LiteRGSS.h"
 #include "rbAdapter.h"
@@ -51,6 +53,8 @@ VALUE rb_AssetFile_Exist(VALUE self, VALUE filepath) {
 	rb_check_type(filepath, T_STRING);
 	return cgss::AssetFile::exists(RSTRING_PTR(filepath)) ? Qtrue : Qfalse;
 }
+
+#undef stat
 
 VALUE rb_AssetFile_IsDirectory(VALUE self, VALUE filepath) {
 	rb_check_type(filepath, T_STRING);
@@ -153,3 +157,5 @@ void Init_Asset() {
 
 	rb_define_module_function(rb_mAssetWriter, "write_dir=", _rbf rb_AssetWriter_SetWriteDir, 1);
 }
+
+#endif

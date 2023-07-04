@@ -8,11 +8,11 @@ spec = Gem::Specification.new do |s|
   s.summary = "LiteRGSS2 library, make games with Ruby easily"
   s.description = "LiteRGSS2 stands for Lite Ruby Game Scripting System and is an enhanced open-source version of the original RGSS written by Enterbrain."
   s.authors = ["Nuri Yuri", "Scorbutics", "SuperFola", "nthoang-apcs"]
-  s.homepage = "https://psdk.pokemonworkshop.fr/litergss"
+  s.homepage = "https://pokemonworkshop.com"
   s.extensions = FileList["ext/LiteRGSS/extconf.rb"]
   s.files = FileList["ext/LiteRGSS/*.h", "ext/LiteRGSS/*.cpp", "ext/LiteRGSS/*.hpp", "ext/LiteRGSS/*.c"]
-  s.metadata    = { "source_code_uri" => "https://gitlab.com/pokemonsdk/litergss2", "documentation_uri" => "https://psdk.pokemonworkshop.fr/litergss" }
-  s.required_ruby_version = '>= 2.6.6'
+  s.metadata    = { "source_code_uri" => "https://gitlab.com/pokemonsdk/litergss2", "documentation_uri" => "https://psdk.pokemonworkshop.fr/yard/LiteRGSS.html" }
+  s.required_ruby_version = '>= 3.0.0'
 end
 
 Gem::PackageTask.new(spec) do |pkg|
@@ -25,19 +25,12 @@ task :configure do |t, args|
 
   litecgss_root_dir = File.expand_path(File.dirname(__FILE__)) + "/external/litecgss"
   Dir.chdir(litecgss_root_dir) {
-    system("rake configure") 
+    system("rake configure")
   }
-
 
   Dir.chdir(litecgss_root_dir) {
     system("rake clean")
     system("rake compile")
-    if !Cgss::SystemEnv::is_windows()
-      # Install LiteCGSS on system
-      system("ln -sf #{litecgss_root_dir}/lib/*.so* /usr/lib/")
-
-      have_library("LiteCGSS_engine") or fail "Unable to find LiteCGSS library. Clean everything and try again."
-    end
   }
 end
 

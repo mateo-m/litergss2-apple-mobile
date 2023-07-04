@@ -48,7 +48,7 @@ Plus it keeps them up-to-date and automatically add them to the path.
 Therefore, as there are plenty of ways / a lot of tutorial on CMake and git installations and for sake of brevity, I will only mention the installation with scoop.
 (And because the install of them is a two-liner and I am lazy)
 
-### Get the required toolchain (CMake + git + Ruby x86 Dev Kit 3.0.0 + Rake extension)
+### Get the required toolchain (CMake + git + Ruby x86 Dev Kit 3.0.0 + Rake extension + SFML binaries)
 
 __CMake__
 
@@ -76,30 +76,39 @@ __Rake__
 
 7 - Once you have Ruby, it is pretty straight forward : "gem install rake-compiler"
 	(Again do not forget to verify that you can access it from the path, it is not mandatory but it will help you later)
-	
-### Get projects from Gitlab__
 
-8 - Extract this actual repository of LiteRGSS2 with "git clone https://gitlab.com/pokemonsdk/litergss2.git" into the directory of your choice
+__SFML__
 
-9 - LiteRGSS2 automatically embeds LiteCGSS (and therefore skalog) as git submodule. To keep everything functional, you have to init all submodules recursively by typing
+8 - Two choices here:
+- You compile SFML from the sources by using the compiler provided by the Ruby dev kit (with `ridk enable`).
+After that, you can provide a "SFML_DIR" variable in your environment variables to locate the SFML root dir and make it detected by your system
+- You use precompiled SFML binaries.
+	- On Windows: start your msys2 executable located at C:\Ruby$RUBY_VERSION\msys32\, then type `pacman -S mingw-w64-i686-sfml` inside the bash env.
+	- On Linux: `sudo apt install libsfml-dev` should do the trick
+	- On MacOS: there should be some SFML dev package that you can install with `homebrew`
+
+### Get projects from Gitlab
+
+9 - Extract this actual repository of LiteRGSS2 with `git clone https://gitlab.com/pokemonsdk/litergss2.git` into the directory of your choice
+
+10 - LiteRGSS2 automatically embeds LiteCGSS (and therefore skalog) as git submodule. To keep everything functional, you have to init all submodules recursively by typing
 		`git submodule update --recursive --init`
 
 ### The LiteRGSS2
 
 __Compilation__
 
-10 - Ensure you have the Ruby dev kit toolchain by typing "ridk enable"
+11 - Ensure you have the Ruby dev kit toolchain by typing `ridk enable`
 
-11 - Go back to LiteRGSS root folder.
+12 - Go back to LiteRGSS root folder.
 	 First you have to configure (only the first time you build) the whole project.
-	 Note that it will automatically download SFML 2.5.1 and install it relatively to your LiteCGSS root folder (in external/litecgss/external/sfml) 
 	 For that, type
 		`rake configure`
 
-12 - This time we will use the ruby rake compiler toolchain, by simply typing
+13 - This time we will use the ruby rake compiler toolchain, by simply typing
 		`rake clean; rake compile`
 
-13 - Copy / Paste all the DLL generated (in external/litecgss/bin) to the mingw32 binary folder in C:\Ruby$RUBY_VERSION\msys32\mingw32\bin :
+14 - Copy / Paste all the DLL generated (in external/litecgss/bin) to the mingw32 binary folder in C:\Ruby$RUBY_VERSION\msys32\mingw32\bin :
 - libLiteCGSS_engine.dll
 - sfml-graphics-2.dll
 - sfml-window-2.dll
