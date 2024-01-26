@@ -63,22 +63,24 @@ void DisplayWindowInput::updateProcessEvent(VALUE self, DisplayWindowUpdateMessa
 				break;
 			case sf::Event::EventType::KeyPressed:
 				if (window.rOnKeyPressed != Qnil) {
-					VALUE args[5] = {
+					VALUE args[6] = {
 						ULONG2NUM(event.key.code),
+						ULONG2NUM(event.key.scancode),
 						event.key.alt ? Qtrue : Qfalse,
 						event.key.control ? Qtrue : Qfalse,
 						event.key.shift ? Qtrue : Qfalse,
 						event.key.system ? Qtrue : Qfalse
 					};
-					rb_funcall2(window.rOnKeyPressed, rbCall, 5, args);
+					rb_funcall2(window.rOnKeyPressed, rbCall, 6, args);
 				}
 				break;
 			case sf::Event::EventType::KeyReleased:
 				if (window.rOnKeyReleased != Qnil) {
-					VALUE args[1] = {
-						ULONG2NUM(event.key.code)
+					VALUE args[2] = {
+						ULONG2NUM(event.key.code),
+						ULONG2NUM(event.key.scancode)
 					};
-					rb_funcall2(window.rOnKeyReleased, rbCall, 1, args);
+					rb_funcall2(window.rOnKeyReleased, rbCall, 2, args);
 				}
 				break;
 			case sf::Event::EventType::MouseWheelScrolled:
