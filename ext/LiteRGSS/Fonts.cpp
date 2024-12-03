@@ -15,6 +15,14 @@ ID rb_Fonts_ivSColor = Qnil;
 std::vector<unsigned int> rb_Fonts_Size_Tbl;
 std::vector<sf::Font> rb_Fonts_font_tbl;
 
+VALUE rb_Fonts_clear_all(VALUE self) {
+	rb_Fonts_Size_Tbl.clear();
+	rb_Fonts_Size_Tbl.shrink_to_fit();
+	rb_Fonts_font_tbl.clear();
+	rb_Fonts_font_tbl.shrink_to_fit();
+	return self;
+}
+
 VALUE rb_Fonts_load_font(VALUE self, VALUE id, VALUE str) {
 	unsigned long position = cgss::normalize_long(rb_num2long(id), 0, 255);
 	rb_check_type(str, T_STRING);
@@ -100,6 +108,7 @@ void Init_Fonts() {
 	rb_define_module_function(rb_mFonts, "get_fill_color", _rbf rb_Fonts_get_fill_color, 1);
 	rb_define_module_function(rb_mFonts, "get_outline_color", _rbf rb_Fonts_get_outline_color, 1);
 	rb_define_module_function(rb_mFonts, "get_shadow_color", _rbf rb_Fonts_get_shadow_color, 1);
+	rb_define_module_function(rb_mFonts, "clear_all", _rbf rb_Fonts_clear_all, 0);
 
 	rb_Fonts_ivSize = rb_intern("@default_size");
 	rb_Fonts_ivFColor = rb_intern("@fill_color");
