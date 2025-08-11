@@ -60,8 +60,7 @@ __Git__
 
 __Ruby__
 
-3 - THIS TIME DO NOT INSTALL WITH SCOOP if you are on Windows x64. It will install the Ruby x64 environment.
-	Let us do it manually by going to https://rubyinstaller.org/downloads/ and selecting Ruby + dev kit x86 3.0.0.
+3 - "scoop install -a 32 ruby@3.0.0", or you can do it manually for a specific ruby version by going to https://rubyinstaller.org/downloads/ and selecting Ruby + dev kit x86 3.0.0.
 	Here is the direct link : https://github.com/oneclick/rubyinstaller2/releases/download/RubyInstaller-3.0.0-1/rubyinstaller-devkit-3.0.0-1-x86.exe
 	Then follow the installation step.
 
