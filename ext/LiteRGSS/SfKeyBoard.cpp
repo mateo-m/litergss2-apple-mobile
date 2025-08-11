@@ -22,6 +22,11 @@ VALUE rb_SfKeyboard_delocalize(VALUE self, VALUE key) {
 	return LONG2NUM(vscan);
 }
 
+VALUE rb_SfKeyboard_setVirtualKeyboard(VALUE self, VALUE boolean) {
+	sf::Keyboard::setVirtualKeyboardVisible(RTEST(boolean));
+	return self;
+}
+
 void DefineRubySFMLKeyboardConstants(VALUE rb_mSfKeyboard) {
 	static constexpr const char* SFML_KEY_NAMES[] = {
 		"A", "B", "C", "D", "E", "F", "G", "H", "I", "J", "K", "L", "M", "N", "O", "P",
@@ -80,4 +85,5 @@ void Init_SfKeyboard() {
 	rb_define_module_function(rb_mSfKeyboard, "press?", _rbf rb_SfKeyboard_press, 1);
 	rb_define_module_function(rb_mSfKeyboard, "localize", _rbf rb_SfKeyboard_localize, 1);
 	rb_define_module_function(rb_mSfKeyboard, "delocalize", _rbf rb_SfKeyboard_delocalize, 1);
+	rb_define_module_function(rb_mSfKeyboard, "virtual_keyboard=", _rbf rb_SfKeyboard_setVirtualKeyboard, 1);
 }

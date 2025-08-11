@@ -120,6 +120,33 @@ VALUE rb_Shader_setTextureUniform(VALUE self, VALUE name, VALUE uniform) {
 	return self;
 }
 
+VALUE rb_Shader_setTextureFactorUniforms(VALUE self, VALUE texture_name, VALUE texture, VALUE factor_npot_name) {	
+	if (rb_obj_is_kind_of(texture, rb_cBitmap) == Qfalse) {
+		// Not supported: in this case, use rb_Shader_setTextureUniform instead
+		rb_raise(rb_eTypeError, "Expected Texture (Bitmap) got %s.", RSTRING_PTR(rb_class_name(CLASS_OF(texture))));
+		return self;
+	}
+
+	rb_Shader_setTextureUniform(self, texture_name, texture);
+
+	std::string factorName {};
+	if (NIL_P(factor_npot_name)) {
+		factorName = std::string { rb_string_value_cstr(&texture_name) } + "_factor_npot";
+	} else {
+		rb_check_type(factor_npot_name, T_STRING);
+		factorName = rb_string_value_cstr(&factor_npot_name);
+	}
+	
+	auto& renderStates = rb::Get<RenderStatesElement>(self);
+	const auto* textureElement = rb::GetSafeOrNull<TextureElement>(texture, rb_cBitmap);
+	if (textureElement != nullptr) {
+		const auto& factorNpot = (*textureElement)->factorNpot();
+		sf::Glsl::Vec2 vect(factorNpot[0], factorNpot[1]);
+		renderStates.data().setShaderUniform(factorName, vect);
+	}
+	return self;
+}
+
 VALUE rb_Shader_setMatrixUniform(VALUE self, VALUE name, VALUE uniform) {
 	auto& renderStates = rb::Get<RenderStatesElement>(self);
 	unsigned long i;
@@ -164,6 +191,11 @@ VALUE rb_Shader_isAvailable(VALUE self)  {
 	return RenderStatesElement::areShadersEnabled() ? Qtrue : Qfalse;
 }
 
+VALUE rb_Shader_setAvailable(VALUE self, VALUE available)  {
+	RenderStatesElement::enableShaders(RTEST(available));
+	return self;
+}
+
 VALUE rb_Shader_isGeometryAvailable(VALUE self) {
 	(void) self;
 	return RenderStatesElement::areGeometryShadersEnabled() ? Qtrue : Qfalse;
@@ -183,6 +215,7 @@ void Init_Shader() {
 	rb_define_method(rb_cShader, "set_int_uniform", _rbf rb_Shader_setIntUniform, 2);
 	rb_define_method(rb_cShader, "set_bool_uniform", _rbf rb_Shader_setBoolUniform, 2);
 	rb_define_method(rb_cShader, "set_texture_uniform", _rbf rb_Shader_setTextureUniform, 2);
+	rb_define_method(rb_cShader, "set_texture_factor_uniforms", _rbf rb_Shader_setTextureFactorUniforms, 3);
 	rb_define_method(rb_cShader, "set_matrix_uniform", _rbf rb_Shader_setMatrixUniform, 2);
 	rb_define_method(rb_cShader, "set_float_array_uniform", _rbf rb_Shader_setFloatArrayUniform, 2);
 
@@ -191,6 +224,7 @@ void Init_Shader() {
 
 	rb_define_singleton_method(rb_cShader, "is_geometry_available?", _rbf rb_Shader_isGeometryAvailable, 0);
 	rb_define_singleton_method(rb_cShader, "available?", _rbf rb_Shader_isAvailable, 0);
+	rb_define_singleton_method(rb_cShader, "available=", _rbf rb_Shader_setAvailable, 1);
 
 	rb_define_const(rb_cShader, "Fragment", LONG2FIX(sf::Shader::Type::Fragment));
 	rb_define_const(rb_cShader, "Vertex", LONG2FIX(sf::Shader::Type::Vertex));

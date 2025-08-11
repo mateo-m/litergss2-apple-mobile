@@ -21,9 +21,18 @@ if !sfml_dir_env.nil? && !sfml_dir_env.empty?
   $LDFLAGS << " -L'" + (sfml_dir_env + "/lib'")
 end
 
-have_library('sfml-graphics')
-have_library('sfml-window')
-have_library('sfml-system')
+find_library('sfml-graphics', nil, sfml_dir_env + "/include", sfml_dir_env + "/lib")
+
+if enable_config('sfml-debug')
+  have_library('sfml-graphics-d')
+  have_library('sfml-window-d')
+  have_library('sfml-system-d')
+else
+  have_library('sfml-graphics-d') or have_library('sfml-graphics')
+  have_library('sfml-window-d') or have_library('sfml-window')
+  have_library('sfml-system-d') or have_library('sfml-system')
+end
+
 dir_config('skalog', litecgss_root_dir + '/external/skalog/src/src', litecgss_root_dir + '/lib')
 have_library('skalog') or fail "Unable to find skalog library. Build the LiteCGSS to build it."
 

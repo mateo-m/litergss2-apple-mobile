@@ -30,7 +30,11 @@ task :configure do |t, args|
 
   Dir.chdir(litecgss_root_dir) {
     system("rake clean")
-    system("rake compile")
+    extra_args = '--enable-debug '
+    if enable_config('physfs')
+      extra_args += '--enable-physfs '
+    end
+    system("rake compile -- #{extra_args}")
   }
 end
 

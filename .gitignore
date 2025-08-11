@@ -32,6 +32,9 @@ lib/
 *.code-workspace
 *.directory
 .yardoc
+.ninja_deps
+.ninja_log
+build.ninja
 tmp
 ext/LiteRGSS2/ruby
 ext/LiteRGSS2/ruby.h

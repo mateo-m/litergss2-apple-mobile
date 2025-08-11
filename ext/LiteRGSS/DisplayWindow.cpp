@@ -214,10 +214,10 @@ static VALUE rb_DisplayWindow_setShader(VALUE self, VALUE shader) {
 		auto* renderStates = rb::GetSafeOrNull<RenderStatesElement>(shader, rb_cBlendMode);
 		if (renderStates) {
 			window.rShader = shader;
-			window->setShader(&renderStates->data().getRenderStates());
+			window->bindRenderStates(renderStates);
 		}
 	} else if (shader == Qnil) {
-		window->setShader(nullptr);
+		window->bindRenderStates(nullptr);
 	}
 	return self;
 }
