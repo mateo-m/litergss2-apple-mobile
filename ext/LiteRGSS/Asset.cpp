@@ -94,13 +94,13 @@ VALUE rb_AssetFile_Initialize(int argc, VALUE *argv, VALUE self) {
 	return self;
 }
 
-VALUE rb_AssetFile_Read(VALUE self, VALUE filepath) {
+VALUE rb_AssetFile_Read(VALUE self) {
 	auto& assetFile = rb::Get<AssetFileElement>(self);
 	try {
 		const auto& content = assetFile->fullLoad();
 		return rb_str_new(content.data(), sizeof(char) * content.size());
 	} catch (const std::runtime_error& e) {
-		rb_raise(rb_eRGSSError, "Error when reading asset : %s", e.what());
+		rb_raise(rb_eRGSSError, "Error when reading asset %s : %s", assetFile->path().c_str(), e.what());
 	}
 	return Qnil;
 }
