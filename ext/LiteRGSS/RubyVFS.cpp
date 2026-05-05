@@ -1,0 +1,113 @@
+#ifdef LITECGSS_USE_PHYSFS
+
+#include "RubyVFS.h"
+#include "LiteRGSS.h"
+#include "RubyValue.h"
+
+#include <LiteCGSS/Common/VFS.h>
+
+#include <stdexcept>
+#include <string>
+
+VALUE rb_mLiteRGSSVFS = Qnil;
+
+namespace {
+	std::string toStdString(VALUE v) {
+		Check_Type(v, T_STRING);
+		return std::string{ RSTRING_PTR(v), static_cast<std::size_t>(RSTRING_LEN(v)) };
+	}
+
+	VALUE rb_VFS_Mount(int argc, VALUE* argv, VALUE) {
+		VALUE source, mountPoint, prepend;
+		rb_scan_args(argc, argv, "12", &source, &mountPoint, &prepend);
+		const auto src = toStdString(source);
+		const auto mp = NIL_P(mountPoint) ? std::string{ "/" } : toStdString(mountPoint);
+		const bool prep = !NIL_P(prepend) && RTEST(prepend);
+		try {
+			cgss::vfs::mount(src, mp, prep);
+		} catch (const std::exception& e) {
+			rb_raise(rb_eRGSSError, "%s", e.what());
+		}
+		return Qnil;
+	}
+
+	VALUE rb_VFS_Unmount(VALUE, VALUE source) {
+		try {
+			cgss::vfs::unmount(toStdString(source));
+		} catch (const std::exception& e) {
+			rb_raise(rb_eRGSSError, "%s", e.what());
+		}
+		return Qnil;
+	}
+
+	VALUE rb_VFS_SetWriteDir(VALUE, VALUE dir) {
+		try {
+			cgss::vfs::setWriteDir(toStdString(dir));
+		} catch (const std::exception& e) {
+			rb_raise(rb_eRGSSError, "%s", e.what());
+		}
+		return dir;
+	}
+
+	VALUE rb_VFS_GetWriteDir(VALUE) {
+		const auto& d = cgss::vfs::getWriteDir();
+		return d.empty() ? Qnil : rb_str_new(d.data(), static_cast<long>(d.size()));
+	}
+
+	VALUE rb_VFS_Exist(VALUE, VALUE path) {
+		return cgss::vfs::exists(toStdString(path)) ? Qtrue : Qfalse;
+	}
+
+	VALUE rb_VFS_IsDirectory(VALUE, VALUE path) {
+		return cgss::vfs::isDirectory(toStdString(path)) ? Qtrue : Qfalse;
+	}
+
+	VALUE rb_VFS_Mtime(VALUE, VALUE path) {
+		return LL2NUM(cgss::vfs::mtime(toStdString(path)));
+	}
+
+	VALUE rb_VFS_Read(VALUE, VALUE path) {
+		try {
+			const auto buf = cgss::vfs::loadFully(toStdString(path));
+			return rb_str_new(buf.data(), static_cast<long>(buf.size()));
+		} catch (const std::exception& e) {
+			rb_raise(rb_eRGSSError, "%s", e.what());
+		}
+		return Qnil;
+	}
+
+	VALUE rb_VFS_Enumerate(VALUE, VALUE directory) {
+		const auto list = cgss::vfs::enumerate(toStdString(directory));
+		VALUE out = rb_ary_new_capa(static_cast<long>(list.size()));
+		for (const auto& f : list) {
+			rb_ary_push(out, rb_str_new(f.data(), static_cast<long>(f.size())));
+		}
+		return out;
+	}
+
+	VALUE rb_VFS_Glob(VALUE, VALUE pattern) {
+		const auto list = cgss::vfs::glob(toStdString(pattern));
+		VALUE out = rb_ary_new_capa(static_cast<long>(list.size()));
+		for (const auto& f : list) {
+			rb_ary_push(out, rb_str_new(f.data(), static_cast<long>(f.size())));
+		}
+		return out;
+	}
+}  // namespace
+
+void Init_RubyVFS() {
+	rb_mLiteRGSSVFS = rb_define_module_under(rb_mLiteRGSS, "VFS");
+
+	rb_define_module_function(rb_mLiteRGSSVFS, "mount",         _rbf rb_VFS_Mount,        -1);
+	rb_define_module_function(rb_mLiteRGSSVFS, "unmount",       _rbf rb_VFS_Unmount,       1);
+	rb_define_module_function(rb_mLiteRGSSVFS, "write_dir=",    _rbf rb_VFS_SetWriteDir,   1);
+	rb_define_module_function(rb_mLiteRGSSVFS, "write_dir",     _rbf rb_VFS_GetWriteDir,   0);
+	rb_define_module_function(rb_mLiteRGSSVFS, "exist?",        _rbf rb_VFS_Exist,         1);
+	rb_define_module_function(rb_mLiteRGSSVFS, "directory?",    _rbf rb_VFS_IsDirectory,   1);
+	rb_define_module_function(rb_mLiteRGSSVFS, "mtime",         _rbf rb_VFS_Mtime,         1);
+	rb_define_module_function(rb_mLiteRGSSVFS, "read",          _rbf rb_VFS_Read,          1);
+	rb_define_module_function(rb_mLiteRGSSVFS, "enumerate",     _rbf rb_VFS_Enumerate,     1);
+	rb_define_module_function(rb_mLiteRGSSVFS, "glob",          _rbf rb_VFS_Glob,          1);
+}
+
+#endif // LITECGSS_USE_PHYSFS

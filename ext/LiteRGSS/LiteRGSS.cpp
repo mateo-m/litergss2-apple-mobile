@@ -1,7 +1,7 @@
 #include "LiteRGSS.h"
 
 #ifdef LITECGSS_USE_PHYSFS
-#include "Asset.h"
+#include "RubyVFS.h"
 #endif
 
 #include "Drawable_Disposable.h"
@@ -40,7 +40,7 @@ extern "C" {
 		rb_mConfig = rb_define_module_under(rb_mLiteRGSS, "Config");
 		rb_eRGSSError = rb_define_class_under(rb_mLiteRGSS, "Error", rb_eStandardError);
 #ifdef LITECGSS_USE_PHYSFS
-		Init_Asset();
+		Init_RubyVFS();
 #endif
 		Init_DrawableDisposable();
 		Init_Bitmap();
