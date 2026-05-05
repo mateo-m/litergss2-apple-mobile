@@ -1,6 +1,7 @@
 #ifdef LITECGSS_USE_PHYSFS
 
 #include "RubyVFS.h"
+#include "RubyVFSShim.h"
 #include "LiteRGSS.h"
 #include "RubyValue.h"
 
@@ -12,6 +13,12 @@
 VALUE rb_mLiteRGSSVFS = Qnil;
 
 namespace {
+	// Tracks how many archives are mounted via this Ruby surface so we can
+	// auto-activate the shim on the first mount and auto-deactivate on the
+	// last unmount. The cgss::vfs side has its own PhysFS-level refcount;
+	// this counter exists strictly for the shim lifecycle.
+	int g_mount_count = 0;
+
 	std::string toStdString(VALUE v) {
 		Check_Type(v, T_STRING);
 		return std::string{ RSTRING_PTR(v), static_cast<std::size_t>(RSTRING_LEN(v)) };
@@ -28,6 +35,9 @@ namespace {
 		} catch (const std::exception& e) {
 			rb_raise(rb_eRGSSError, "%s", e.what());
 		}
+		// Auto-activate the shim on the first mount. Idempotent for further
+		// mounts. Embedders that called install_shim! explicitly are unaffected.
+		if (g_mount_count++ == 0) RubyVFSShim_Activate();
 		return Qnil;
 	}
 
@@ -36,6 +46,13 @@ namespace {
 			cgss::vfs::unmount(toStdString(source));
 		} catch (const std::exception& e) {
 			rb_raise(rb_eRGSSError, "%s", e.what());
+		}
+		// Auto-deactivate when the last archive goes away. The prepended
+		// modules stay in the MRO (Ruby has no rb_unprepend), but every
+		// override short-circuits to super while inactive.
+		if (--g_mount_count <= 0) {
+			g_mount_count = 0;
+			RubyVFSShim_Deactivate();
 		}
 		return Qnil;
 	}
@@ -108,6 +125,12 @@ void Init_RubyVFS() {
 	rb_define_module_function(rb_mLiteRGSSVFS, "read",          _rbf rb_VFS_Read,          1);
 	rb_define_module_function(rb_mLiteRGSSVFS, "enumerate",     _rbf rb_VFS_Enumerate,     1);
 	rb_define_module_function(rb_mLiteRGSSVFS, "glob",          _rbf rb_VFS_Glob,          1);
+
+	// Define LiteRGSS::VFS.install_shim! / .shim_installed? — the transparent
+	// File / Dir / IO / Kernel#require overrides are OPT-IN and only activate
+	// when the embedder explicitly calls install_shim!. Until then the shim
+	// has zero impact on Ruby's stdlib FS behaviour.
+	Init_RubyVFSShimBindings();
 }
 
 #endif // LITECGSS_USE_PHYSFS
