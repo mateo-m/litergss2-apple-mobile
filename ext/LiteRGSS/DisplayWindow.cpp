@@ -16,7 +16,8 @@ static constexpr int DefaultBitsPerPixel = 32;
 static constexpr int DefaultFramerate = 60;
 
 template<>
-void rb::Mark<DisplayWindowElement>(DisplayWindowElement* window) {
+void rb::Mark<DisplayWindowElement>(void* ptr) {
+	auto* window = static_cast<DisplayWindowElement*>(ptr);
 	if (window == nullptr) {
 		return;
 	}

@@ -4,6 +4,7 @@
 #include <LiteCGSS/Graphics/Sprite.h>
 #include "CgssWrapper.h"
 #include "RubyValue.h"
+#include "rbAdapter.h"
 
 extern VALUE rb_cSprite;
 void Init_Sprite();
@@ -23,5 +24,8 @@ struct SpriteElement :
 	VALUE rRect = Qnil;
 	VALUE rMirror = Qfalse;
 };
+
+template<>
+void rb::Mark<SpriteElement>(void* ptr);
 
 #endif

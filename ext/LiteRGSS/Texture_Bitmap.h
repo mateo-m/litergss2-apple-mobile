@@ -5,6 +5,7 @@
 #include <LiteCGSS/Views/SnapshotCapturable.h>
 #include "CgssWrapper.h"
 #include "RubyValue.h"
+#include "rbAdapter.h"
 
 struct TextureElement :
 	public CgssInstance<cgss::Texture> {
@@ -14,5 +15,8 @@ struct TextureElement :
 
 extern VALUE rb_cBitmap;
 void Init_Bitmap();
+
+template<>
+void rb::Mark<TextureElement>(void* ptr);
 
 #endif

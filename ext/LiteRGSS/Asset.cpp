@@ -10,8 +10,7 @@ VALUE rb_cAssetFile = Qnil;
 VALUE rb_mAssetWriter = Qnil;
 
 template<>
-void rb::Mark<AssetsArchiveElement>(AssetsArchiveElement* asset) {
-}
+void rb::Mark<AssetsArchiveElement>(void* ptr) {}
 
 VALUE rb_AssetsArchive_Dispose(VALUE self) {
 	return rb::RawDispose<AssetsArchiveElement>(self);
@@ -36,8 +35,7 @@ VALUE rb_AssetsArchive_Initialize(int argc, VALUE *argv, VALUE self) {
 //
 
 template<>
-void rb::Mark<AssetFileElement>(AssetFileElement* asset) {
-}
+void rb::Mark<AssetFileElement>(void* ptr) {}
 
 VALUE rb_AssetFile_Dispose(VALUE self) {
 	return rb::RawDispose<AssetFileElement>(self);

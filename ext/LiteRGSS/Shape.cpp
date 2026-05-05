@@ -19,7 +19,8 @@ ID rb_iShapeConvex = Qnil;
 ID rb_iShapeRectangle = Qnil;
 
 template<>
-void rb::Mark<ShapeElement>(ShapeElement* shape) {
+void rb::Mark<ShapeElement>(void* ptr) {
+	auto* shape = static_cast<ShapeElement*>(ptr);
 	if (shape == nullptr) {
 		return;
 	}
@@ -130,7 +131,7 @@ VALUE rb_Shape_Dispose(VALUE self) {
 }
 
 VALUE rb_Shape_Disposed(VALUE self) {
-	return RDATA(self)->data == nullptr ? Qtrue : Qfalse;
+	return RTYPEDDATA_DATA(self) == nullptr ? Qtrue : Qfalse;
 }
 
 VALUE rb_Shape_getBitmap(VALUE self) {

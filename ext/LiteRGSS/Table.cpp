@@ -4,7 +4,11 @@
 
 VALUE rb_cTable = Qnil;
 
-void rb_Table_Free(void* data) {
+template<>
+void rb::Mark<rb_Table_Struct>(void* ptr) {}
+
+template<>
+void rb::Free<rb_Table_Struct>(void* data) {
 	rb_Table_Struct* table = reinterpret_cast<rb_Table_Struct*>(data);
 	if (table != nullptr) {
 		if (table->heap != nullptr) {
@@ -60,9 +64,8 @@ void rb_Table_internal_copyModuloYpart(short* xheap1, short* yheap2, long ox2, l
 	rb_Table_internal_copyLine(xheap1, xheap2, 0, target_x2);
 }
 
-
 VALUE rb_Table_Alloc(VALUE klass) {
-	return Data_Wrap_Struct(klass, NULL, rb_Table_Free, new rb_Table_Struct());
+	return rb::Alloc<rb_Table_Struct>(klass);
 }
 
 VALUE rb_Table_initialize(int argc, VALUE* argv, VALUE self) {
@@ -207,7 +210,7 @@ VALUE rb_Table_Load(VALUE self, VALUE str) {
 	arr[2] = UINT2NUM(table->header.zsize);
 	table->header.dim = cgss::normalize_long(table->header.dim, 1, 3);
 	VALUE rtable = rb_class_new_instance(table->header.dim, arr, self);
-	Data_Get_Struct(rtable, rb_Table_Struct, table);
+	table = rb::GetPtr<rb_Table_Struct>(rtable);
 	memcpy(table->heap, RSTRING_PTR(str) + sizeof(rb_Table_Struct_Header), table->header.data_size * sizeof(std::remove_pointer<decltype(table->heap)>::type));
 	return rtable;
 }

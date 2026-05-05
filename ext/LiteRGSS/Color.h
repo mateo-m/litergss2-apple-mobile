@@ -4,6 +4,7 @@
 #include <SFML/Graphics/Color.hpp>
 #include <LiteCGSS/Common/BondElement.h>
 #include "RubyValue.h"
+#include "rbAdapter.h"
 
 void Init_Color();
 extern VALUE rb_cColor;
@@ -36,5 +37,8 @@ struct ColorElement :
 	}
 
 };
+
+template<>
+void rb::Mark<ColorElement>(void* ptr);
 
 #endif

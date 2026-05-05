@@ -4,6 +4,7 @@
 #include "DisplayWindowInput.h"
 #include "CgssWrapper.h"
 #include "RubyValue.h"
+#include "rbAdapter.h"
 
 extern VALUE rb_cDisplayWindow;
 extern VALUE rb_eStoppedWindowError;
@@ -48,5 +49,8 @@ struct DisplayWindowElement :
 		drawable.init(Drawable::create(*instance(), std::forward<Args>(args)...));
 	}
 };
+
+template<>
+void rb::Mark<DisplayWindowElement>(void* ptr);
 
 #endif

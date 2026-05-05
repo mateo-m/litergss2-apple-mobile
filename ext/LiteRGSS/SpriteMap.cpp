@@ -11,7 +11,8 @@
 VALUE rb_cSpriteMap = Qnil;
 
 template<>
-void rb::Mark<SpriteMapElement>(SpriteMapElement* sprite) {
+void rb::Mark<SpriteMapElement>(void* ptr) {
+	auto* sprite = static_cast<SpriteMapElement*>(ptr);
 	if (sprite == nullptr) {
 		return;
 	}
@@ -43,7 +44,7 @@ VALUE rb_SpriteMap_Dispose(VALUE self) {
 }
 
 VALUE rb_SpriteMap_Disposed(VALUE self) {
-	return RDATA(self)->data == nullptr ? Qtrue : Qfalse;
+	return RTYPEDDATA_DATA(self) == nullptr ? Qtrue : Qfalse;
 }
 
 VALUE rb_SpriteMap_Viewport(VALUE self) {

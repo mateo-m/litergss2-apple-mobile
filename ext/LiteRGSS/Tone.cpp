@@ -6,8 +6,7 @@
 VALUE rb_cTone = Qnil;
 
 template<>
-void rb::Mark<ToneElement>(ToneElement* tone) {
-}
+void rb::Mark<ToneElement>(void* ptr) {}
 
 VALUE rb_Tone_Initialize(int argc, VALUE* argv, VALUE self) {
 	VALUE red, green, blue, alpha;

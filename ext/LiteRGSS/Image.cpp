@@ -10,8 +10,7 @@
 VALUE rb_cImage = Qnil;
 
 template<>
-void rb::Mark<ImageElement>(ImageElement* image) {
-}
+void rb::Mark<ImageElement>(void* ptr) {}
 
 VALUE rb_Image_Initialize(int argc, VALUE *argv, VALUE self) {
 	VALUE string;

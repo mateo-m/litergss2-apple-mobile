@@ -7,7 +7,7 @@
 VALUE rb_cColor = Qnil;
 
 template<>
-void rb::Mark<ColorElement>(ColorElement* color) {}
+void rb::Mark<ColorElement>(void* ptr) {}
 
 VALUE rb_Color_Initialize(int argc, VALUE* argv, VALUE self) {
 	VALUE red, green, blue, alpha;

@@ -4,6 +4,9 @@
 
 VALUE rb_cBlendMode = Qnil;
 
+template<>
+void rb::Mark<RenderStatesElement>(void* ptr) {}
+
 VALUE rb_BlendMode_setColorSrcFactor(VALUE self, VALUE val) {
 	auto& renderStates = rb::Get<RenderStatesElement>(self);
 	renderStates.data().setBlendColorSrcFactor(static_cast<sf::BlendMode::Factor>(NUM2LONG(val)));
@@ -162,5 +165,4 @@ void Init_BlendMode() {
 	rb_define_const(rb_cBlendMode, "OneMinusSrcAlpha", LONG2FIX(sf::BlendMode::Factor::OneMinusSrcAlpha));
 	rb_define_const(rb_cBlendMode, "DstAlpha", LONG2FIX(sf::BlendMode::Factor::DstAlpha));
 	rb_define_const(rb_cBlendMode, "OneMinusDstAlpha", LONG2FIX(sf::BlendMode::Factor::OneMinusDstAlpha));
-
 }

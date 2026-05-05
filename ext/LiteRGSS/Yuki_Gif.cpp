@@ -7,6 +7,9 @@
 VALUE rb_cYukiGifReader = Qnil;
 VALUE rb_cYukiGifError = Qnil;
 
+template<>
+void rb::Mark<YukiGifElement>(void* ptr) {}
+
 VALUE rb_Yuki_GifReader_Initialize(int argc, VALUE *argv, VALUE self) {
 	auto& gif = rb::Get<YukiGifElement>(self);
 	gif.init();

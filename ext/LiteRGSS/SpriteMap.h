@@ -4,6 +4,7 @@
 #include <LiteCGSS/Graphics/SpriteMap.h>
 #include "CgssWrapper.h"
 #include "RubyValue.h"
+#include "rbAdapter.h"
 
 extern VALUE rb_cSpriteMap;
 void Init_SpriteMap();
@@ -18,5 +19,8 @@ struct SpriteMapElement :
 	VALUE rOY = LONG2FIX(0);
 	VALUE rScale = LONG2FIX(1);
 };
+
+template<>
+void rb::Mark<SpriteMapElement>(void* ptr);
 
 #endif

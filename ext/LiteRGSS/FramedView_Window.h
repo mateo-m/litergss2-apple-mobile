@@ -4,6 +4,7 @@
 #include <LiteCGSS/Views/FramedView.h>
 #include "CgssWrapper.h"
 #include "RubyValue.h"
+#include "rbAdapter.h"
 
 extern VALUE rb_cWindow;
 void Init_Window();
@@ -38,5 +39,8 @@ struct FramedViewElement :
 		drawable.init(Drawable::create(*instance(), std::forward<Args>(args)...));
 	}
 };
+
+template<>
+void rb::Mark<FramedViewElement>(void* ptr);
 
 #endif

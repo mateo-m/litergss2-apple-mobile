@@ -26,7 +26,7 @@ namespace rb {
 	using ErrorCallback = std::function<void(const std::string&)>;
 
 	static inline bool CheckDisposedBool(VALUE self) {
-		return RDATA(self)->data == nullptr;
+		return RTYPEDDATA_DATA(self) == nullptr;
 	}
 
 	template <class T, bool raise = true>
@@ -44,8 +44,31 @@ namespace rb {
 	}
 
 	template <class T>
+	void Mark(void* data) {}
+
+	template <class T>
+	void Free(void* data) {
+		delete reinterpret_cast<T*>(data);
+	}
+
+	template <class T>
+	rb_data_type_t &GetDataType() {
+		// RUBY_TYPED_FREE_IMMEDIATELY lets the GC call dfree synchronously on
+		// collection instead of deferring via finalizer.
+		static rb_data_type_t type = {typeid(T).name(), {Mark<T>, Free<T>, nullptr, nullptr}, nullptr, nullptr, RUBY_TYPED_FREE_IMMEDIATELY};
+		return type;
+	}
+
+	template <class T>
+	VALUE Alloc(VALUE klass) {
+		return TypedData_Wrap_Struct(klass, &GetDataType<T>(), new T());
+	}
+
+	template <class T>
 	auto* GetPtr(VALUE self) {
-		return reinterpret_cast<T*>(rb_data_object_get(self));
+		T* ptr;
+		TypedData_Get_Struct(self, T, &GetDataType<T>(), ptr);
+		return ptr;
 	}
 
 	template <class T>
@@ -97,32 +120,19 @@ namespace rb {
 	}
 
 	template <class T>
-	void Free(void* data) {
-		delete reinterpret_cast<T*>(data);
-	}
-
-	template <class T>
-	void Mark(T* data) {}
-
-	template <class T>
-	VALUE Alloc(VALUE klass) {
-		return Data_Wrap_Struct(klass, Mark<T>, Free<T>, new T());
-	}
-
-	template <class T>
 	VALUE RawDispose(VALUE self) {
-		if (RDATA(self)->data == nullptr) {
+		if (RTYPEDDATA_DATA(self) == nullptr) {
 			return Qnil;
 		}
 		delete GetPtr<T>(self);
-		RDATA(self)->data = nullptr;
+		RTYPEDDATA_DATA(self) = nullptr;
 		return Qnil;
 	}
 
 	template <class T>
 	VALUE Dispose(VALUE self) {
 		// Do not soft crash if we try to dispose an already disposed object (dispose tolerance)
-		if (RDATA(self)->data == nullptr) { return Qnil; }
+		if (RTYPEDDATA_DATA(self) == nullptr) { return Qnil; }
 		auto& element = rb::Get<T>(self);
 		element->detach();
 		return RawDispose<T>(self);

@@ -4,9 +4,13 @@
 #include <LiteCGSS/Image/Image.h>
 #include "RubyValue.h"
 #include "CgssWrapper.h"
+#include "rbAdapter.h"
 
 extern VALUE rb_cImage;
 using ImageElement = CgssInstance<cgss::Image>;
 void Init_Image();
+
+template<>
+void rb::Mark<ImageElement>(void* ptr);
 
 #endif

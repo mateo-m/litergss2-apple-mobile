@@ -10,6 +10,9 @@
 
 VALUE rb_cBitmap = Qnil;
 
+template<>
+void rb::Mark<TextureElement>(void* ptr) {}
+
 VALUE TextureElement::snapToTexture(const cgss::SnapshotCapturable& toCapture) {
 	auto outputTexture = toCapture.takeSnapshot();
 	//Allocates memory ruby-side to take a snapshot
@@ -17,10 +20,6 @@ VALUE TextureElement::snapToTexture(const cgss::SnapshotCapturable& toCapture) {
 	auto& texture = rb::Get<TextureElement>(bmp);
 	texture.init(cgss::Texture::create(std::move(*outputTexture)));
 	return bmp;
-}
-
-template<>
-void rb::Mark<TextureElement>(TextureElement* texture) {
 }
 
 static VALUE rb_Bitmap_Initialize(int argc, VALUE *argv, VALUE self) {

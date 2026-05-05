@@ -20,6 +20,8 @@ VALUE rb_DrawableDisposable_dispose(VALUE self) {
 }
 
 VALUE rb_DrawableDisposable_disposed(VALUE self) {
-	rb_check_type(self, T_DATA);
-	return (RDATA(self)->data == nullptr ? Qtrue : Qfalse);
+	if (!RB_TYPE_P(self, T_DATA) || !RTYPEDDATA_P(self)) {
+        rb_raise(rb_eTypeError, "wrong argument type");
+    }	
+	return (RTYPEDDATA_DATA(self) == nullptr ? Qtrue : Qfalse);
 }

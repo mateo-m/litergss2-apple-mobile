@@ -2,6 +2,7 @@
 #define Table_H
 
 #include "RubyValue.h"
+#include "rbAdapter.h"
 
 extern VALUE rb_cTable;
 void Init_Table();
@@ -18,5 +19,11 @@ struct rb_Table_Struct {
 	rb_Table_Struct_Header header {};
 	short* heap = nullptr;
 };
+
+template<>
+void rb::Mark<rb_Table_Struct>(void* ptr);
+
+template<>
+void rb::Free<rb_Table_Struct>(void* data);
 
 #endif
