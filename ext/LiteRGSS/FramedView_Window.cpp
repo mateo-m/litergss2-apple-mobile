@@ -11,7 +11,8 @@
 VALUE rb_cWindow = Qnil;
 
 template<>
-void rb::Mark<FramedViewElement>(FramedViewElement* framedView) {
+void rb::Mark<FramedViewElement>(void* ptr) {
+	auto* framedView = static_cast<FramedViewElement*>(ptr);
 	if (framedView == nullptr) {
 		return;
 	}
@@ -83,7 +84,7 @@ VALUE rb_Window_Dispose(VALUE self) {
 }
 
 VALUE rb_Window_Disposed(VALUE self) {
-	return RDATA(self)->data == nullptr ? Qtrue : Qfalse;
+	return RTYPEDDATA_DATA(self) == nullptr ? Qtrue : Qfalse;
 }
 
 VALUE rb_Window_setWindowSkin(VALUE self, VALUE val) {

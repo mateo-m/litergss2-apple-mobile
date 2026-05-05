@@ -8,7 +8,8 @@
 VALUE rb_cShaderSprite = Qnil;
 
 template<>
-void rb::Mark<ShaderSpriteElement>(ShaderSpriteElement* sprite) {
+void rb::Mark<ShaderSpriteElement>(void* ptr) {
+	auto* sprite = static_cast<ShaderSpriteElement*>(ptr);
 	if (sprite == nullptr) {
 		return;
 	}
@@ -22,7 +23,20 @@ void rb::Mark<ShaderSpriteElement>(ShaderSpriteElement* sprite) {
 	rb_gc_mark(sprite->rZoomX);
 	rb_gc_mark(sprite->rZoomY);
 	rb_gc_mark(sprite->rRect);
+	rb_gc_mark(sprite->rMirror);
 	rb_gc_mark(sprite->rRenderStates);
+}
+
+template <>
+rb_data_type_t& rb::GetDataType<ShaderSpriteElement>() {
+	static rb_data_type_t type = {
+		typeid(ShaderSpriteElement).name(),
+		{ Mark<ShaderSpriteElement>, Free<ShaderSpriteElement>, nullptr, nullptr },
+		&GetDataType<SpriteElement>(),
+		nullptr,
+		RUBY_TYPED_FREE_IMMEDIATELY
+	};
+	return type;
 }
 
 VALUE rb_ShaderSprite_getShader(VALUE self) {

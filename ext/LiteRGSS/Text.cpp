@@ -13,7 +13,8 @@
 VALUE rb_cText = Qnil;
 
 template<>
-void rb::Mark<TextElement>(TextElement* text) {
+void rb::Mark<TextElement>(void* ptr) {
+	auto* text = static_cast<TextElement*>(ptr);
 	if (text == nullptr) {
 		return;
 	}
@@ -48,7 +49,7 @@ VALUE rb_Text_Dispose(VALUE self) {
 }
 
 VALUE rb_Text_Disposed(VALUE self) {
-	return RDATA(self)->data == nullptr ? Qtrue : Qfalse;
+	return RTYPEDDATA_DATA(self) == nullptr ? Qtrue : Qfalse;
 }
 
 VALUE rb_Text_get_num_char(VALUE self) {

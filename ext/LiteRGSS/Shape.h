@@ -4,6 +4,7 @@
 #include <LiteCGSS/Graphics/Shape.h>
 #include "CgssWrapper.h"
 #include "RubyValue.h"
+#include "rbAdapter.h"
 
 extern VALUE rb_cShape;
 void Init_Shape();
@@ -27,5 +28,8 @@ struct ShapeElement :
 	VALUE rOutlineColor = Qnil;
 	VALUE rOutlineThickness = LONG2FIX(0);
 };
+
+template<>
+void rb::Mark<ShapeElement>(void* ptr);
 
 #endif

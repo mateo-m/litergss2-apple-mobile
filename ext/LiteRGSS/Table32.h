@@ -4,6 +4,8 @@
 #include <cstdint>
 
 #include "RubyValue.h"
+#include "rbAdapter.h"
+
 extern VALUE rb_cTable32;
 void Init_Table32();
 
@@ -19,5 +21,11 @@ struct rb_Table32_Struct {
 	rb_Table32_Struct_Header header{};
 	int32_t* heap = nullptr;
 };
+
+template<>
+void rb::Mark<rb_Table32_Struct>(void* ptr);
+
+template<>
+void rb::Free<rb_Table32_Struct>(void* data);
 
 #endif

@@ -3,6 +3,7 @@
 
 #include "RubyValue.h"
 #include "Sprite.h"
+#include "rbAdapter.h"
 
 extern VALUE rb_cShaderSprite;
 void Init_ShaderSprite();
@@ -12,5 +13,11 @@ struct ShaderSpriteElement :
 
 	VALUE rRenderStates;
 };
+
+template<>
+void rb::Mark<ShaderSpriteElement>(void* ptr);
+
+template <>
+rb_data_type_t& rb::GetDataType<ShaderSpriteElement>();
 
 #endif

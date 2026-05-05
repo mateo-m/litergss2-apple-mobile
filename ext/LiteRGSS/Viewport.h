@@ -4,6 +4,7 @@
 #include <LiteCGSS/Views/Viewport.h>
 #include "CgssWrapper.h"
 #include "RubyValue.h"
+#include "rbAdapter.h"
 
 extern VALUE rb_cViewport;
 void Init_Viewport();
@@ -21,5 +22,8 @@ struct ViewportElement :
 		drawable.init(Drawable::create(*instance(), std::forward<Args>(args)...));
 	}
 };
+
+template<>
+void rb::Mark<ViewportElement>(void* ptr);
 
 #endif

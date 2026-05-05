@@ -4,10 +4,14 @@
 #include <SFML/Graphics/Glsl.hpp>
 #include <LiteCGSS/Common/BondElement.h>
 #include "RubyValue.h"
+#include "rbAdapter.h"
 
 extern VALUE rb_cTone;
 void Init_Tone();
 
 using ToneElement = cgss::BondElement<sf::Glsl::Vec4>;
+
+template<>
+void rb::Mark<ToneElement>(void* ptr);
 
 #endif

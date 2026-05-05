@@ -5,8 +5,7 @@
 VALUE rb_cRect = Qnil;
 
 template<>
-void rb::Mark<RectangleElement>(RectangleElement* rectangle) {
-}
+void rb::Mark<RectangleElement>(void* ptr) {}
 
 /*
  * Initialisation :

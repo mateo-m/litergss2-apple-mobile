@@ -14,7 +14,8 @@
 VALUE rb_cViewport = Qnil;
 
 template<>
-void rb::Mark<ViewportElement>(ViewportElement* viewport) {
+void rb::Mark<ViewportElement>(void* ptr) {
+	auto* viewport = static_cast<ViewportElement*>(ptr);
 	if (viewport == nullptr) {
 		return;
 	}
@@ -63,7 +64,7 @@ static VALUE rb_Viewport_Dispose(VALUE self) {
 }
 
 static VALUE rb_Viewport_Disposed(VALUE self) {
-	return RDATA(self)->data == nullptr ? Qtrue : Qfalse;
+	return RTYPEDDATA_DATA(self) == nullptr ? Qtrue : Qfalse;
 }
 
 static VALUE rb_Viewport_getOX(VALUE self) {

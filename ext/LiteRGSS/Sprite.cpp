@@ -13,22 +13,22 @@
 VALUE rb_cSprite = Qnil;
 
 template<>
-void rb::Mark<SpriteElement>(SpriteElement* spritePtr) {
-	if (spritePtr == nullptr) {
+void rb::Mark<SpriteElement>(void* ptr) {
+	auto* sprite = static_cast<SpriteElement*>(ptr);
+	if (sprite == nullptr) {
 		return;
 	}
-	auto& sprite = *spritePtr;
-	rb_gc_mark(sprite.rViewport);
-	rb_gc_mark(sprite.rBitmap);
-	rb_gc_mark(sprite.rX);
-	rb_gc_mark(sprite.rY);
-	rb_gc_mark(sprite.rOX);
-	rb_gc_mark(sprite.rOY);
-	rb_gc_mark(sprite.rAngle);
-	rb_gc_mark(sprite.rZoomX);
-	rb_gc_mark(sprite.rZoomY);
-	rb_gc_mark(sprite.rRect);
-	rb_gc_mark(sprite.rMirror);
+	rb_gc_mark(sprite->rViewport);
+	rb_gc_mark(sprite->rBitmap);
+	rb_gc_mark(sprite->rX);
+	rb_gc_mark(sprite->rY);
+	rb_gc_mark(sprite->rOX);
+	rb_gc_mark(sprite->rOY);
+	rb_gc_mark(sprite->rAngle);
+	rb_gc_mark(sprite->rZoomX);
+	rb_gc_mark(sprite->rZoomY);
+	rb_gc_mark(sprite->rRect);
+	rb_gc_mark(sprite->rMirror);
 }
 
 static VALUE rb_Sprite_Copy(VALUE self) {
@@ -41,7 +41,7 @@ static VALUE rb_Sprite_Dispose(VALUE self) {
 }
 
 VALUE rb_Sprite_Disposed(VALUE self) {
-	return RDATA(self)->data == nullptr ? Qtrue : Qfalse;
+	return RTYPEDDATA_DATA(self) == nullptr ? Qtrue : Qfalse;
 }
 
 static VALUE rb_Sprite_setBitmap(VALUE self, VALUE bitmap) {

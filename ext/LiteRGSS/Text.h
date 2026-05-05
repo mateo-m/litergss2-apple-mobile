@@ -4,6 +4,7 @@
 #include <LiteCGSS/Graphics/Text.h>
 #include "CgssWrapper.h"
 #include "RubyValue.h"
+#include "rbAdapter.h"
 
 extern VALUE rb_cText;
 void Init_Text();
@@ -19,5 +20,8 @@ struct TextElement :
 	VALUE rX = LONG2FIX(0);
 	VALUE rY = LONG2FIX(0);
 };
+
+template<>
+void rb::Mark<TextElement>(void* ptr);
 
 #endif

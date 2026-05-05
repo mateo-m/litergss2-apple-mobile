@@ -4,7 +4,11 @@
 
 VALUE rb_cTable32 = Qnil;
 
-void rb_Table32_Free(void* data) {
+template<>
+void rb::Mark<rb_Table32_Struct>(void* ptr) {}
+
+template<>
+void rb::Free<rb_Table32_Struct>(void* data) {
 	rb_Table32_Struct* table = reinterpret_cast<rb_Table32_Struct*>(data);
 	if (table != nullptr) {
 		if (table->heap != nullptr) {
@@ -16,7 +20,7 @@ void rb_Table32_Free(void* data) {
 }
 
 VALUE rb_Table32_Alloc(VALUE klass) {
-	return Data_Wrap_Struct(klass, NULL, rb_Table32_Free, new rb_Table32_Struct());
+	return rb::Alloc<rb_Table32_Struct>(klass);
 }
 
 VALUE rb_Table32_initialize(int argc, VALUE* argv, VALUE self) {
@@ -158,7 +162,7 @@ VALUE rb_Table32_Load(VALUE self, VALUE str) {
 	arr[2] = RB_UINT2NUM(table->header.zsize);
 	table->header.dim = cgss::normalize_long(table->header.dim, 1, 3);
 	VALUE rtable = rb_class_new_instance(table->header.dim, arr, self);
-	Data_Get_Struct(rtable, rb_Table32_Struct, table);
+	table = rb::GetPtr<rb_Table32_Struct>(rtable);
 	memcpy(table->heap, RSTRING_PTR(str) + sizeof(rb_Table32_Struct_Header), table->header.data_size * sizeof(std::remove_pointer<decltype(table->heap)>::type));
 	return rtable;
 }

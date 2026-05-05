@@ -5,10 +5,17 @@
 #include <LiteCGSS/Graphics/GraphicsStackItem.h>
 #include "RubyValue.h"
 #include "CgssWrapper.h"
+#include "rbAdapter.h"
 
 using RectangleElement = CgssInstance<cgss::Rectangle>;
 extern VALUE rb_cRect;
 void Init_Rect();
+
+// Mark hook MUST be declared in the header so every TU that instantiates rb::GetDataType<RectangleElement>
+// initialises the static rb_data_type_t with the real mark, not the generic no-op from rbAdapter.h.
+// Body lives in Rect.cpp.
+template<>
+void rb::Mark<RectangleElement>(void* ptr);
 
 template <class Drawable>
 VALUE rb_Rect_LazyInitDrawable(VALUE& rectValue, Drawable& drawable, const sf::IntRect& initialValue) {
