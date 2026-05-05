@@ -32,5 +32,16 @@ void Init_RubyVFSShimBindings();
 bool RubyVFSShim_Activate();
 bool RubyVFSShim_Deactivate();
 
+// Drop the cached recursive enumeration of mounted archive paths. Called
+// after every mount/unmount so subsequent Dir.glob calls see the new state.
+void RubyVFSShim_InvalidatePathCache();
+
+// Ruby-equivalent glob over the VFS. Uses File.fnmatch? for character
+// matching (so dotfile exclusion, backslash escapes, FNM_* flags all match
+// Dir.glob semantics exactly), plus a cached recursive enumeration of the
+// archive for the candidate set. `pattern` is a Ruby String VALUE; `flags`
+// is OR'd with FNM_PATHNAME | FNM_EXTGLOB. Returns a Ruby Array of strings.
+VALUE RubyVFSShim_Glob(VALUE pattern, int extra_flags);
+
 #endif
 #endif

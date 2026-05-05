@@ -38,6 +38,7 @@ namespace {
 		// Auto-activate the shim on the first mount. Idempotent for further
 		// mounts. Embedders that called install_shim! explicitly are unaffected.
 		if (g_mount_count++ == 0) RubyVFSShim_Activate();
+		RubyVFSShim_InvalidatePathCache();
 		return Qnil;
 	}
 
@@ -54,6 +55,7 @@ namespace {
 			g_mount_count = 0;
 			RubyVFSShim_Deactivate();
 		}
+		RubyVFSShim_InvalidatePathCache();
 		return Qnil;
 	}
 
@@ -102,13 +104,14 @@ namespace {
 		return out;
 	}
 
-	VALUE rb_VFS_Glob(VALUE, VALUE pattern) {
-		const auto list = cgss::vfs::glob(toStdString(pattern));
-		VALUE out = rb_ary_new_capa(static_cast<long>(list.size()));
-		for (const auto& f : list) {
-			rb_ary_push(out, rb_str_new(f.data(), static_cast<long>(f.size())));
-		}
-		return out;
+	VALUE rb_VFS_Glob(int argc, VALUE* argv, VALUE) {
+		VALUE pattern, flags_v;
+		rb_scan_args(argc, argv, "11", &pattern, &flags_v);
+		Check_Type(pattern, T_STRING);
+		const int flags = NIL_P(flags_v) ? 0 : NUM2INT(flags_v);
+		// Use the same matcher as the Dir.glob shim so users get one consistent
+		// semantic — exactly equivalent to Ruby's Dir.glob via File.fnmatch?.
+		return RubyVFSShim_Glob(pattern, flags);
 	}
 }  // namespace
 
@@ -124,7 +127,7 @@ void Init_RubyVFS() {
 	rb_define_module_function(rb_mLiteRGSSVFS, "mtime",         _rbf rb_VFS_Mtime,         1);
 	rb_define_module_function(rb_mLiteRGSSVFS, "read",          _rbf rb_VFS_Read,          1);
 	rb_define_module_function(rb_mLiteRGSSVFS, "enumerate",     _rbf rb_VFS_Enumerate,     1);
-	rb_define_module_function(rb_mLiteRGSSVFS, "glob",          _rbf rb_VFS_Glob,          1);
+	rb_define_module_function(rb_mLiteRGSSVFS, "glob",          _rbf rb_VFS_Glob,         -1);
 
 	// Define LiteRGSS::VFS.install_shim! / .shim_installed? — the transparent
 	// File / Dir / IO / Kernel#require overrides are OPT-IN and only activate
