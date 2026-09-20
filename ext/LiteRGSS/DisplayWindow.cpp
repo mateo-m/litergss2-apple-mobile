@@ -48,6 +48,13 @@ void rb::Mark<DisplayWindowElement>(void* ptr) {
 	rb_gc_mark(window->rOnSensorChanged);
 }
 
+// mkxp-ios: a host app owns the smooth switch, because Ruby never sets
+// this field. A texture reads the flag when the game creates it, so a new
+// value only reaches the whole game on the next start. The host app
+// defines the function. A build without one links, because the symbol is
+// weak, and keeps the sharp picture.
+extern "C" __attribute__((weak)) int psdk_smooth_scaling_enabled(void);
+
 static cgss::DisplayWindowSettings BuildSettings(int argc, VALUE* argv, VALUE self) {
 	VALUE title, width, height, scale, bitsPerPixel, framerate, vsync, fullscreen, visibleMouse;
 	rb_scan_args(argc, argv, "45", &title, &width, &height, &scale, &bitsPerPixel, &framerate, &vsync, &fullscreen, &visibleMouse);
@@ -73,7 +80,7 @@ static cgss::DisplayWindowSettings BuildSettings(int argc, VALUE* argv, VALUE se
 		false,
 		std::move(videoSettings),
 		std::move(contextSettings),
-		false,
+		psdk_smooth_scaling_enabled ? psdk_smooth_scaling_enabled() != 0 : false,
 		sf::String::fromUtf8(titleStr.begin(), titleStr.end()),
 		static_cast<unsigned int>(rb_num2long(framerate)),
 		RTEST(vsync),
