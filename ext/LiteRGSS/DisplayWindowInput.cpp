@@ -5,9 +5,53 @@
 #include "DisplayWindowInput.h"
 #include "rbAdapter.h"
 #include "DisplayWindow.h"
+#include <SFML/Window/VideoMode.hpp>
 
 extern VALUE rb_eStoppedWindowError;
 extern VALUE rb_eClosedWindow;
+
+// mkxp-ios: a host app draws the game in part of its window, and it lets
+// the player turn touch input off. The host app defines these functions.
+// A build without one links, because the symbols are weak, and then the
+// game gets every touch with the raw window coordinates.
+extern "C" __attribute__((weak)) int psdk_picture_rect_pixels(int* x, int* y, int* width, int* height);
+extern "C" __attribute__((weak)) int psdk_touch_mouse_enabled(void);
+
+namespace {
+	bool touchReachesTheGame() {
+		return !psdk_touch_mouse_enabled || psdk_touch_mouse_enabled() != 0;
+	}
+
+	// PSDK's Mouse module divides the coordinate an event carries. It
+	// divides by the window scale, or by the desktop size when the game
+	// runs full screen. Graphics gives DisplayWindow.new the same scale
+	// and the same full screen flag, so both numbers are here, and the
+	// point inside the picture goes out multiplied by the same number.
+	// Then Mouse lands on the game pixel under the finger.
+	sf::Vector2i touchInsideThePicture(const cgss::DisplayWindowSettings& settings, int x, int y) {
+		int rectX = 0;
+		int rectY = 0;
+		int rectWidth = 0;
+		int rectHeight = 0;
+		if (!psdk_picture_rect_pixels || !psdk_picture_rect_pixels(&rectX, &rectY, &rectWidth, &rectHeight)) {
+			return { x, y };
+		}
+		const double partX = static_cast<double>(x - rectX) / rectWidth;
+		const double partY = static_cast<double>(y - rectY) / rectHeight;
+		if (settings.fullscreen) {
+			const auto desktop = sf::VideoMode::getDesktopMode();
+			return {
+				static_cast<int>(partX * desktop.width),
+				static_cast<int>(partY * desktop.height)
+			};
+		}
+
+		return {
+			static_cast<int>(partX * settings.video.width * settings.video.scale),
+			static_cast<int>(partY * settings.video.height * settings.video.scale)
+		};
+	}
+}
 
 void DisplayWindowInput::manageErrorMessage(VALUE self, const DisplayWindowUpdateMessage& message) {
 	/* Force window closing if the error is ClosedWindowError */
@@ -164,31 +208,34 @@ void DisplayWindowInput::updateProcessEvent(VALUE self, DisplayWindowUpdateMessa
 				}
 				break;
 			case sf::Event::EventType::TouchBegan:
-				if (window.rOnTouchBegan != Qnil) {
+				if (window.rOnTouchBegan != Qnil && touchReachesTheGame()) {
+					const auto point = touchInsideThePicture(window->getSettings(), event.touch.x, event.touch.y);
 					VALUE args[3] = {
 						UINT2NUM(event.touch.finger),
-						INT2NUM(event.touch.x),
-						INT2NUM(event.touch.y)
+						INT2NUM(point.x),
+						INT2NUM(point.y)
 					};
 					rb_funcall2(window.rOnTouchBegan, rbCall, 3, args);
 				}
 				break;
 			case sf::Event::EventType::TouchMoved:
-				if (window.rOnTouchMoved != Qnil) {
+				if (window.rOnTouchMoved != Qnil && touchReachesTheGame()) {
+					const auto point = touchInsideThePicture(window->getSettings(), event.touch.x, event.touch.y);
 					VALUE args[3] = {
 						UINT2NUM(event.touch.finger),
-						INT2NUM(event.touch.x),
-						INT2NUM(event.touch.y)
+						INT2NUM(point.x),
+						INT2NUM(point.y)
 					};
 					rb_funcall2(window.rOnTouchMoved, rbCall, 3, args);
 				}
 				break;
 			case sf::Event::EventType::TouchEnded:
-				if (window.rOnTouchEnded != Qnil) {
+				if (window.rOnTouchEnded != Qnil && touchReachesTheGame()) {
+					const auto point = touchInsideThePicture(window->getSettings(), event.touch.x, event.touch.y);
 					VALUE args[3] = {
 						UINT2NUM(event.touch.finger),
-						INT2NUM(event.touch.x),
-						INT2NUM(event.touch.y)
+						INT2NUM(point.x),
+						INT2NUM(point.y)
 					};
 					rb_funcall2(window.rOnTouchEnded, rbCall, 3, args);
 				}
