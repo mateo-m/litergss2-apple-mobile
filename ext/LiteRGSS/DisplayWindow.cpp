@@ -223,11 +223,18 @@ static VALUE rb_DisplayWindow_setShader(VALUE self, VALUE shader) {
 	return self;
 }
 
+// mkxp-ios: see DisplayWindowConfigLoader.cpp. This path skips the
+// config loader, so it reports the new resolution itself.
+extern "C" __attribute__((weak)) void psdk_game_resolution(long width, long height);
+
 static VALUE rb_DisplayWindow_resize_screen(VALUE self, VALUE width, VALUE height) {
 	const int iwidth = NUM2INT(width);
 	const int iheight = NUM2INT(height);
 	auto& window = rb::Get<DisplayWindowElement>(self);
 	window->resizeScreen(iwidth, iheight);
+	if (psdk_game_resolution && iwidth > 0 && iheight > 0) {
+		psdk_game_resolution(iwidth, iheight);
+	}
 	return self;
 }
 
