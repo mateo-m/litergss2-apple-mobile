@@ -26,6 +26,16 @@
 #include "SfMouse.h"
 #include "SfJoystick.h"
 
+// mkxp-ios: a host app lets the player run the game faster. The host app
+// defines this function. A build without one links, because the symbol is
+// weak, and keeps the normal speed.
+extern "C" __attribute__((weak)) int psdk_fast_forward_multiplier(void);
+
+static VALUE rb_LiteRGSS_fast_forward_multiplier(VALUE self) {
+	const int multiplier = psdk_fast_forward_multiplier ? psdk_fast_forward_multiplier() : 1;
+	return INT2FIX(multiplier < 1 ? 1 : multiplier);
+}
+
 VALUE rb_mLiteRGSS = Qnil;
 VALUE rb_mConfig = Qnil;
 VALUE rb_eRGSSError = Qnil;
@@ -35,6 +45,8 @@ extern "C" {
 		rb_mLiteRGSS = rb_define_module("LiteRGSS");
 		rb_mConfig = rb_define_module_under(rb_mLiteRGSS, "Config");
 		rb_eRGSSError = rb_define_class_under(rb_mLiteRGSS, "Error", rb_eStandardError);
+		rb_define_module_function(rb_mLiteRGSS, "fast_forward_multiplier",
+			_rbf rb_LiteRGSS_fast_forward_multiplier, 0);
 		Init_DrawableDisposable();
 		Init_Bitmap();
 		Init_Image();
