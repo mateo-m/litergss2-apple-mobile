@@ -29,7 +29,12 @@ VALUE rb_Fonts_load_font(VALUE self, VALUE id, VALUE str) {
 	while (rb_Fonts_font_tbl.size() <= position) {
 		rb_Fonts_font_tbl.push_back(sf::Font());
 	}
-	cgss::FontLoaderMethod::load(rb_Fonts_font_tbl[position], RSTRING_PTR(str));
+	// iOS opens files case-sensitively, and a released game can ask for a
+	// spelling it did not ship. A font that fails to load draws no glyph,
+	// so without this line the screen only shows text that is not there.
+	if (!cgss::FontLoaderMethod::load(rb_Fonts_font_tbl[position], RSTRING_PTR(str))) {
+		fprintf(stderr, "[litergss] font %lu not loaded from %s\n", position, RSTRING_PTR(str));
+	}
 	return self;
 }
 
