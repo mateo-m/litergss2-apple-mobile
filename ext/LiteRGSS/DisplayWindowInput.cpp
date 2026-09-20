@@ -115,7 +115,20 @@ void DisplayWindowInput::updateProcessEvent(VALUE self, DisplayWindowUpdateMessa
 						event.key.shift ? Qtrue : Qfalse,
 						event.key.system ? Qtrue : Qfalse
 					};
-					rb_funcall2(window.rOnKeyPressed, rbCall, 6, args);
+					// A game built before the scancode joined this event
+					// registers `proc { |code, alt| ... }`. The scancode now
+					// sits where alt sat, and a scancode is never nil, so
+					// every key reads as "alt is down". PSDK answers
+					// Alt+Enter with Graphics.swap_fullscreen, so the confirm
+					// key toggles the video mode and sets no key. The proc's
+					// arity is the one signal of which shape it carries: the
+					// old proc asks for 2 values, the current one for 3.
+					if (NUM2INT(rb_funcall(window.rOnKeyPressed, rb_intern("arity"), 0)) == 2) {
+						VALUE legacy[5] = { args[0], args[2], args[3], args[4], args[5] };
+						rb_funcall2(window.rOnKeyPressed, rbCall, 5, legacy);
+					} else {
+						rb_funcall2(window.rOnKeyPressed, rbCall, 6, args);
+					}
 				}
 				break;
 			case sf::Event::EventType::KeyReleased:
