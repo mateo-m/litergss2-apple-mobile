@@ -1,4 +1,20 @@
 # LiteRGSS2
+
+> This repository is a copy of LiteRGSS2, not a GitHub fork. GitHub can
+> only fork a repository it hosts, and LiteRGSS2 lives on GitLab.
+>
+> Upstream: <https://gitlab.com/pokemonsdk/litergss2>, branch `development`.
+> This copy branches at `3116fe7`, "feat: completely remove the physfs
+> layer out in a separate gem - ruby-physfs" by Scorbutics, 2026-05-05.
+> Branch `dev` adds the hooks that let a host app drive the engine on
+> iOS. To read the upstream history, add the remote:
+>
+> ```sh
+> git remote add upstream https://gitlab.com/pokemonsdk/litergss2.git
+> ```
+>
+> The remote uses https because GitLab has no SSH key for this account.
+
 ## What is LiteRGSS2 ?
 
 `LiteRGSS2` is a little Ruby Game library that reproduces some features of the RGSS. It has been written with `SFML` and only manage the Graphic part.
