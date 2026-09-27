@@ -6,20 +6,22 @@
 #include "rbAdapter.h"
 #include "DisplayWindow.h"
 #include <SFML/Window/VideoMode.hpp>
+#include <atomic>
 
 extern VALUE rb_eStoppedWindowError;
 extern VALUE rb_eClosedWindow;
 
-// mkxp-ios: a host app draws the game in part of its window, and it lets
-// the player turn touch input off. The host app defines these functions.
-// A build without one links, because the symbols are weak, and then the
-// game gets every touch with the raw window coordinates.
-extern "C" __attribute__((weak)) int psdk_picture_rect_pixels(int* x, int* y, int* width, int* height);
-extern "C" __attribute__((weak)) int psdk_touch_mouse_enabled(void);
+// mkxp-ios: the SFML fork draws the picture in the part of the window
+// that a host app gives it with sfml_set_output_region.
+extern "C" void sfml_get_output_region(float* x, float* y, float* width, float* height);
+extern "C" void sfml_window_pixel_size(unsigned int* width, unsigned int* height);
 
 namespace {
+	// mkxp-ios: a host app lets the player turn touch input off.
+	std::atomic<bool> touchEnabled { true };
+
 	bool touchReachesTheGame() {
-		return !psdk_touch_mouse_enabled || psdk_touch_mouse_enabled() != 0;
+		return touchEnabled.load(std::memory_order_relaxed);
 	}
 
 	// PSDK's Mouse module divides the coordinate an event carries. It
@@ -29,15 +31,21 @@ namespace {
 	// point inside the picture goes out multiplied by the same number.
 	// Then Mouse lands on the game pixel under the finger.
 	sf::Vector2i touchInsideThePicture(const cgss::DisplayWindowSettings& settings, int x, int y) {
-		int rectX = 0;
-		int rectY = 0;
-		int rectWidth = 0;
-		int rectHeight = 0;
-		if (!psdk_picture_rect_pixels || !psdk_picture_rect_pixels(&rectX, &rectY, &rectWidth, &rectHeight)) {
+		unsigned int windowWidth = 0;
+		unsigned int windowHeight = 0;
+		sfml_window_pixel_size(&windowWidth, &windowHeight);
+		float regionX = 0;
+		float regionY = 0;
+		float regionWidth = 0;
+		float regionHeight = 0;
+		sfml_get_output_region(&regionX, &regionY, &regionWidth, &regionHeight);
+		const double rectWidth = regionWidth * windowWidth;
+		const double rectHeight = regionHeight * windowHeight;
+		if (rectWidth <= 0 || rectHeight <= 0) {
 			return { x, y };
 		}
-		const double partX = static_cast<double>(x - rectX) / rectWidth;
-		const double partY = static_cast<double>(y - rectY) / rectHeight;
+		const double partX = (x - regionX * windowWidth) / rectWidth;
+		const double partY = (y - regionY * windowHeight) / rectHeight;
 		if (settings.fullscreen) {
 			const auto desktop = sf::VideoMode::getDesktopMode();
 			return {
@@ -51,6 +59,10 @@ namespace {
 			static_cast<int>(partY * settings.video.height * settings.video.scale)
 		};
 	}
+}
+
+extern "C" void litergss_set_touch_enabled(int enabled) {
+	touchEnabled.store(enabled != 0, std::memory_order_relaxed);
 }
 
 void DisplayWindowInput::manageErrorMessage(VALUE self, const DisplayWindowUpdateMessage& message) {

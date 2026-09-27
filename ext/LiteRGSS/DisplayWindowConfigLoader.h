@@ -9,4 +9,6 @@ public:
 	cgss::DisplayWindowVideoSettings loadVideoFromData(long width, long height, double scale, long bitsPerPixel) const;
 };
 
+void ReportGameResolution(long width, long height);
+
 #endif
