@@ -48,7 +48,7 @@ void rb::Mark<DisplayWindowElement>(void* ptr) {
 	rb_gc_mark(window->rOnSensorChanged);
 }
 
-// mkxp-ios: a host app owns the smooth switch, because Ruby never sets
+// apple-mobile: a host app owns the smooth switch, because Ruby never sets
 // this field. The SFML fork keeps it, and a texture reads it when the
 // game creates the texture, so a new value only reaches the whole game
 // on the next start.

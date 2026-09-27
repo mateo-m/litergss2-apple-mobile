@@ -4,7 +4,7 @@
 
 #include <atomic>
 
-// mkxp-ios: a host app draws the picture in part of its window, and it
+// apple-mobile: a host app draws the picture in part of its window, and it
 // needs the game's own resolution to keep the proportions. The game
 // gives that resolution to DisplayWindow.new, set_settings and
 // resize_screen, and each call reports it here.

@@ -11,13 +11,13 @@
 extern VALUE rb_eStoppedWindowError;
 extern VALUE rb_eClosedWindow;
 
-// mkxp-ios: the SFML fork draws the picture in the part of the window
+// apple-mobile: the SFML fork draws the picture in the part of the window
 // that a host app gives it with sfml_set_output_region.
 extern "C" void sfml_get_output_region(float* x, float* y, float* width, float* height);
 extern "C" void sfml_window_pixel_size(unsigned int* width, unsigned int* height);
 
 namespace {
-	// mkxp-ios: a host app lets the player turn touch input off.
+	// apple-mobile: a host app lets the player turn touch input off.
 	std::atomic<bool> touchEnabled { true };
 
 	bool touchReachesTheGame() {
