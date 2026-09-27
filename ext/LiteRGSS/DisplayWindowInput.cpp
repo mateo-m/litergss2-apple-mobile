@@ -20,6 +20,16 @@ namespace {
 	// apple-mobile: a host app lets the player turn touch input off.
 	std::atomic<bool> touchEnabled { true };
 
+	// apple-mobile: a game that sets no touch handler reads only the mouse.
+	// The first finger then moves the mouse and holds its left button.
+	long mouseFinger = -1;
+	// PSDK scenes skip a click in a frame where the mouse also moved (see
+	// Scene_Title#update_mouse). So the press waits one pass over the event
+	// queue after the move, and the release waits one pass after the press.
+	// The game reads Mouse between two passes.
+	bool mousePressWaits = false;
+	bool mouseReleaseWaits = false;
+
 	bool touchReachesTheGame() {
 		return touchEnabled.load(std::memory_order_relaxed);
 	}
@@ -79,6 +89,28 @@ void DisplayWindowInput::updateProcessEvent(VALUE self, DisplayWindowUpdateMessa
 	sf::Event event;
 	auto& window = rb::Get<DisplayWindowElement>(self);
 	ID rbCall = rb_intern("call");
+
+	auto moveMouse = [&](sf::Vector2i point) {
+		if (window.rOnMouseMoved != Qnil) {
+			VALUE args[2] = { INT2NUM(point.x), INT2NUM(point.y) };
+			rb_funcall2(window.rOnMouseMoved, rbCall, 2, args);
+		}
+	};
+	auto sendLeftButton = [&](VALUE handler) {
+		if (handler != Qnil) {
+			VALUE arg = ULONG2NUM(sf::Mouse::Left);
+			rb_funcall2(handler, rbCall, 1, &arg);
+		}
+	};
+	bool mousePressedThisPass = false;
+	if (mousePressWaits) {
+		mousePressWaits = false;
+		sendLeftButton(window.rOnMouseButtonPressed);
+		mousePressedThisPass = true;
+	} else if (mouseReleaseWaits) {
+		mouseReleaseWaits = false;
+		sendLeftButton(window.rOnMouseButtonRelease);
+	}
 
 	while (popEvent(event))
 	{
@@ -241,6 +273,10 @@ void DisplayWindowInput::updateProcessEvent(VALUE self, DisplayWindowUpdateMessa
 						INT2NUM(point.y)
 					};
 					rb_funcall2(window.rOnTouchBegan, rbCall, 3, args);
+				} else if (window.rOnTouchBegan == Qnil && touchReachesTheGame() && mouseFinger < 0) {
+					mouseFinger = event.touch.finger;
+					moveMouse(touchInsideThePicture(window->getSettings(), event.touch.x, event.touch.y));
+					mousePressWaits = true;
 				}
 				break;
 			case sf::Event::EventType::TouchMoved:
@@ -252,6 +288,8 @@ void DisplayWindowInput::updateProcessEvent(VALUE self, DisplayWindowUpdateMessa
 						INT2NUM(point.y)
 					};
 					rb_funcall2(window.rOnTouchMoved, rbCall, 3, args);
+				} else if (static_cast<long>(event.touch.finger) == mouseFinger) {
+					moveMouse(touchInsideThePicture(window->getSettings(), event.touch.x, event.touch.y));
 				}
 				break;
 			case sf::Event::EventType::TouchEnded:
@@ -263,6 +301,13 @@ void DisplayWindowInput::updateProcessEvent(VALUE self, DisplayWindowUpdateMessa
 						INT2NUM(point.y)
 					};
 					rb_funcall2(window.rOnTouchEnded, rbCall, 3, args);
+				} else if (static_cast<long>(event.touch.finger) == mouseFinger) {
+					mouseFinger = -1;
+					if (mousePressWaits || mousePressedThisPass) {
+						mouseReleaseWaits = true;
+					} else {
+						sendLeftButton(window.rOnMouseButtonRelease);
+					}
 				}
 				break;
 			case sf::Event::SensorChanged:
