@@ -2,12 +2,28 @@
 #include "RubyValue.h"
 #include "DisplayWindowConfigLoader.h"
 
-// mkxp-ios: a host app draws the picture in part of its window, and it
+#include <atomic>
+
+// apple-mobile: a host app draws the picture in part of its window, and it
 // needs the game's own resolution to keep the proportions. The game
-// gives that resolution to DisplayWindow.new and to set_settings, and
-// both calls come through here. The host app defines the function. A
-// build without one links, because the symbol is weak.
-extern "C" __attribute__((weak)) void psdk_game_resolution(long width, long height);
+// gives that resolution to DisplayWindow.new, set_settings and
+// resize_screen, and each call reports it here.
+namespace {
+	std::atomic<void (*)(long, long, void*)> resolutionCallback { nullptr };
+	std::atomic<void*> resolutionUserdata { nullptr };
+}
+
+extern "C" void litergss_set_resolution_callback(void (*callback)(long width, long height, void* userdata), void* userdata) {
+	resolutionUserdata.store(userdata, std::memory_order_release);
+	resolutionCallback.store(callback, std::memory_order_release);
+}
+
+void ReportGameResolution(long width, long height) {
+	auto callback = resolutionCallback.load(std::memory_order_acquire);
+	if (callback && width > 0 && height > 0) {
+		callback(width, height, resolutionUserdata.load(std::memory_order_acquire));
+	}
+}
 
 cgss::DisplayWindowVideoSettings DisplayWindowConfigLoader::loadVideoFromData(long width, long height, double scale, long bitsPerPixel) const {
 	/* Adjust min width (this hardcoded value is not handled in LiteCGSS) */
@@ -20,9 +36,7 @@ cgss::DisplayWindowVideoSettings DisplayWindowConfigLoader::loadVideoFromData(lo
 		height = 144;
 	}
 
-	if (psdk_game_resolution && width > 0 && height > 0) {
-		psdk_game_resolution(width, height);
-	}
+	ReportGameResolution(width, height);
 
 	return { bitsPerPixel, width, height, scale };
 }

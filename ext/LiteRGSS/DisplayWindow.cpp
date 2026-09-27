@@ -48,12 +48,11 @@ void rb::Mark<DisplayWindowElement>(void* ptr) {
 	rb_gc_mark(window->rOnSensorChanged);
 }
 
-// mkxp-ios: a host app owns the smooth switch, because Ruby never sets
-// this field. A texture reads the flag when the game creates it, so a new
-// value only reaches the whole game on the next start. The host app
-// defines the function. A build without one links, because the symbol is
-// weak, and keeps the sharp picture.
-extern "C" __attribute__((weak)) int psdk_smooth_scaling_enabled(void);
+// apple-mobile: a host app owns the smooth switch, because Ruby never sets
+// this field. The SFML fork keeps it, and a texture reads it when the
+// game creates the texture, so a new value only reaches the whole game
+// on the next start.
+extern "C" int sfml_default_smooth();
 
 static cgss::DisplayWindowSettings BuildSettings(int argc, VALUE* argv, VALUE self) {
 	VALUE title, width, height, scale, bitsPerPixel, framerate, vsync, fullscreen, visibleMouse;
@@ -80,7 +79,7 @@ static cgss::DisplayWindowSettings BuildSettings(int argc, VALUE* argv, VALUE se
 		false,
 		std::move(videoSettings),
 		std::move(contextSettings),
-		psdk_smooth_scaling_enabled ? psdk_smooth_scaling_enabled() != 0 : false,
+		sfml_default_smooth() != 0,
 		sf::String::fromUtf8(titleStr.begin(), titleStr.end()),
 		static_cast<unsigned int>(rb_num2long(framerate)),
 		RTEST(vsync),
@@ -230,18 +229,13 @@ static VALUE rb_DisplayWindow_setShader(VALUE self, VALUE shader) {
 	return self;
 }
 
-// mkxp-ios: see DisplayWindowConfigLoader.cpp. This path skips the
-// config loader, so it reports the new resolution itself.
-extern "C" __attribute__((weak)) void psdk_game_resolution(long width, long height);
-
 static VALUE rb_DisplayWindow_resize_screen(VALUE self, VALUE width, VALUE height) {
 	const int iwidth = NUM2INT(width);
 	const int iheight = NUM2INT(height);
 	auto& window = rb::Get<DisplayWindowElement>(self);
 	window->resizeScreen(iwidth, iheight);
-	if (psdk_game_resolution && iwidth > 0 && iheight > 0) {
-		psdk_game_resolution(iwidth, iheight);
-	}
+	// This path skips the config loader, so it reports the resolution itself.
+	ReportGameResolution(iwidth, iheight);
 	return self;
 }
 

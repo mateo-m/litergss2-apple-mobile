@@ -346,8 +346,10 @@ VALUE rb_Table_CopyModulo(VALUE self, VALUE source, VALUE source_origin_x, VALUE
 		target_y = table.header.ysize;
 	}
 
-	long n = (target_y - offsety - src_ysize + oy2) / src_ysize;
-	long m = (target_x - offsetx - src_xsize + ox2) / src_xsize;
+	// Signed on purpose. When the source is larger than the target, the
+	// numerator is negative, and in size_t it wraps to a huge count.
+	long n = (static_cast<long>(target_y) - offsety - static_cast<long>(src_ysize) + oy2) / static_cast<long>(src_ysize);
+	long m = (static_cast<long>(target_x) - offsetx - static_cast<long>(src_xsize) + ox2) / static_cast<long>(src_xsize);
 	if (n < 0) {
 		n = 0;
 	}

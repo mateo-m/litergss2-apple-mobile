@@ -6,20 +6,32 @@
 #include "rbAdapter.h"
 #include "DisplayWindow.h"
 #include <SFML/Window/VideoMode.hpp>
+#include <atomic>
 
 extern VALUE rb_eStoppedWindowError;
 extern VALUE rb_eClosedWindow;
 
-// mkxp-ios: a host app draws the game in part of its window, and it lets
-// the player turn touch input off. The host app defines these functions.
-// A build without one links, because the symbols are weak, and then the
-// game gets every touch with the raw window coordinates.
-extern "C" __attribute__((weak)) int psdk_picture_rect_pixels(int* x, int* y, int* width, int* height);
-extern "C" __attribute__((weak)) int psdk_touch_mouse_enabled(void);
+// apple-mobile: the SFML fork draws the picture in the part of the window
+// that a host app gives it with sfml_set_output_region.
+extern "C" void sfml_get_output_region(float* x, float* y, float* width, float* height);
+extern "C" void sfml_window_pixel_size(unsigned int* width, unsigned int* height);
 
 namespace {
+	// apple-mobile: a host app lets the player turn touch input off.
+	std::atomic<bool> touchEnabled { true };
+
+	// apple-mobile: a game that sets no touch handler reads only the mouse.
+	// The first finger then moves the mouse and holds its left button.
+	long mouseFinger = -1;
+	// PSDK scenes skip a click in a frame where the mouse also moved (see
+	// Scene_Title#update_mouse). So the press waits one pass over the event
+	// queue after the move, and the release waits one pass after the press.
+	// The game reads Mouse between two passes.
+	bool mousePressWaits = false;
+	bool mouseReleaseWaits = false;
+
 	bool touchReachesTheGame() {
-		return !psdk_touch_mouse_enabled || psdk_touch_mouse_enabled() != 0;
+		return touchEnabled.load(std::memory_order_relaxed);
 	}
 
 	// PSDK's Mouse module divides the coordinate an event carries. It
@@ -29,15 +41,21 @@ namespace {
 	// point inside the picture goes out multiplied by the same number.
 	// Then Mouse lands on the game pixel under the finger.
 	sf::Vector2i touchInsideThePicture(const cgss::DisplayWindowSettings& settings, int x, int y) {
-		int rectX = 0;
-		int rectY = 0;
-		int rectWidth = 0;
-		int rectHeight = 0;
-		if (!psdk_picture_rect_pixels || !psdk_picture_rect_pixels(&rectX, &rectY, &rectWidth, &rectHeight)) {
+		unsigned int windowWidth = 0;
+		unsigned int windowHeight = 0;
+		sfml_window_pixel_size(&windowWidth, &windowHeight);
+		float regionX = 0;
+		float regionY = 0;
+		float regionWidth = 0;
+		float regionHeight = 0;
+		sfml_get_output_region(&regionX, &regionY, &regionWidth, &regionHeight);
+		const double rectWidth = regionWidth * windowWidth;
+		const double rectHeight = regionHeight * windowHeight;
+		if (rectWidth <= 0 || rectHeight <= 0) {
 			return { x, y };
 		}
-		const double partX = static_cast<double>(x - rectX) / rectWidth;
-		const double partY = static_cast<double>(y - rectY) / rectHeight;
+		const double partX = (x - regionX * windowWidth) / rectWidth;
+		const double partY = (y - regionY * windowHeight) / rectHeight;
 		if (settings.fullscreen) {
 			const auto desktop = sf::VideoMode::getDesktopMode();
 			return {
@@ -51,6 +69,10 @@ namespace {
 			static_cast<int>(partY * settings.video.height * settings.video.scale)
 		};
 	}
+}
+
+extern "C" void litergss_set_touch_enabled(int enabled) {
+	touchEnabled.store(enabled != 0, std::memory_order_relaxed);
 }
 
 void DisplayWindowInput::manageErrorMessage(VALUE self, const DisplayWindowUpdateMessage& message) {
@@ -67,6 +89,28 @@ void DisplayWindowInput::updateProcessEvent(VALUE self, DisplayWindowUpdateMessa
 	sf::Event event;
 	auto& window = rb::Get<DisplayWindowElement>(self);
 	ID rbCall = rb_intern("call");
+
+	auto moveMouse = [&](sf::Vector2i point) {
+		if (window.rOnMouseMoved != Qnil) {
+			VALUE args[2] = { INT2NUM(point.x), INT2NUM(point.y) };
+			rb_funcall2(window.rOnMouseMoved, rbCall, 2, args);
+		}
+	};
+	auto sendLeftButton = [&](VALUE handler) {
+		if (handler != Qnil) {
+			VALUE arg = ULONG2NUM(sf::Mouse::Left);
+			rb_funcall2(handler, rbCall, 1, &arg);
+		}
+	};
+	bool mousePressedThisPass = false;
+	if (mousePressWaits) {
+		mousePressWaits = false;
+		sendLeftButton(window.rOnMouseButtonPressed);
+		mousePressedThisPass = true;
+	} else if (mouseReleaseWaits) {
+		mouseReleaseWaits = false;
+		sendLeftButton(window.rOnMouseButtonRelease);
+	}
 
 	while (popEvent(event))
 	{
@@ -229,6 +273,10 @@ void DisplayWindowInput::updateProcessEvent(VALUE self, DisplayWindowUpdateMessa
 						INT2NUM(point.y)
 					};
 					rb_funcall2(window.rOnTouchBegan, rbCall, 3, args);
+				} else if (window.rOnTouchBegan == Qnil && touchReachesTheGame() && mouseFinger < 0) {
+					mouseFinger = event.touch.finger;
+					moveMouse(touchInsideThePicture(window->getSettings(), event.touch.x, event.touch.y));
+					mousePressWaits = true;
 				}
 				break;
 			case sf::Event::EventType::TouchMoved:
@@ -240,6 +288,8 @@ void DisplayWindowInput::updateProcessEvent(VALUE self, DisplayWindowUpdateMessa
 						INT2NUM(point.y)
 					};
 					rb_funcall2(window.rOnTouchMoved, rbCall, 3, args);
+				} else if (static_cast<long>(event.touch.finger) == mouseFinger) {
+					moveMouse(touchInsideThePicture(window->getSettings(), event.touch.x, event.touch.y));
 				}
 				break;
 			case sf::Event::EventType::TouchEnded:
@@ -251,6 +301,13 @@ void DisplayWindowInput::updateProcessEvent(VALUE self, DisplayWindowUpdateMessa
 						INT2NUM(point.y)
 					};
 					rb_funcall2(window.rOnTouchEnded, rbCall, 3, args);
+				} else if (static_cast<long>(event.touch.finger) == mouseFinger) {
+					mouseFinger = -1;
+					if (mousePressWaits || mousePressedThisPass) {
+						mouseReleaseWaits = true;
+					} else {
+						sendLeftButton(window.rOnMouseButtonRelease);
+					}
 				}
 				break;
 			case sf::Event::SensorChanged:
