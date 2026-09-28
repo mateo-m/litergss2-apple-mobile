@@ -1,3 +1,4 @@
+#include <LiteCGSS/Common/NormalizeNumbers.h>
 #include "LiteRGSS.h"
 #include "SpriteMap.h"
 
@@ -177,6 +178,20 @@ VALUE rb_SpriteMap_TileScaleSet(VALUE self, VALUE val) {
 	return self;
 }
 
+// apple-mobile: Project Renaissance fades single map tiles, and its own
+// LiteRGSS build has these two methods. SpriteMap::setTileOpacity comes
+// from patches/litecgss/tile-opacity.patch in psdk-apple-mobile.
+VALUE rb_SpriteMap_SetTileOpacity(VALUE self, VALUE index, VALUE opacity) {
+	auto& spriteMap = rb::Get<SpriteMapElement>(self);
+	spriteMap->setTileOpacity(NUM2ULONG(index), cgss::normalize_long(rb_num2long(opacity), 0, 255));
+	return self;
+}
+
+VALUE rb_SpriteMap_TileOpacity(VALUE self, VALUE index) {
+	auto& spriteMap = rb::Get<SpriteMapElement>(self);
+	return INT2FIX(spriteMap->getTileOpacity(NUM2ULONG(index)));
+}
+
 VALUE rb_SpriteMap_index(VALUE self) {
 	auto& spriteMap = rb::Get<SpriteMapElement>(self);
 	return LONG2NUM(spriteMap->getZ().index);
@@ -212,6 +227,8 @@ void Init_SpriteMap() {
 	rb_define_method(rb_cSpriteMap, "reset", _rbf rb_SpriteMap_Reset, 0);
 	rb_define_method(rb_cSpriteMap, "set", _rbf rb_SpriteMap_Set, -1);
 	rb_define_method(rb_cSpriteMap, "set_rect", _rbf rb_SpriteMap_SetRect, -1);
+	rb_define_method(rb_cSpriteMap, "set_tile_opacity", _rbf rb_SpriteMap_SetTileOpacity, 2);
+	rb_define_method(rb_cSpriteMap, "tile_opacity", _rbf rb_SpriteMap_TileOpacity, 1);
 	rb_define_method(rb_cSpriteMap, "__index__", _rbf rb_SpriteMap_index, 0);
 
 	rb_define_method(rb_cSprite, "clone", _rbf rb_SpriteMap_Copy, 0);
